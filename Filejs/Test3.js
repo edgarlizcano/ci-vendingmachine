@@ -1,6 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var stdin = process.openStdin();
+var ci_logmodule_1 = __importDefault(require("@ci24/ci-logmodule"));
 /*let folderLogs = "/free/CI24/Logs/Machine/";
 let data = {
     "pathFolder": folderLogs,
@@ -11,13 +15,10 @@ let data = {
 };
 
 _log.init(data);*/
-var ci_syslogs_1 = require("ci-syslogs");
-var Log = new ci_syslogs_1.Logger("0.0.0.0", ci_syslogs_1.Logger.Facilities.Machine);
 var main_1 = require("./main");
 var Machine = new main_1.Main();
-Log.LogInfo("Ingrese la ubicacion que desea vender");
-// _log.debug("Ingrese la ubicacion que desea vender");
-// _log.write("Ingrese la ubicacion que desea vender");
+ci_logmodule_1.default.debug("Ingrese la ubicacion que desea vender");
+ci_logmodule_1.default.write("Ingrese la ubicacion que desea vender");
 stdin.addListener("data", function (d) {
     // note:  d is an object, and when converted to a string it will
     // end with a linefeed.  so we (rather crudely) account for that
@@ -25,156 +26,134 @@ stdin.addListener("data", function (d) {
     var cmd = d.toString().trim();
     //_log.debug("entro");
     Machine.on('Event', function (data) {
-        Log.LogDebug(JSON.stringify(data));
-        //console.log(JSON.stringify(data));
+        console.log(JSON.stringify(data));
     });
     console.log("you entered: [" + cmd + "]");
     switch (cmd) {
         case 'a1':
         case 'A1':
             Machine.Sale('a1', function (res, resp) {
-                Log.LogDebug('A1 time pin');
-                //console.log('A1 time pin');
+                console.log('A1 time pin');
             });
             break;
         case 'c12':
         case 'C12':
             Machine.Sale('c12', function (res, resp) {
-                Log.LogDebug('c12 time pin');
-                //console.log('A1 time pin');
+                console.log('A1 time pin');
             });
             break;
         case 'b12':
         case 'B12':
             Machine.Sale('b12', function (res, resp) {
-                Log.LogDebug('b12 time pin');
-                //console.log('A1 time pin');
+                console.log('A1 time pin');
             });
             break;
         case 'b34':
         case 'B34':
             Machine.Sale('b34', function (res, resp) {
-                Log.LogDebug('b34 time pin');
-                //console.log('A1 time pin');
+                console.log('A1 time pin');
             });
             break;
         case 'b56':
         case 'B56':
             Machine.Sale('b56', function (res, resp) {
-                Log.LogDebug('b56 time pin');
-                //console.log('A1 time pin');
+                console.log('A1 time pin');
             });
             break;
         case 'c34':
         case 'C34':
             Machine.Sale('c34', function (res, resp) {
-                Log.LogDebug('c34 time pin');
-                //console.log('A1 time pin');
+                console.log('A1 time pin');
             });
             break;
         case 'c56':
         case 'C56':
             Machine.Sale('c56', function (res, resp) {
-                Log.LogDebug('c56 time pin');
-                //console.log('A1 time pin');
+                console.log('A1 time pin');
             });
             break;
         case 'c78':
         case 'C78':
             Machine.Sale('c78', function (res, resp) {
-                Log.LogDebug('c78 time pin');
-                //console.log('A1 time pin');
+                console.log('A1 time pin');
             });
             break;
         case 'c90':
         case 'C90':
             Machine.Sale('c90', function (res, resp) {
-                Log.LogDebug('c90 time pin');
-                //console.log('A1 time pin');
+                console.log('A1 time pin');
             });
             break;
         case 'd12':
         case 'D12':
             Machine.Sale('d12', function (res, resp) {
-                Log.LogDebug('d12 time pin');
-                //console.log('A1 time pin');
+                console.log('A1 time pin');
             });
             break;
         case 'd34':
         case 'D34':
             Machine.Sale('d34', function (res, resp) {
-                Log.LogDebug('d34 time pin');
-                //console.log('A1 time pin');
+                console.log('A1 time pin');
             });
             break;
         case 'd56':
         case 'D56':
             Machine.Sale('d56', function (res, resp) {
-                Log.LogDebug('d56 time pin');
-                //console.log('A1 time pin');
+                console.log('A1 time pin');
             });
             break;
         case 'd78':
         case 'D78':
             Machine.Sale('d78', function (res, resp) {
-                Log.LogDebug('d78 time pin');
-                //console.log('A1 time pin');
+                console.log('A1 time pin');
             });
             break;
         case 'd90':
         case 'D90':
             Machine.Sale('d90', function (res, resp) {
-                Log.LogDebug('d90 time pin');
                 console.log('d90 time pin');
             });
             break;
         case 'f34':
         case 'F34':
             Machine.Sale('f34', function (res, resp) {
-                Log.LogDebug('f34 time pin');
-                //console.log('f34 time pin');
+                console.log('f34 time pin');
             });
             break;
         case 'f12':
         case 'F12':
             Machine.Sale('f12', function (res, resp) {
-                Log.LogDebug('f12 time pin');
-                //console.log('f34 time pin');
+                console.log('f34 time pin');
             });
             break;
         case 'f56':
         case 'F56':
             Machine.Sale('f56', function (res, resp) {
-                Log.LogDebug('f56 time pin');
-                //console.log('f56 time pin');
+                console.log('f56 time pin');
             });
             break;
         case 'f78':
         case 'F78':
             Machine.Sale('f78', function (res, resp) {
-                Log.LogDebug('f78 time pin');
-                //console.log('f78 time pin');
+                console.log('f78 time pin');
             });
             break;
         case 'f90':
         case 'F90':
             Machine.Sale('f90', function (res, resp) {
-                Log.LogDebug('f90 time pin');
-                //console.log('f90 time pin');
+                console.log('f90 time pin');
             });
             break;
         case 'e34':
         case 'E34':
             Machine.Sale('e34', function (res, resp) {
-                Log.LogDebug('e34 time pin');
-                //console.log('e34 time pin');
+                console.log('e34 time pin');
             });
             break;
         case 'e12':
         case 'E12':
             Machine.Sale('e12', function (res, resp) {
-                Log.LogDebug('e12 time pin');
-                //console.log('e34 time pin');
+                console.log('e34 time pin');
             });
             break;
         case 'e56':

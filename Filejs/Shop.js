@@ -13,14 +13,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-//import global.logger from '@ci24/ci-logmodule';
+//import _log from '@ci24/ci-logmodule';
 var Global_1 = __importDefault(require("./Global"));
 var events_1 = __importDefault(require("events"));
 var Output_1 = require("./Output");
 var Input_1 = require("./Input");
 var async_1 = __importDefault(require("async"));
+var ci_logmodule_1 = __importDefault(require("@ci24/ci-logmodule"));
 //let folderLogs = "/free/CI24/Logs/Machine/";
-//global.logger.init(folderLogs);
+//_log.init(folderLogs);
 var out1 = new Output_1.Output();
 var Shop = /** @class */ (function (_super) {
     __extends(Shop, _super);
@@ -39,41 +40,41 @@ var Shop = /** @class */ (function (_super) {
         _this.Is_emit_event = false;
         _this.ProcessEnv = function (Pin) {
             try {
-                Global_1.default.logger.debug('Sensor   ' + Pin + '  activo' + '  estado de la maquina :   ' + _this.Principal.state_Machine);
+                ci_logmodule_1.default.debug('Sensor   ' + Pin + '  activo' + '  estado de la maquina :   ' + _this.Principal.state_Machine);
                 switch (Pin) {
                     case 'S1':
                         if (_this.Is_pin === 'A' || _this.Is_pin === 'a') {
                             if (_this.Principal.state_Machine == Global_1.default.State_Machine.Dispensing_product) {
                                 _this.Principal.Is_init_location = false;
                                 _this.Sale_column_low(_this.Is_Location, function (err) {
-                                    Global_1.default.logger.write('Apagaaa' + _this.Is_Location);
+                                    ci_logmodule_1.default.write('Apagaaa' + _this.Is_Location);
                                 });
                                 _this.Ubicacion('2', function (err) {
-                                    Global_1.default.logger.write('Enviando a ubicacion ' + _this.Is_Location);
+                                    ci_logmodule_1.default.write('Enviando a ubicacion ' + _this.Is_Location);
                                 });
                             }
                             else if (_this.Principal.state_Machine == Global_1.default.State_Machine.Go_to_finish_location) {
-                                Global_1.default.logger.error('dirigiendose a pocisión de dispensar');
+                                ci_logmodule_1.default.error('dirigiendose a pocisión de dispensar');
                             }
                             else if (_this.Principal.state_Machine == Global_1.default.State_Machine.Go_to_level) {
                                 _this.Out1.motoroff(function (err) {
                                     if (err == null) {
                                         _this.Principal.Is_init_location = false;
-                                        Global_1.default.logger.write('Elevador apagado pagado ');
+                                        ci_logmodule_1.default.write('Elevador apagado pagado ');
                                         _this.preparing_to_dispense(function (err) {
                                             if (err == null) {
-                                                Global_1.default.logger.write('motor preparado para dispensar');
+                                                ci_logmodule_1.default.write('motor preparado para dispensar');
                                                 if (_this.Principal.state_Machine != Global_1.default.State_Machine.Dispensing_product) {
                                                     _this.Principal.state_Machine = Global_1.default.State_Machine.In_level;
                                                 }
                                             }
                                             else {
-                                                Global_1.default.logger.error(err);
+                                                ci_logmodule_1.default.error(err);
                                             }
                                         });
                                     }
                                     else {
-                                        Global_1.default.logger.error('No fue posible detner motor');
+                                        ci_logmodule_1.default.error('No fue posible detner motor');
                                     }
                                 });
                             }
@@ -81,13 +82,13 @@ var Shop = /** @class */ (function (_super) {
                                 _this.Out1.motoroff(function (err) {
                                     if (err == null) {
                                         _this.Principal.Is_init_location = false;
-                                        Global_1.default.logger.error('Elevador apagado pagado por sensor 1 ');
+                                        ci_logmodule_1.default.error('Elevador apagado pagado por sensor 1 ');
                                         _this.Ubicacion('4', function (err) {
-                                            Global_1.default.logger.error('Enviando a ubicacion inical ' + _this.Is_Location + err);
+                                            ci_logmodule_1.default.error('Enviando a ubicacion inical ' + _this.Is_Location + err);
                                         });
                                     }
                                     else {
-                                        Global_1.default.logger.error('No fue posible detner motor');
+                                        ci_logmodule_1.default.error('No fue posible detner motor');
                                     }
                                 });
                             }
@@ -96,10 +97,10 @@ var Shop = /** @class */ (function (_super) {
                             _this.Out1.motoroff(function (err) {
                                 if (err == null) {
                                     _this.Principal.Is_init_location = false;
-                                    Global_1.default.logger.error('Elevador apagado pagado por sensor 1');
+                                    ci_logmodule_1.default.error('Elevador apagado pagado por sensor 1');
                                 }
                                 else {
-                                    Global_1.default.logger.error('No fue posible detner motor');
+                                    ci_logmodule_1.default.error('No fue posible detner motor');
                                 }
                             });
                         }
@@ -110,35 +111,35 @@ var Shop = /** @class */ (function (_super) {
                                 _this.Principal.Is_init_location = false;
                                 _this.Out1.motoroff(function (err) {
                                     if (err == null) {
-                                        Global_1.default.logger.write('Elevador apagado pagado ');
+                                        ci_logmodule_1.default.write('Elevador apagado pagado ');
                                         _this.preparing_to_dispense(function (err) {
                                             if (err == null) {
-                                                Global_1.default.logger.write('motor preparado para dispensar');
+                                                ci_logmodule_1.default.write('motor preparado para dispensar');
                                                 if (_this.Principal.state_Machine != Global_1.default.State_Machine.Dispensing_product) {
                                                     _this.Principal.state_Machine = Global_1.default.State_Machine.In_level;
                                                 }
                                             }
                                             else {
-                                                Global_1.default.logger.error(err);
+                                                ci_logmodule_1.default.error(err);
                                             }
                                         });
                                     }
                                     else {
-                                        Global_1.default.logger.error('No fue posible detner motor');
+                                        ci_logmodule_1.default.error('No fue posible detner motor');
                                     }
                                 });
                             }
                             else if (_this.Principal.state_Machine == Global_1.default.State_Machine.Dispensing_product) {
                                 _this.Principal.Is_init_location = false;
                                 _this.Sale_column_low(_this.Is_Location, function (err) {
-                                    Global_1.default.logger.write('Apagaaa' + _this.Is_Location);
+                                    ci_logmodule_1.default.write('Apagaaa' + _this.Is_Location);
                                 });
                                 _this.Ubicacion('2', function (err) {
-                                    Global_1.default.logger.write('Enviando a ubicacion ' + _this.Is_Location);
+                                    ci_logmodule_1.default.write('Enviando a ubicacion ' + _this.Is_Location);
                                 });
                             }
                             else if (_this.Principal.state_Machine == Global_1.default.State_Machine.No_task) {
-                                Global_1.default.logger.warning('Sensor 2 activado sin  tarea');
+                                ci_logmodule_1.default.warning('Sensor 2 activado sin  tarea');
                                 _this.Principal.Is_init_location = false;
                             }
                         }
@@ -149,36 +150,36 @@ var Shop = /** @class */ (function (_super) {
                                 _this.Principal.Is_init_location = false;
                                 _this.Out1.motoroff(function (err) {
                                     if (err == null) {
-                                        Global_1.default.logger.write('Elevador apagado pagado ');
+                                        ci_logmodule_1.default.write('Elevador apagado pagado ');
                                         _this.preparing_to_dispense(function (err) {
                                             if (err == null) {
-                                                Global_1.default.logger.write('motor preparado para dispensar');
+                                                ci_logmodule_1.default.write('motor preparado para dispensar');
                                                 if (_this.Principal.state_Machine != Global_1.default.State_Machine.Dispensing_product) {
                                                     _this.Principal.state_Machine = Global_1.default.State_Machine.In_level;
                                                 }
-                                                Global_1.default.logger.write('esta en niveeeeeeellllllll' + _this.Principal.state_Machine);
+                                                ci_logmodule_1.default.write('esta en niveeeeeeellllllll' + _this.Principal.state_Machine);
                                             }
                                             else {
-                                                Global_1.default.logger.error(err);
+                                                ci_logmodule_1.default.error(err);
                                             }
                                         });
                                     }
                                     else {
-                                        Global_1.default.logger.error('No fue posible detner motor');
+                                        ci_logmodule_1.default.error('No fue posible detner motor');
                                     }
                                 });
                             }
                             else if (_this.Principal.state_Machine == Global_1.default.State_Machine.Dispensing_product) {
                                 _this.Principal.Is_init_location = false;
                                 _this.Sale_column_low(_this.Is_Location, function (err) {
-                                    Global_1.default.logger.write('Apagaaa' + _this.Is_Location + err);
+                                    ci_logmodule_1.default.write('Apagaaa' + _this.Is_Location + err);
                                 });
                                 _this.Ubicacion('2', function (err) {
-                                    Global_1.default.logger.write('Enviando a ubicacion ' + _this.Is_Location);
+                                    ci_logmodule_1.default.write('Enviando a ubicacion ' + _this.Is_Location);
                                 });
                             }
                             else if (_this.Principal.state_Machine == Global_1.default.State_Machine.No_task) {
-                                Global_1.default.logger.warning('Sensor 3 activado sin  tarea');
+                                ci_logmodule_1.default.warning('Sensor 3 activado sin  tarea');
                                 _this.Principal.Is_init_location = false;
                             }
                         }
@@ -189,35 +190,35 @@ var Shop = /** @class */ (function (_super) {
                                 _this.Principal.Is_init_location = false;
                                 _this.Out1.motoroff(function (err) {
                                     if (err == null) {
-                                        Global_1.default.logger.write('Elevador apagado pagado ');
+                                        ci_logmodule_1.default.write('Elevador apagado pagado ');
                                         _this.preparing_to_dispense(function (err) {
                                             if (err == null) {
-                                                Global_1.default.logger.write('motor preparado para dispensar');
+                                                ci_logmodule_1.default.write('motor preparado para dispensar');
                                                 if (_this.Principal.state_Machine != Global_1.default.State_Machine.Dispensing_product) {
                                                     _this.Principal.state_Machine = Global_1.default.State_Machine.In_level;
                                                 }
                                             }
                                             else {
-                                                Global_1.default.logger.error(err);
+                                                ci_logmodule_1.default.error(err);
                                             }
                                         });
                                     }
                                     else {
-                                        Global_1.default.logger.error('No fue posible detner motor');
+                                        ci_logmodule_1.default.error('No fue posible detner motor');
                                     }
                                 });
                             }
                             else if (_this.Principal.state_Machine == Global_1.default.State_Machine.Dispensing_product) {
                                 _this.Principal.Is_init_location = false;
                                 _this.Sale_column_low(_this.Is_Location, function (err) {
-                                    Global_1.default.logger.write('Apagaaa' + _this.Is_Location);
+                                    ci_logmodule_1.default.write('Apagaaa' + _this.Is_Location);
                                     _this.Ubicacion('2', function (err) {
-                                        Global_1.default.logger.write('Enviando a ubicacion ' + _this.Is_Location);
+                                        ci_logmodule_1.default.write('Enviando a ubicacion ' + _this.Is_Location);
                                     });
                                 });
                             }
                             else if (_this.Principal.state_Machine == Global_1.default.State_Machine.No_task) {
-                                Global_1.default.logger.warning('Sensor 4 activado sin  tarea');
+                                ci_logmodule_1.default.warning('Sensor 4 activado sin  tarea');
                                 _this.Principal.Is_init_location = false;
                             }
                         }
@@ -228,35 +229,35 @@ var Shop = /** @class */ (function (_super) {
                                 _this.Principal.Is_init_location = false;
                                 _this.Out1.motoroff(function (err) {
                                     if (err == null) {
-                                        Global_1.default.logger.write('Elevador apagado pagado ');
+                                        ci_logmodule_1.default.write('Elevador apagado pagado ');
                                         _this.preparing_to_dispense(function (err) {
                                             if (err == null) {
-                                                Global_1.default.logger.write('motor preparado para dispensar');
+                                                ci_logmodule_1.default.write('motor preparado para dispensar');
                                                 if (_this.Principal.state_Machine != Global_1.default.State_Machine.Dispensing_product) {
                                                     _this.Principal.state_Machine = Global_1.default.State_Machine.In_level;
                                                 }
                                             }
                                             else {
-                                                Global_1.default.logger.error(err);
+                                                ci_logmodule_1.default.error(err);
                                             }
                                         });
                                     }
                                     else {
-                                        Global_1.default.logger.error('No fue posible detner motor');
+                                        ci_logmodule_1.default.error('No fue posible detner motor');
                                     }
                                 });
                             }
                             else if (_this.Principal.state_Machine == Global_1.default.State_Machine.Dispensing_product) {
                                 _this.Principal.Is_init_location = false;
                                 _this.Sale_column_low(_this.Is_Location, function (err) {
-                                    Global_1.default.logger.write('Apagaaa' + _this.Is_Location);
+                                    ci_logmodule_1.default.write('Apagaaa' + _this.Is_Location);
                                 });
                                 _this.Ubicacion('2', function (err) {
-                                    Global_1.default.logger.write('Enviando a ubicacion ' + _this.Is_Location);
+                                    ci_logmodule_1.default.write('Enviando a ubicacion ' + _this.Is_Location);
                                 });
                             }
                             else if (_this.Principal.state_Machine == Global_1.default.State_Machine.No_task) {
-                                Global_1.default.logger.warning('Sensor 5 activado sin  tarea');
+                                ci_logmodule_1.default.warning('Sensor 5 activado sin  tarea');
                                 _this.Principal.Is_init_location = false;
                             }
                         }
@@ -267,36 +268,36 @@ var Shop = /** @class */ (function (_super) {
                                 _this.Principal.Is_init_location = false;
                                 _this.Out1.motoroff(function (err) {
                                     if (err == null) {
-                                        Global_1.default.logger.write('Elevador apagado pagado ');
+                                        ci_logmodule_1.default.write('Elevador apagado pagado ');
                                         _this.preparing_to_dispense(function (err) {
                                             if (err == null) {
                                                 if (_this.Principal.state_Machine != Global_1.default.State_Machine.Dispensing_product) {
                                                     _this.Principal.state_Machine = Global_1.default.State_Machine.In_level;
                                                 }
-                                                Global_1.default.logger.write('motor preparado para dispensar');
+                                                ci_logmodule_1.default.write('motor preparado para dispensar');
                                             }
                                             else {
-                                                Global_1.default.logger.error(err);
+                                                ci_logmodule_1.default.error(err);
                                             }
                                         });
                                     }
                                     else {
-                                        Global_1.default.logger.error('No fue posible detner motor');
+                                        ci_logmodule_1.default.error('No fue posible detner motor');
                                     }
                                 });
                             }
                             else if (_this.Principal.state_Machine == Global_1.default.State_Machine.Dispensing_product) {
-                                Global_1.default.logger.write('llega a dispensar producto');
+                                ci_logmodule_1.default.write('llega a dispensar producto');
                                 _this.Principal.Is_init_location = false;
                                 _this.Sale_column_low(_this.Is_Location, function (err) {
-                                    Global_1.default.logger.write('Apagaaa' + _this.Is_Location);
+                                    ci_logmodule_1.default.write('Apagaaa' + _this.Is_Location);
                                 });
                                 _this.Ubicacion('2', function (err) {
-                                    Global_1.default.logger.write('Enviando a ubicacion ' + _this.Is_Location + err);
+                                    ci_logmodule_1.default.write('Enviando a ubicacion ' + _this.Is_Location + err);
                                 });
                             }
                             else if (_this.Principal.state_Machine == Global_1.default.State_Machine.No_task) {
-                                Global_1.default.logger.warning('Sensor 6 activado sin  tarea');
+                                ci_logmodule_1.default.warning('Sensor 6 activado sin  tarea');
                                 _this.Principal.Is_init_location = false;
                             }
                         }
@@ -309,15 +310,15 @@ var Shop = /** @class */ (function (_super) {
                                     _this.preparing_to_receive(function (err) {
                                         if (err == null) {
                                             _this.Principal.state_Machine = Global_1.default.State_Machine.No_task;
-                                            Global_1.default.logger.write('Elevador apagado y en posición de entrega de producto' + err);
+                                            ci_logmodule_1.default.write('Elevador apagado y en posición de entrega de producto' + err);
                                         }
                                         else {
-                                            Global_1.default.logger.error('No fu posible detener el motor luego de preaparar para entregar');
+                                            ci_logmodule_1.default.error('No fu posible detener el motor luego de preaparar para entregar');
                                         }
                                     });
                                 }
                                 else {
-                                    Global_1.default.logger.error('No fue posible preparar para entregarr');
+                                    ci_logmodule_1.default.error('No fue posible preparar para entregarr');
                                 }
                             });
                         }
@@ -327,16 +328,16 @@ var Shop = /** @class */ (function (_super) {
                                 if (err == null) {
                                     _this.preparing_to_receive(function (err) {
                                         if (err == null) {
-                                            Global_1.default.logger.write('Elevador apagado pagado y en posición inicial ');
+                                            ci_logmodule_1.default.write('Elevador apagado pagado y en posición inicial ');
                                             _this.Principal.state_Machine = Global_1.default.State_Machine.Init_location;
                                         }
                                         else {
-                                            Global_1.default.logger.error('No fu posible detener el motor luego de preaparar para entregar');
+                                            ci_logmodule_1.default.error('No fu posible detener el motor luego de preaparar para entregar');
                                         }
                                     });
                                 }
                                 else {
-                                    Global_1.default.logger.error(Global_1.default.result.ERROR_STOP_lOCATION);
+                                    ci_logmodule_1.default.error(Global_1.default.result.ERROR_STOP_lOCATION);
                                 }
                             });
                         }
@@ -346,16 +347,16 @@ var Shop = /** @class */ (function (_super) {
                                 if (err == null) {
                                     _this.preparing_to_receive(function (err) {
                                         if (err == null) {
-                                            Global_1.default.logger.write('Elevador apagado pagado y en posición inicial despues de no dispensar ');
+                                            ci_logmodule_1.default.write('Elevador apagado pagado y en posición inicial despues de no dispensar ');
                                             _this.Principal.state_Machine = Global_1.default.State_Machine.No_task;
                                         }
                                         else {
-                                            Global_1.default.logger.error('No fu posible detener el motor luego de preaparar para entregar');
+                                            ci_logmodule_1.default.error('No fu posible detener el motor luego de preaparar para entregar');
                                         }
                                     });
                                 }
                                 else {
-                                    Global_1.default.logger.error(Global_1.default.result.ERROR_STOP_lOCATION);
+                                    ci_logmodule_1.default.error(Global_1.default.result.ERROR_STOP_lOCATION);
                                 }
                             });
                         }
@@ -367,7 +368,7 @@ var Shop = /** @class */ (function (_super) {
                 // }
             }
             catch (e) {
-                Global_1.default.logger.error(e.stack + 'Error al procesar evento');
+                ci_logmodule_1.default.error(e.stack + 'Error al procesar evento');
             }
         };
         _this.Sale = function (data, cb) {
@@ -425,7 +426,7 @@ var Shop = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Global_1.default.logger.error(JSON.stringify(Global_1.default.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };
@@ -484,7 +485,7 @@ var Shop = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Global_1.default.logger.error(JSON.stringify(Global_1.default.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };
@@ -495,7 +496,7 @@ var Shop = /** @class */ (function (_super) {
                         intervaldispensing = null;
                         clearInterval(intervaldispensing);
                         _this.Sale_column(_this.Is_Location, function (err) {
-                            Global_1.default.logger.write('activa venta' + _this.Is_Location);
+                            ci_logmodule_1.default.write('activa venta' + _this.Is_Location);
                             cb(err);
                         });
                     }
@@ -515,10 +516,10 @@ var Shop = /** @class */ (function (_super) {
                     intervalwait = null;
                     clearInterval(intervalwait);
                     _this.Sale_column_low(_this.Is_Location, function (err) {
-                        Global_1.default.logger.write('Apagaaa' + _this.Is_Location + err);
+                        ci_logmodule_1.default.write('Apagaaa' + _this.Is_Location + err);
                     });
                     _this.Ubicacion('3', function (err) {
-                        Global_1.default.logger.error('Enviando a ubicacion ' + _this.Is_Location + err);
+                        ci_logmodule_1.default.error('Enviando a ubicacion ' + _this.Is_Location + err);
                     });
                 }
             }, time_wait);
@@ -533,7 +534,7 @@ var Shop = /** @class */ (function (_super) {
             });
         };
         _this.init_product = function (data, cb) {
-            Global_1.default.logger.fatal('llama a intervalo para dispensar ');
+            ci_logmodule_1.default.fatal('llama a intervalo para dispensar ');
             var intervalproductend = setInterval(function () {
                 if (_this.Principal.state_Machine == Global_1.default.State_Machine.No_task) {
                     if (intervalproductend != null) {
@@ -566,21 +567,21 @@ var Shop = /** @class */ (function (_super) {
                 if (intervalwait != null) {
                     intervalwait = null;
                     clearInterval(intervalwait);
-                    Global_1.default.logger.fatal('tiempo excedido afuera ');
+                    ci_logmodule_1.default.fatal('tiempo excedido afuera ');
                     if (_this.Principal.state_Machine == Global_1.default.State_Machine.Go_to_level || _this.Principal.state_Machine == Global_1.default.State_Machine.Go_to_Init_location || _this.Principal.state_Machine == Global_1.default.State_Machine.Go_to_finish_location || _this.Principal.state_Machine == Global_1.default.State_Machine.Go_to_Init_location_ERROR) {
-                        Global_1.default.logger.fatal('tiempo excedido');
+                        ci_logmodule_1.default.fatal('tiempo excedido');
                         _this.Principal.Atasco();
                         _this.Principal.state_Machine = Global_1.default.State_Machine.atasco;
                         _this.Principal.Is_init_location = false;
                         _this.Out1.motoroff(function (err) {
                             if (err == null) {
-                                Global_1.default.logger.write('Elevador apagado por posible atasco');
+                                ci_logmodule_1.default.write('Elevador apagado por posible atasco');
                                 _this.Ubicacion('5', function (err) {
-                                    Global_1.default.logger.error('Enviando a ubicacion ' + _this.Is_Location + err);
+                                    ci_logmodule_1.default.error('Enviando a ubicacion ' + _this.Is_Location + err);
                                 });
                             }
                             else {
-                                Global_1.default.logger.error('no es posible detener elevador luego de atasco ');
+                                ci_logmodule_1.default.error('no es posible detener elevador luego de atasco ');
                             }
                         });
                     }
@@ -636,7 +637,7 @@ var Shop = /** @class */ (function (_super) {
                     intervalwait = null;
                     clearInterval(intervalwait);
                     if (_this.Principal.state_Machine == Global_1.default.State_Machine.Go_to_level || _this.Principal.state_Machine == Global_1.default.State_Machine.Go_to_Init_location || _this.Principal.state_Machine == Global_1.default.State_Machine.Go_to_finish_location || _this.Principal.state_Machine == Global_1.default.State_Machine.Go_to_Init_location_ERROR) {
-                        Global_1.default.logger.fatal('tiempo excedido');
+                        ci_logmodule_1.default.fatal('tiempo excedido');
                         _this.Principal.Atasco();
                         Global_1.default.number_atasco++;
                         _this.Principal.state_Machine = Global_1.default.State_Machine.atasco;
@@ -646,32 +647,32 @@ var Shop = /** @class */ (function (_super) {
                                 if (Global_1.default.number_atasco < 2) {
                                     _this.Out1.motorUP(function (err) {
                                         if (err == null) {
-                                            Global_1.default.logger.write('Elevador hacia arriba ' + err);
+                                            ci_logmodule_1.default.write('Elevador hacia arriba ' + err);
                                             setTimeout(function () {
                                                 _this.Ubicacion('5', function (err) {
-                                                    Global_1.default.logger.error('Enviando a ubicacion ' + _this.Is_Location + err);
+                                                    ci_logmodule_1.default.error('Enviando a ubicacion ' + _this.Is_Location + err);
                                                 });
                                             }, 1500);
                                         }
                                         else {
-                                            Global_1.default.logger.error(Global_1.default.result.ERROR_DISPENSING_LEVEL.text);
+                                            ci_logmodule_1.default.error(Global_1.default.result.ERROR_DISPENSING_LEVEL.text);
                                         }
                                     });
                                 }
                                 else {
                                     _this.Out1.motoroff(function (err) {
                                         if (err == null) {
-                                            Global_1.default.logger.error('elevador atascado ');
+                                            ci_logmodule_1.default.error('elevador atascado ');
                                         }
                                         else {
-                                            Global_1.default.logger.error('no es posible detener elevador luego de atasco ');
+                                            ci_logmodule_1.default.error('no es posible detener elevador luego de atasco ');
                                         }
                                     });
                                 }
-                                Global_1.default.logger.write('Elevador apagado por posible atasco');
+                                ci_logmodule_1.default.write('Elevador apagado por posible atasco');
                             }
                             else {
-                                Global_1.default.logger.error('no es posible detener elevador luego de atasco ');
+                                ci_logmodule_1.default.error('no es posible detener elevador luego de atasco ');
                             }
                         });
                     }
@@ -718,7 +719,7 @@ var Shop = /** @class */ (function (_super) {
             }
         };
         _this.empty = function (data, cb) {
-            Global_1.default.logger.debug('llega al interval');
+            ci_logmodule_1.default.debug('llega al interval');
             var cont = 0;
             setTimeout(function () {
                 var intervalempty = setInterval(function () {
@@ -749,7 +750,7 @@ var Shop = /** @class */ (function (_super) {
                 async_1.default.mapSeries(locations, function (Columna, cb1) {
                     var Loc = pin_1 + Columna;
                     _this.Out1.HIGH(Loc.toString(), function (err) {
-                        Global_1.default.logger.write('activa' + _this.Is_Location);
+                        ci_logmodule_1.default.write('activa' + _this.Is_Location);
                         cb1(err);
                     });
                 }, function (err) {
@@ -759,7 +760,7 @@ var Shop = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Global_1.default.logger.error(JSON.stringify(Global_1.default.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };
@@ -770,7 +771,7 @@ var Shop = /** @class */ (function (_super) {
             async_1.default.mapSeries(locations, function (Columna, cb1) {
                 var Loc = pin + Columna;
                 _this.Out1.LOW(Loc.toString(), function (err) {
-                    Global_1.default.logger.write('desactiva' + _this.Is_Location);
+                    ci_logmodule_1.default.write('desactiva' + _this.Is_Location);
                     cb1(err);
                 });
             }, function (err) {
@@ -781,7 +782,7 @@ var Shop = /** @class */ (function (_super) {
             // this.init_location;
             _this.Is_pin = pin;
             _this.Is_Location = location;
-            Global_1.default.logger.write('sales steps' + _this.Is_pin);
+            ci_logmodule_1.default.write('sales steps' + _this.Is_pin);
             async_1.default.series([
                 async_1.default.apply(_this.Input.initial_elevator_call, null),
                 async_1.default.apply(_this.Ubicacion, '1'),
@@ -791,16 +792,16 @@ var Shop = /** @class */ (function (_super) {
                 async_1.default.apply(_this.empty, null)
             ], function (err, result) {
                 if (err === null) {
-                    Global_1.default.logger.debug('proceso de venta completo');
+                    ci_logmodule_1.default.debug('proceso de venta completo');
                     cb(null, result);
                 }
                 else {
                     if (err.value == 6) {
                         cb(null);
-                        Global_1.default.logger.error('Se dispenso pero no se recogio el producto ' + JSON.stringify(err));
+                        ci_logmodule_1.default.error('Se dispenso pero no se recogio el producto ' + JSON.stringify(err));
                     }
                     else {
-                        Global_1.default.logger.fatal('no se completo el proceso ' + JSON.stringify(err));
+                        ci_logmodule_1.default.fatal('no se completo el proceso ' + JSON.stringify(err));
                         cb(err);
                     }
                 }
@@ -816,22 +817,22 @@ var Shop = /** @class */ (function (_super) {
             }
             _this.Out1.motorDown(function (err) {
                 if (err == null) {
-                    Global_1.default.logger.write('Elevador hacia abajo ' + err);
+                    ci_logmodule_1.default.write('Elevador hacia abajo ' + err);
                     setTimeout(function () {
                         _this.Out1.motoroff(function (err) {
                             if (err == null) {
-                                Global_1.default.logger.write('Elevador apagado y en posición de venta' + err);
+                                ci_logmodule_1.default.write('Elevador apagado y en posición de venta' + err);
                                 cb(null);
                             }
                             else {
-                                Global_1.default.logger.error(Global_1.default.result.ERROR_DISPENSING_LEVEL.text);
+                                ci_logmodule_1.default.error(Global_1.default.result.ERROR_DISPENSING_LEVEL.text);
                                 cb(Global_1.default.result.ERROR_DISPENSING_LEVEL);
                             }
                         });
                     }, time);
                 }
                 else {
-                    Global_1.default.logger.error(Global_1.default.result.ERROR_DISPENSING_LEVEL.text);
+                    ci_logmodule_1.default.error(Global_1.default.result.ERROR_DISPENSING_LEVEL.text);
                     cb(Global_1.default.result.ERROR_DISPENSING_LEVEL);
                 }
             });
@@ -840,22 +841,22 @@ var Shop = /** @class */ (function (_super) {
         _this.preparing_to_receive = function (cb) {
             _this.Out1.motorDown(function (err) {
                 if (err == null) {
-                    Global_1.default.logger.write('Elevador hacia abajo ' + err);
+                    ci_logmodule_1.default.write('Elevador hacia abajo ' + err);
                     setTimeout(function () {
                         _this.Out1.motoroff(function (err) {
                             if (err == null) {
-                                Global_1.default.logger.write('Elevador apagado y en posición de recibir' + err);
+                                ci_logmodule_1.default.write('Elevador apagado y en posición de recibir' + err);
                                 cb(null);
                             }
                             else {
-                                Global_1.default.logger.error('No fu posible detener el motor luego de preaparar para para recibir');
+                                ci_logmodule_1.default.error('No fu posible detener el motor luego de preaparar para para recibir');
                                 cb('No fu posible detener el motor luego de preaparar para recibir');
                             }
                         });
                     }, 250);
                 }
                 else {
-                    Global_1.default.logger.error('No fu posible detener el motor luego de preaparar para entregar');
+                    ci_logmodule_1.default.error('No fu posible detener el motor luego de preaparar para entregar');
                 }
             });
         };
@@ -870,7 +871,7 @@ var Shop = /** @class */ (function (_super) {
                                 _this.wait_for_up_select();
                                 //this.wait_for_up_select_down();
                                 _this.Principal.state_Machine = Global_1.default.State_Machine.Go_to_level;
-                                Global_1.default.logger.write('motor avanza arriba' + err);
+                                ci_logmodule_1.default.write('motor avanza arriba' + err);
                                 cb(err);
                             });
                         }
@@ -884,7 +885,7 @@ var Shop = /** @class */ (function (_super) {
                 }, 100);
             }
             catch (e) {
-                Global_1.default.logger.error(e.stack);
+                ci_logmodule_1.default.error(e.stack);
             }
         };
         _this.GotoLevel = function (data, cb) {
@@ -938,7 +939,7 @@ var Shop = /** @class */ (function (_super) {
                 }
             }
             catch (e) {
-                Global_1.default.logger.error(e.stack + 'Error al venta');
+                ci_logmodule_1.default.error(e.stack + 'Error al venta');
                 cb(e.stack);
             }
         };
@@ -951,7 +952,7 @@ var Shop = /** @class */ (function (_super) {
                             Global_1.default.number_atasco = 0;
                             _this.Principal.state_Machine = Global_1.default.State_Machine.Go_to_finish_location;
                             _this.Out1.motorDown(function (err) {
-                                Global_1.default.logger.write('motor bajando afinalizar compra' + err);
+                                ci_logmodule_1.default.write('motor bajando afinalizar compra' + err);
                                 cb(err);
                             });
                             break;
@@ -959,7 +960,7 @@ var Shop = /** @class */ (function (_super) {
                             Global_1.default.number_atasco = 0;
                             _this.Principal.state_Machine = Global_1.default.State_Machine.Go_to_Init_location;
                             _this.Out1.motorDown(function (err) {
-                                Global_1.default.logger.write('motor bajando a pocision inicial' + err);
+                                ci_logmodule_1.default.write('motor bajando a pocision inicial' + err);
                                 cb(err);
                             });
                             break;
@@ -967,7 +968,7 @@ var Shop = /** @class */ (function (_super) {
                             Global_1.default.number_atasco = 0;
                             _this.Principal.state_Machine = Global_1.default.State_Machine.Go_to_Init_location_ERROR;
                             _this.Out1.motorDown(function (err) {
-                                Global_1.default.logger.error('motor bajando a pocision inicial al no encotrar productos en la banda' + err);
+                                ci_logmodule_1.default.error('motor bajando a pocision inicial al no encotrar productos en la banda' + err);
                                 cb(err);
                             });
                             _this.Is_sale_error = true;
@@ -976,7 +977,7 @@ var Shop = /** @class */ (function (_super) {
                             Global_1.default.number_atasco = 0;
                             _this.Principal.state_Machine = Global_1.default.State_Machine.Go_to_Init_location_ERROR;
                             _this.Out1.motorDown(function (err) {
-                                Global_1.default.logger.error('motor bajando a pocision inicial al ser detenido por el sensor 1' + err);
+                                ci_logmodule_1.default.error('motor bajando a pocision inicial al ser detenido por el sensor 1' + err);
                                 cb(err);
                             });
                             _this.Is_sale_error = true;
@@ -984,7 +985,7 @@ var Shop = /** @class */ (function (_super) {
                         case '5':
                             _this.Principal.state_Machine = Global_1.default.State_Machine.Go_to_Init_location_ERROR;
                             _this.Out1.motorDown(function (err) {
-                                Global_1.default.logger.error('motor bajando a pocision inicial por atasco' + err);
+                                ci_logmodule_1.default.error('motor bajando a pocision inicial por atasco' + err);
                                 cb(err);
                             });
                             _this.Is_sale_error = true;
@@ -994,11 +995,11 @@ var Shop = /** @class */ (function (_super) {
                 else {
                     cb(null);
                     _this.Principal.state_Machine = Global_1.default.State_Machine.Init_location;
-                    Global_1.default.logger.debug('ya esta en posicion inicial');
+                    ci_logmodule_1.default.debug('ya esta en posicion inicial');
                 }
             }
             catch (e) {
-                Global_1.default.logger.error(e.stack + 'Error ubicar elevador');
+                ci_logmodule_1.default.error(e.stack + 'Error ubicar elevador');
                 cb(e.stack);
             }
         };
@@ -1008,7 +1009,7 @@ var Shop = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Global_1.default.logger.error(JSON.stringify(Global_1.default.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };
@@ -1019,7 +1020,7 @@ var Shop = /** @class */ (function (_super) {
                 });
             }
             catch (e) {
-                Global_1.default.logger.error(e.stack + "Error detener lectura de sensores ");
+                ci_logmodule_1.default.error(e.stack + "Error detener lectura de sensores ");
                 cb(e);
             }
         };
@@ -1030,25 +1031,25 @@ var Shop = /** @class */ (function (_super) {
                 });
             }
             catch (e) {
-                Global_1.default.logger.error(e.stack + "Error al activar los sensores  ");
+                ci_logmodule_1.default.error(e.stack + "Error al activar los sensores  ");
                 cb(e);
             }
         };
         _this.ProcessEnv_PIN = function (Pin) {
             try {
-                Global_1.default.logger.debug('pin   ' + Pin + '  activo');
+                ci_logmodule_1.default.debug('pin   ' + Pin + '  activo');
                 switch (Pin) {
                     case 'P1':
                         if (_this.Is_pin === 'F' || _this.Is_pin === 'f') {
                             if (_this.Principal.state_Machine == Global_1.default.State_Machine.Dispensing_product) {
                                 _this.PisoF_ON++;
                                 if (_this.PisoF_ON > Global_1.default.Product_long) {
-                                    Global_1.default.logger.error('demasiadas vueltas para producto en fila F');
+                                    ci_logmodule_1.default.error('demasiadas vueltas para producto en fila F');
                                     _this.Sale_column_low(_this.Is_Location, function (err) {
-                                        Global_1.default.logger.write('Apagaaa' + _this.Is_Location + err);
+                                        ci_logmodule_1.default.write('Apagaaa' + _this.Is_Location + err);
                                     });
                                     _this.Ubicacion('3', function (err) {
-                                        Global_1.default.logger.error('Enviando a ubicacion inicial ' + _this.Is_Location + err);
+                                        ci_logmodule_1.default.error('Enviando a ubicacion inicial ' + _this.Is_Location + err);
                                     });
                                 }
                             }
@@ -1059,12 +1060,12 @@ var Shop = /** @class */ (function (_super) {
                             if (_this.Principal.state_Machine == Global_1.default.State_Machine.Dispensing_product) {
                                 _this.PisoE_ON++;
                                 if (_this.PisoE_ON > Global_1.default.Product_long) {
-                                    Global_1.default.logger.error('demasiadas vueltas para producto en fila E');
+                                    ci_logmodule_1.default.error('demasiadas vueltas para producto en fila E');
                                     _this.Sale_column_low(_this.Is_Location, function (err) {
-                                        Global_1.default.logger.write('Apagaaa' + _this.Is_Location + err);
+                                        ci_logmodule_1.default.write('Apagaaa' + _this.Is_Location + err);
                                     });
                                     _this.Ubicacion('3', function (err) {
-                                        Global_1.default.logger.error('Enviando a ubicacion ' + _this.Is_Location + err);
+                                        ci_logmodule_1.default.error('Enviando a ubicacion ' + _this.Is_Location + err);
                                     });
                                 }
                             }
@@ -1075,12 +1076,12 @@ var Shop = /** @class */ (function (_super) {
                             if (_this.Principal.state_Machine == Global_1.default.State_Machine.Dispensing_product) {
                                 _this.PisoD_ON++;
                                 if (_this.PisoD_ON > Global_1.default.Product_long) {
-                                    Global_1.default.logger.error('demasiadas vueltas para producto');
+                                    ci_logmodule_1.default.error('demasiadas vueltas para producto');
                                     _this.Sale_column_low(_this.Is_Location, function (err) {
-                                        Global_1.default.logger.write('Apagaaa' + _this.Is_Location + err);
+                                        ci_logmodule_1.default.write('Apagaaa' + _this.Is_Location + err);
                                     });
                                     _this.Ubicacion('3', function (err) {
-                                        Global_1.default.logger.error('Enviando a ubicacion ' + err);
+                                        ci_logmodule_1.default.error('Enviando a ubicacion ' + err);
                                     });
                                 }
                             }
@@ -1091,12 +1092,12 @@ var Shop = /** @class */ (function (_super) {
                             if (_this.Principal.state_Machine == Global_1.default.State_Machine.Dispensing_product) {
                                 _this.PisoC_ON++;
                                 if (_this.PisoC_ON > Global_1.default.Product_long) {
-                                    Global_1.default.logger.error('demasiadas vueltas para producto para fila C');
+                                    ci_logmodule_1.default.error('demasiadas vueltas para producto para fila C');
                                     _this.Sale_column_low(_this.Is_Location, function (err) {
-                                        Global_1.default.logger.write('Apagaaa' + _this.Is_Location + err);
+                                        ci_logmodule_1.default.write('Apagaaa' + _this.Is_Location + err);
                                     });
                                     _this.Ubicacion('3', function (err) {
-                                        Global_1.default.logger.error('Enviando a ubicacion ' + err);
+                                        ci_logmodule_1.default.error('Enviando a ubicacion ' + err);
                                     });
                                 }
                             }
@@ -1107,12 +1108,12 @@ var Shop = /** @class */ (function (_super) {
                             if (_this.Principal.state_Machine == Global_1.default.State_Machine.Dispensing_product) {
                                 _this.PisoB_ON++;
                                 if (_this.PisoB_ON > Global_1.default.Product_long) {
-                                    Global_1.default.logger.error('demasiadas vueltas para producto en fila B');
+                                    ci_logmodule_1.default.error('demasiadas vueltas para producto en fila B');
                                     _this.Sale_column_low(_this.Is_Location, function (err) {
-                                        Global_1.default.logger.write('Apagaaa' + _this.Is_Location + err);
+                                        ci_logmodule_1.default.write('Apagaaa' + _this.Is_Location + err);
                                     });
                                     _this.Ubicacion('3', function (err) {
-                                        Global_1.default.logger.error('Enviando a ubicacion ' + _this.Is_Location + err);
+                                        ci_logmodule_1.default.error('Enviando a ubicacion ' + _this.Is_Location + err);
                                     });
                                 }
                             }
@@ -1123,12 +1124,12 @@ var Shop = /** @class */ (function (_super) {
                             if (_this.Principal.state_Machine == Global_1.default.State_Machine.Dispensing_product) {
                                 _this.PisoA_ON++;
                                 if (_this.PisoA_ON > Global_1.default.Product_long) {
-                                    Global_1.default.logger.error('demasiadas vueltas para producto en fila A');
+                                    ci_logmodule_1.default.error('demasiadas vueltas para producto en fila A');
                                     _this.Sale_column_low(_this.Is_Location, function (err) {
-                                        Global_1.default.logger.write('Apagaaa' + _this.Is_Location + err);
+                                        ci_logmodule_1.default.write('Apagaaa' + _this.Is_Location + err);
                                     });
                                     _this.Ubicacion('3', function (err) {
-                                        Global_1.default.logger.error('Enviando a ubicacion ' + _this.Is_Location + err);
+                                        ci_logmodule_1.default.error('Enviando a ubicacion ' + _this.Is_Location + err);
                                     });
                                 }
                             }
@@ -1138,10 +1139,9 @@ var Shop = /** @class */ (function (_super) {
                 // }
             }
             catch (e) {
-                Global_1.default.logger.error(e.stack + 'Error al procesar evento');
+                ci_logmodule_1.default.error(e.stack + 'Error al procesar evento');
             }
         };
-        Global_1.default.logger = _principal.log;
         var input = new Input_1.Input(_principal);
         input.Open();
         _this.Input = input;
@@ -1151,24 +1151,24 @@ var Shop = /** @class */ (function (_super) {
         input.on("elevator On", function (state) {
             if (state === 'Up') {
                 out1.motorUP(function (err) {
-                    Global_1.default.logger.warning("motor arriba" + err);
+                    ci_logmodule_1.default.warning("motor arriba" + err);
                 });
             }
             else if (state === 'Down') {
                 out1.motorDown(function (err) {
-                    Global_1.default.logger.warning("motor abajo" + err);
+                    ci_logmodule_1.default.warning("motor abajo" + err);
                 });
             }
         });
         input.on("Stop", function (state) {
-            Global_1.default.logger.fatal('stooooooooooopppppjjjadnkafkjfakhagdjbkgakzbnzgfkbjsgjkeskjaekjgskjbsghllbkgf' +
+            ci_logmodule_1.default.fatal('stooooooooooopppppjjjadnkafkjfakhagdjbkgakzbnzgfkbjsgjkeskjaekjgskjbsghllbkgf' +
                 'haetlkhsdgnlkhgsnklsflngslsg' +
                 'ikhgksgklki');
         });
         input.on("elevator Off", function (state) {
             if (state === 'Up' || state === 'Down') {
                 out1.motoroff(function (err) {
-                    Global_1.default.logger.fatal("motor apagado" + err);
+                    ci_logmodule_1.default.fatal("motor apagado" + err);
                 });
             }
         });

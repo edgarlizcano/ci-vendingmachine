@@ -5,8 +5,6 @@ import MCP23017 from "node-mcp23017_with_i2c_updated";
 import event from 'events';
 import {callback, mux} from "./Interfaces";
 import rpio  from 'rpio';
-import {Logger} from "ci-syslogs";
-let Log = new Logger("0.0.0.0",Logger.Facilities.Machine);
 
 //let folderLogs = "/free/CI24/Logs/Machine/";
 //_log.init(folderLogs);
@@ -35,13 +33,11 @@ export class Output extends event.EventEmitter {
                     this.InitOut1,
                     this.InitOut2,
                 ],  (err:any|null,result?:any) =>{
-                    Log.LogDebug(err+result);
-                    //_log.write(err+result);
+                    _log.write(err+result);
                 });
             }catch(e) {
                 global.result.EXCEPTION.stack=e.stack;
-                Log.LogError(JSON.stringify(global.result.EXCEPTION));
-                //_log.error(JSON.stringify(global.result.EXCEPTION));
+                _log.error(JSON.stringify(global.result.EXCEPTION));
                 cb(global.result.EXCEPTION);
             }
     };
@@ -53,8 +49,7 @@ export class Output extends event.EventEmitter {
             cb(null,"inicialización A y B exitosa");
         }catch(e) {
             global.result.EXCEPTION.stack=e.stack;
-            Log.LogError(JSON.stringify(global.result.EXCEPTION));
-            //_log.error(JSON.stringify(global.result.EXCEPTION));
+            _log.error(JSON.stringify(global.result.EXCEPTION));
             cb(global.result.EXCEPTION);
         }
     };
@@ -66,31 +61,27 @@ export class Output extends event.EventEmitter {
             cb(null,"inicialización B, C y D exitosa");
         }catch(e) {
             global.result.EXCEPTION.stack=e.stack;
-            Log.LogError(JSON.stringify(global.result.EXCEPTION));
-            //_log.error(JSON.stringify(global.result.EXCEPTION));
+            _log.error(JSON.stringify(global.result.EXCEPTION));
             cb(global.result.EXCEPTION);
         }
     };
+
     private Select_Colunm= (column:string) =>{
         try {
-            Log.LogInfo(column+typeof(column));
-            //_log.write(column+typeof(column));
+            _log.write(column+typeof(column));
             _async.mapSeries(global.MCP_Columna,(Columna:any,cb:callback)=>{
                 if(Columna.ID.toString()==column){
                     this.column=Columna;
-                    Log.LogInfo('igual'+Columna);
-                    //_log.write('igual'+Columna)
+                    _log.write('igual'+Columna)
                 }
-                Log.LogInfo(this.column+typeof(this.column));
-                //_log.write(this.column+typeof(this.column));
+                _log.write(this.column+typeof(this.column));
                 cb(null);
             },(err:any,data?:any)=>{
                 this.column.status=true;
                 this.ChangeOutputStatus(this.column);
             });
         }catch(e) {
-            Log.LogError(e.stack+'error seleccionando columna');
-            //_log.error(e.stack+'error seleccionando columna' );
+            _log.error(e.stack+'error seleccionando columna' );
         }
     };
     private Select_Colunm_low= (column:string) =>{
@@ -99,21 +90,19 @@ export class Output extends event.EventEmitter {
             _async.mapSeries(global.MCP_Columna,(Columna:any,cb:callback)=>{
                 if(Columna.ID.toString()==column){
                     this.column=Columna;
-                    Log.LogInfo('igual'+Columna);
-                    //_log.write('igual'+Columna)
+                    _log.write('igual'+Columna)
                 }
-                Log.LogInfo(this.column+typeof(this.column));
-                //_log.write(this.column+typeof(this.column));
+                _log.write(this.column+typeof(this.column));
                 cb(null);
             },(err:any,data?:any)=>{
                 this.column.status=false;
                 this.ChangeOutputStatus(this.column);
             });
         }catch(e) {
-            Log.LogError(e.stack+'error seleccionando columna');
-            //_log.error(e.stack+'error seleccionando columna' );
+            _log.error(e.stack+'error seleccionando columna' );
         }
     };
+
     public HIGH = (data:string,cb:callback) =>{
             try {
                 let pin=Array.from(data);
@@ -171,8 +160,7 @@ export class Output extends event.EventEmitter {
                     }
                 }
             }catch(e) {
-                Log.LogError("Error al activar pin"+e);
-                //_log.error("Error al activar pin"+e);
+                _log.error("Error al activar pin"+e);
                 cb("Error al activar pin");
             }
     };
@@ -233,8 +221,7 @@ export class Output extends event.EventEmitter {
                 }
         }
         }catch(e) {
-            Log.LogError("Error al activar pin"+e);
-            //_log.error("Error al activar pin"+e);
+            _log.error("Error al activar pin"+e);
             cb("Error al activar pin");
         }
     };
@@ -243,20 +230,17 @@ export class Output extends event.EventEmitter {
         try {
             switch (data.MCP) {
                 case 1:
-                    Log.LogInfo("output: "+ data.value+"   status:"+ data.status+'  '+data.text);
-                   //_log.write("output: "+ data.value+"   status:"+ data.status+'  '+data.text);
+                    _log.write("output: "+ data.value+"   status:"+ data.status+'  '+data.text);
                     this.mcp.digitalWrite(data.value, data.status);
                     break;
                 case 2:
-                    Log.LogInfo("output: "+ data.value+"   status:"+ data.status+'  '+data.text);
-                    //_log.write("output: "+ data.value+"   status:"+ data.status+'  '+data.text);
+                    _log.write("output: "+ data.value+"   status:"+ data.status+'  '+data.text);
                     this.mcp1.digitalWrite(data.value, data.status);
                     break;
 
             }
         } catch (err) {
-            Log.LogError(err.toString.stack)
-            //_log.error(err.toString.stack);
+            _log.error(err.toString.stack);
         }
     };
     public motorDown= (cb:callback) =>{
@@ -273,13 +257,10 @@ export class Output extends event.EventEmitter {
             cb(null,"ascensor bajando");
 
         }catch(e) {
-            Log.LogError("Error al subir ascensor"+e.stack);
-            //_log.error("Error al subir ascensor"+e.stack);
+            _log.error("Error al subir ascensor"+e.stack);
             cb("Error al subir ascensor");
         }
     };
-
-
     public motorUP= (cb:any)=> {
         try {
             global.MCP_Motor.UP.status    = true;
@@ -288,25 +269,23 @@ export class Output extends event.EventEmitter {
             this.ChangeOutputStatus(global.MCP_Motor.UP);
          //   this.ChangeOutputStatus(global.MCP_Motor.ENABLE);
             this.ChangeOutputStatus(global.MCP_Motor.Down);
-
-
             cb(null,"ascensor Subiendo  ");
-
         }catch(e) {
-            Log.LogError("Error al bajar ascensor"+e.stack);
-            //_log.error("Error al bajar ascensor"+e.stack);
+            _log.error("Error al bajar ascensor"+e.stack);
             cb("Error al bajar ascensor");
         }
     };
     public init_enable=(cb:any)=> {
         try {
+
             global.MCP_Motor.ENABLE.status= false;
             this.ChangeOutputStatus(global.MCP_Motor.ENABLE);
+
             cb(null,"inicializa enable");
+
         }catch(e) {
-            Log.LogError("Error al enable"+e.stack);
-            //_log.error("Error al enable"+e.stack);
-            cb("Error al enable");
+            _log.error("Error al enable"+e.stack);
+            cb("Error al enabl");
         }
     };
 
@@ -318,11 +297,11 @@ export class Output extends event.EventEmitter {
             this.ChangeOutputStatus(global.MCP_Motor.UP);
             this.ChangeOutputStatus(global.MCP_Motor.Down);
            // this.ChangeOutputStatus(global.MCP_Motor.ENABLE);
+
             cb(null,"ascensor apagado");
 
         }catch(e) {
-            Log.LogError("Error al bajar ascensor"+e.stack);
-            //_log.error("Error al bajar ascensor"+e.stack);
+            _log.error("Error al bajar ascensor"+e.stack);
             cb("Error al apagar ascensor");
         }
     };
@@ -333,8 +312,7 @@ export class Output extends event.EventEmitter {
                 _async.mapSeries(Pisos, (Motores:any, cb2:callback) =>{
                     setTimeout(()=> {
                         this.LOW(Motores,(err:any)=> {
-                            Log.LogInfo(Motores);
-                            //_log.write(Motores);
+                            _log.write(Motores);
                             cb2(err,"bien");
                         })
                     } ,1000)
@@ -346,8 +324,7 @@ export class Output extends event.EventEmitter {
             })
 
         }catch(e) {
-            Log.LogError("Error al bajar ascensor"+e.stack);
-            //_log.error("Error al bajar ascensor"+e.stack);
+            _log.error("Error al bajar ascensor"+e.stack);
             cb("Error al apagar ascensor");
         }
     };
@@ -359,38 +336,32 @@ export class Output extends event.EventEmitter {
 
             ],  (err, result)=> {
                 global.logger.debug('Result: motor y pines apagado  ');
-                Log.LogDebug('Result: motor y pines apagado');
                 cb(null, 'ok');
 
             });
 
         }catch(e) {
             global.result.EXCEPTION.stack=e.stack;
-            Log.LogError(JSON.stringify(global.result.EXCEPTION));
-            //_log.error(JSON.stringify(global.result.EXCEPTION));
+            _log.error(JSON.stringify(global.result.EXCEPTION));
             cb(global.result.EXCEPTION);
         }
     };
     public timepin= (data:string,time:number,cb:any) =>{
         try {
             this.HIGH(data,(err:any)=> {
-                Log.LogInfo("avanza"+err);
-                //_log.write("avanza"+err);
+               _log.write("avanza"+err)
             });
             setTimeout(()=> {
                     this.LOW(data,function (err:any) {
-                        Log.LogInfo("detiene"+err);
-                        //_log.write("detiene"+err)
+                        _log.write("detiene"+err)
                     });
                     cb(null,"funciona")
                 } ,time)
 
         }catch(e) {
-            Log.LogError("falla prueba de tiempo ");
-            //_log.error("falla prueba de tiempo ");
+            _log.error("falla prueba de tiempo ");
             cb(null,"falla")
         }
     };
-
 
 }

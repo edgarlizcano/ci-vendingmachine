@@ -13,14 +13,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-//import global.logger from "@ci24/ci-logmodule";
+var ci_logmodule_1 = __importDefault(require("@ci24/ci-logmodule"));
 var events_1 = __importDefault(require("events"));
 var async_1 = __importDefault(require("async"));
 var _reader = require('@ci24/ci-readersl025');
 var Mux_class_1 = require("./Mux_class");
-var Global_1 = __importDefault(require("./Global"));
 //let folderLogs = "/free/CI24/Logs/Machine/";
-//global.logger.init(folderLogs);
+//_log.init(folderLogs);
 var Reader = /** @class */ (function (_super) {
     __extends(Reader, _super);
     function Reader() {
@@ -34,12 +33,12 @@ var Reader = /** @class */ (function (_super) {
                         cb(null);
                     }
                     else {
-                        Global_1.default.logger.write("error abriendo puerto ");
+                        ci_logmodule_1.default.write("error abriendo puerto ");
                     }
                 });
             }
             catch (err) {
-                Global_1.default.logger.error("Exception:{0}" + err.toString());
+                ci_logmodule_1.default.error("Exception:{0}" + err.toString());
                 cb(err);
             }
         };
@@ -61,7 +60,7 @@ var Reader = /** @class */ (function (_super) {
                 });
             }
             catch (err) {
-                Global_1.default.logger.error("Exception:{0}" + err.toString() + err.stack);
+                ci_logmodule_1.default.error("Exception:{0}" + err.toString() + err.stack);
                 cb(err);
             }
         };
@@ -70,7 +69,7 @@ var Reader = /** @class */ (function (_super) {
         //*****************************************************************************
         _this.WriteCard = function (data, cb) {
             try {
-                Global_1.default.logger.write('numReader:' + data.numReader + 'sector:' + data.sector + 'block:' + data.numBlocks);
+                ci_logmodule_1.default.write('numReader:' + data.numReader + 'sector:' + data.sector + 'block:' + data.numBlocks);
                 async_1.default.series([
                     async_1.default.apply(_this.Mux.SetReader, null),
                     async_1.default.apply(_this.Reader.WriteCard, data)
@@ -84,7 +83,7 @@ var Reader = /** @class */ (function (_super) {
                 });
             }
             catch (err) {
-                Global_1.default.logger.write("Exception:{0}" + err.toString(), Global_1.default.logger.level.ERROR);
+                ci_logmodule_1.default.write("Exception:{0}" + err.toString(), ci_logmodule_1.default.level.ERROR);
                 cb(err);
             }
         };
@@ -93,7 +92,7 @@ var Reader = /** @class */ (function (_super) {
         //*****************************************************************************
         _this.ReadCard = function (data, cb) {
             try {
-                Global_1.default.logger.write('numReader:' + data.numReader + 'sector:' + data.sector + 'block:' + data.numBlocks);
+                ci_logmodule_1.default.write('numReader:' + data.numReader + 'sector:' + data.sector + 'block:' + data.numBlocks);
                 async_1.default.series([
                     async_1.default.apply(_this.Mux.SetReader, null),
                     async_1.default.apply(_this.Reader.ReadCard, data)
@@ -107,7 +106,7 @@ var Reader = /** @class */ (function (_super) {
                 });
             }
             catch (err) {
-                Global_1.default.logger.write("Exception:{0}" + err.toString(), Global_1.default.logger.level.ERROR);
+                ci_logmodule_1.default.write("Exception:{0}" + err.toString(), ci_logmodule_1.default.level.ERROR);
                 cb(err);
             }
         };
@@ -121,7 +120,7 @@ var Reader = /** @class */ (function (_super) {
                     async_1.default.apply(_this.Reader.GetIdCard, null)
                 ], function (err, result) {
                     if (err === null) {
-                        Global_1.default.logger.write('Resultado de funcion IdCard:{0}' + (JSON.stringify(result)));
+                        ci_logmodule_1.default.write('Resultado de funcion IdCard:{0}' + (JSON.stringify(result)));
                         cb(null, result[1]);
                     }
                     else {
@@ -130,7 +129,7 @@ var Reader = /** @class */ (function (_super) {
                 });
             }
             catch (err) {
-                Global_1.default.logger.write("Exception:{0}" + err.toString(), Global_1.default.logger.level.ERROR);
+                ci_logmodule_1.default.write("Exception:{0}" + err.toString(), ci_logmodule_1.default.level.ERROR);
                 cb(err);
             }
         };

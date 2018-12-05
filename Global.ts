@@ -24,12 +24,12 @@ global.State_Machine = {
 };
 
 global.Pulso = {
-    P1:      {GPIO :17, PIN:  11, text: "Piso_1 "},//pines de señales pulso de cambio de vuelta
-    P2:      {GPIO:27,  PIN:  13, text: "Piso_2 "},
-    P3:      {GPIO:22,  PIN:  15, text: "Piso_3 "},
-    P4:      {GPIO:10,  PIN:  19, text: "Piso_4 "},
-    P5:      {GPIO:9,   PIN:  21, text: "Piso_5 "},
-    P6:      {GPIO:11,  PIN:  23, text: "Piso_6 "},
+    P1:      {GPIO :17,  PIN:  11, text: "Piso_1 "},//pines de señales pulso de cambio de vuelta
+    P2:      {GPIO :27,  PIN:  13, text: "Piso_2 "},
+    P3:      {GPIO :22,  PIN:  15, text: "Piso_3 "},
+    P4:      {GPIO :10,  PIN:  19, text: "Piso_4 "},
+    P5:      {GPIO :9,   PIN:  21, text: "Piso_5 "},
+    P6:      {GPIO :11,  PIN:  23, text: "Piso_6 "},
 };
 global.Aux = {
     A1:      {GPIO:19, PIN:  35},
@@ -39,7 +39,6 @@ global.Card = {
     Int:      {GPIO:24, PIN:  18},
     Out:      {GPIO:23, PIN:  16}
 };
-
 global.elevator  = {
     Up:      {GPIO: 8, PIN:  24},
     Down:    {GPIO:18, PIN:  12}
@@ -47,7 +46,6 @@ global.elevator  = {
 global.general  = {
     stop:      {GPIO: 50, PIN:  80}
 };
-
 
 global.motoresPiso = {
     A:  {A1:'a1', A2:  'a2', A3: 'a3', A4: 'a4', A5: 'a5', A6:  'a6', A7: 'a7', A8: 'a8', A9: 'a9', A0:  'a0'},
@@ -65,7 +63,8 @@ global.MCP_row= {
     C:  {MCP: 1, value: 11, text: "Piso_C ",status: false, ID:'C'},
     B:  {MCP: 1, value: 14, text: "Piso_B ",status: false, ID:'B'},
     A:  {MCP: 1, value: 15, text: "Piso_A ",status: false, ID:'A'}
- };
+};
+
 global.MCP_Columna= {
     1:   {MCP: 1, value: 0, text: "Columna_1  ",status: false, ID: 1},
     2:   {MCP: 1, value: 9, text: "Columna_2  ",status: false, ID: 2},
@@ -78,11 +77,13 @@ global.MCP_Columna= {
     9:   {MCP: 1, value: 2, text: "Columna_9  ",status: false, ID: 9},
     10:  {MCP: 1, value: 1, text: "Columna_10 ",status: false, ID: 0}
 };
+
 global.MCP_Motor= {
     UP    :  {MCP: 2, value: 0, text: "Motor Up ",  status: false, ID:1},
     Down  :  {MCP: 2, value: 2, text: "Motor Down ",status: false, ID:2},
     ENABLE:  {MCP: 2, value: 1, text: "Enable ",    status: false, ID:0},
 };
+
 global.mux={
     Mux_1:  {MCP: 2, value: 8, text: "Mux_1",status: false, ID:0},
     Mux_2:  {MCP: 2, value: 9, text: "Mux_2",status: false, ID:1}
@@ -107,7 +108,7 @@ global.Type_of_product = {
     small:1,
     big:2,
 };
- global.Product_is=1;
+global.Product_is=1;
 
 global.Product_long=5;
 global.Is_empty =true;

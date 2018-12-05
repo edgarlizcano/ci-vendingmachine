@@ -22,8 +22,8 @@ var Global_1 = __importDefault(require("./Global"));
 var out1 = new Output_1.Output();
 var Reader_1 = require("./Reader");
 var Sensor_1 = require("./Sensor");
-var ci_syslogs_1 = require("ci-syslogs");
-var Log = new ci_syslogs_1.Logger("0.0.0.0", ci_syslogs_1.Logger.Facilities.Machine);
+//let folderLogs = "/free/CI24/Logs/Machine";
+//_log.init(folderLogs);
 var folderLogs = "/free/CI24/Logs/Machine/";
 var data = {
     "pathFolder": folderLogs,
@@ -52,8 +52,7 @@ var Main = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Log.LogError(JSON.stringify(Global_1.default.result.EXCEPTION));
-                //_log.error(JSON.stringify(global.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };
@@ -65,8 +64,7 @@ var Main = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Log.LogError(JSON.stringify(Global_1.default.result.EXCEPTION));
-                //_log.error(JSON.stringify(global.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };
@@ -78,8 +76,7 @@ var Main = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Log.LogError(JSON.stringify(Global_1.default.result.EXCEPTION));
-                //_log.error(JSON.stringify(global.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };
@@ -91,8 +88,7 @@ var Main = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Log.LogError(JSON.stringify(Global_1.default.result.EXCEPTION));
-                //_log.error(JSON.stringify(global.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };
@@ -104,8 +100,7 @@ var Main = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Log.LogError(JSON.stringify(Global_1.default.result.EXCEPTION));
-                //_log.error(JSON.stringify(global.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };
@@ -118,8 +113,7 @@ var Main = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Log.LogError(JSON.stringify(Global_1.default.result.EXCEPTION));
-                //_log.error(JSON.stringify(global.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };
@@ -131,8 +125,7 @@ var Main = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Log.LogError(JSON.stringify(Global_1.default.result.EXCEPTION));
-                //_log.error(JSON.stringify(global.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };
@@ -144,8 +137,7 @@ var Main = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Log.LogError(JSON.stringify(Global_1.default.result.EXCEPTION));
-                //_log.error(JSON.stringify(global.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };
@@ -157,8 +149,7 @@ var Main = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Log.LogError(JSON.stringify(Global_1.default.result.EXCEPTION));
-                //_log.error(JSON.stringify(global.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };
@@ -170,8 +161,7 @@ var Main = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Log.LogError(JSON.stringify(Global_1.default.result.EXCEPTION));
-                //_log.error(JSON.stringify(global.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };
@@ -183,8 +173,7 @@ var Main = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Log.LogError(JSON.stringify(Global_1.default.result.EXCEPTION));
-                //_log.error(JSON.stringify(global.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };
@@ -196,8 +185,7 @@ var Main = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Log.LogError(JSON.stringify(Global_1.default.result.EXCEPTION));
-                //_log.error(JSON.stringify(global.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };
@@ -209,8 +197,7 @@ var Main = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Log.LogError(JSON.stringify(Global_1.default.result.EXCEPTION));
-                //_log.error(JSON.stringify(global.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };
@@ -222,8 +209,7 @@ var Main = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Log.LogError(JSON.stringify(Global_1.default.result.EXCEPTION));
-                //_log.error(JSON.stringify(global.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };
@@ -235,8 +221,7 @@ var Main = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Log.LogError(JSON.stringify(Global_1.default.result.EXCEPTION));
-                //_log.error(JSON.stringify(global.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };
@@ -248,8 +233,7 @@ var Main = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Log.LogError(JSON.stringify(Global_1.default.result.EXCEPTION));
-                //_log.error(JSON.stringify(global.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };
@@ -261,8 +245,7 @@ var Main = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Log.LogError(JSON.stringify(Global_1.default.result.EXCEPTION));
-                //_log.error(JSON.stringify(global.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };
@@ -273,12 +256,10 @@ var Main = /** @class */ (function (_super) {
                     data: data
                 };
                 _this.emit('Event', result);
-                Log.LogDebug('emitiendo evento de recoger producto');
-                //_log.debug('emitiendo evento de recoger producto')
+                ci_logmodule_1.default.debug('emitiendo evento de recoger producto');
             }
             catch (e) {
-                Log.LogError(e.stack + "Error al obtener el estado del sensor");
-                //_log.error(e.stack+"Error al obtener el estado del sensor");
+                ci_logmodule_1.default.error(e.stack + "Error al obtener el estado del sensor");
             }
         };
         _this.Is_busy = function (data) {
@@ -288,12 +269,10 @@ var Main = /** @class */ (function (_super) {
                     data: data
                 };
                 _this.emit('Event', result);
-                Log.LogDebug('emitiendo evento de estado de bandeja inferior');
-                //_log.debug('emitiendo evento de estado de bandeja inferior')
+                ci_logmodule_1.default.debug('emitiendo evento de estado de bandeja inferior');
             }
             catch (e) {
-                Log.LogError(e.stack + "Error al obtener el estado de bandeja inferior");
-                //_log.error(e.stack+"Error al obtener el estado de bandeja inferior");
+                ci_logmodule_1.default.error(e.stack + "Error al obtener el estado de bandeja inferior");
             }
         };
         _this.Atasco = function () {
@@ -303,12 +282,10 @@ var Main = /** @class */ (function (_super) {
                     data: ''
                 };
                 _this.emit('Event', result);
-                Log.LogDebug('emitiendo evento de estado de bandeja inferior');
-                //_log.debug('emitiendo evento de estado de bandeja inferior')
+                ci_logmodule_1.default.debug('emitiendo evento de estado de bandeja inferior');
             }
             catch (e) {
-                Log.LogError(e.stack + "Error al obtener el estado de bandeja inferior");
-                //_log.error(e.stack+"Error al obtener el estado de bandeja inferior");
+                ci_logmodule_1.default.error(e.stack + "Error al obtener el estado de bandeja inferior");
             }
         };
         _this.clean_pin = function (cb) {
@@ -319,8 +296,7 @@ var Main = /** @class */ (function (_super) {
             }
             catch (e) {
                 Global_1.default.result.EXCEPTION.stack = e.stack;
-                Log.LogError(JSON.stringify(Global_1.default.result.EXCEPTION));
-                //_log.error(JSON.stringify(global.result.EXCEPTION));
+                ci_logmodule_1.default.error(JSON.stringify(Global_1.default.result.EXCEPTION));
                 cb(Global_1.default.result.EXCEPTION);
             }
         };

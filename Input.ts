@@ -155,7 +155,6 @@ export class Input extends event.EventEmitter {
     };
     public Emit=(state:boolean,pin:number):void=>{
         if(state===true){
-
             switch (pin) {
                 case global.Sensor.S1.PIN:
                     this.emit("Sensor On","S1");

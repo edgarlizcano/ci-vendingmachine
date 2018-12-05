@@ -8,8 +8,9 @@ import global from'./Global';
 let out1  =  new Output();
 import {Reader} from './Reader';
 import {Sensor} from "./Sensor";
-import {Logger} from "ci-syslogs";
-let Log = new Logger("0.0.0.0",Logger.Facilities.Machine);
+
+//let folderLogs = "/free/CI24/Logs/Machine";
+//_log.init(folderLogs);
 let folderLogs = "/free/CI24/Logs/Machine/";
 let data = {
     "pathFolder": folderLogs,
@@ -42,8 +43,7 @@ export class Main extends event.EventEmitter{
                 cb(err,data);})
         }catch(e) {
             global.result.EXCEPTION.stack=e.stack;
-            Log.LogError(JSON.stringify(global.result.EXCEPTION));
-            //_log.error(JSON.stringify(global.result.EXCEPTION));
+            _log.error(JSON.stringify(global.result.EXCEPTION));
             cb(global.result.EXCEPTION);
         }
     };
@@ -53,8 +53,7 @@ export class Main extends event.EventEmitter{
                 cb(err,data);})
         }catch(e) {
             global.result.EXCEPTION.stack=e.stack;
-            Log.LogError(JSON.stringify(global.result.EXCEPTION));
-            //_log.error(JSON.stringify(global.result.EXCEPTION));
+            _log.error(JSON.stringify(global.result.EXCEPTION));
             cb(global.result.EXCEPTION);
         }
     };
@@ -64,8 +63,7 @@ export class Main extends event.EventEmitter{
                 cb(err,data);})
         }catch(e) {
             global.result.EXCEPTION.stack=e.stack;
-            Log.LogError(JSON.stringify(global.result.EXCEPTION));
-            //_log.error(JSON.stringify(global.result.EXCEPTION));
+            _log.error(JSON.stringify(global.result.EXCEPTION));
             cb(global.result.EXCEPTION);
         }
     };
@@ -77,8 +75,7 @@ export class Main extends event.EventEmitter{
             })
         }catch(e){
             global.result.EXCEPTION.stack=e.stack;
-            Log.LogError(JSON.stringify(global.result.EXCEPTION));
-            //_log.error(JSON.stringify(global.result.EXCEPTION));
+            _log.error(JSON.stringify(global.result.EXCEPTION));
             cb(global.result.EXCEPTION);
         }
     };
@@ -89,8 +86,7 @@ export class Main extends event.EventEmitter{
             })
         }catch(e) {
             global.result.EXCEPTION.stack=e.stack;
-            Log.LogError(JSON.stringify(global.result.EXCEPTION));
-            //_log.error(JSON.stringify(global.result.EXCEPTION));
+            _log.error(JSON.stringify(global.result.EXCEPTION));
             cb(global.result.EXCEPTION);
         }
     };
@@ -103,8 +99,7 @@ export class Main extends event.EventEmitter{
             })
         }catch(e) {
             global.result.EXCEPTION.stack=e.stack;
-            Log.LogError(JSON.stringify(global.result.EXCEPTION));
-            //_log.error(JSON.stringify(global.result.EXCEPTION));
+            _log.error(JSON.stringify(global.result.EXCEPTION));
             cb(global.result.EXCEPTION);
         }
 
@@ -117,8 +112,7 @@ export class Main extends event.EventEmitter{
             })
         }catch(e) {
             global.result.EXCEPTION.stack=e.stack;
-            Log.LogError(JSON.stringify(global.result.EXCEPTION));
-            //_log.error(JSON.stringify(global.result.EXCEPTION));
+            _log.error(JSON.stringify(global.result.EXCEPTION));
             cb(global.result.EXCEPTION);
         }
 
@@ -130,8 +124,7 @@ export class Main extends event.EventEmitter{
             })
         }catch(e) {
             global.result.EXCEPTION.stack=e.stack;
-            Log.LogError(JSON.stringify(global.result.EXCEPTION));
-            //_log.error(JSON.stringify(global.result.EXCEPTION));
+            _log.error(JSON.stringify(global.result.EXCEPTION));
             cb(global.result.EXCEPTION);
         }
 
@@ -143,8 +136,7 @@ export class Main extends event.EventEmitter{
             })
         }catch(e) {
             global.result.EXCEPTION.stack=e.stack;
-            Log.LogError(JSON.stringify(global.result.EXCEPTION));
-            //_log.error(JSON.stringify(global.result.EXCEPTION));
+            _log.error(JSON.stringify(global.result.EXCEPTION));
             cb(global.result.EXCEPTION);
         }
 
@@ -156,8 +148,7 @@ export class Main extends event.EventEmitter{
             })
         }catch(e) {
             global.result.EXCEPTION.stack=e.stack;
-            Log.LogError(JSON.stringify(global.result.EXCEPTION));
-            //_log.error(JSON.stringify(global.result.EXCEPTION));
+            _log.error(JSON.stringify(global.result.EXCEPTION));
             cb(global.result.EXCEPTION);
         }
 
@@ -169,8 +160,7 @@ export class Main extends event.EventEmitter{
             })
         }catch(e) {
             global.result.EXCEPTION.stack=e.stack;
-            Log.LogError(JSON.stringify(global.result.EXCEPTION));
-            //_log.error(JSON.stringify(global.result.EXCEPTION));
+            _log.error(JSON.stringify(global.result.EXCEPTION));
             cb(global.result.EXCEPTION);
         }
     };
@@ -181,8 +171,7 @@ export class Main extends event.EventEmitter{
             })
         }catch(e) {
             global.result.EXCEPTION.stack=e.stack;
-            Log.LogError(JSON.stringify(global.result.EXCEPTION));
-            //_log.error(JSON.stringify(global.result.EXCEPTION));
+            _log.error(JSON.stringify(global.result.EXCEPTION));
             cb(global.result.EXCEPTION);
         }
     };
@@ -193,8 +182,7 @@ export class Main extends event.EventEmitter{
             })
         }catch(e) {
             global.result.EXCEPTION.stack=e.stack;
-            Log.LogError(JSON.stringify(global.result.EXCEPTION));
-            //_log.error(JSON.stringify(global.result.EXCEPTION));
+            _log.error(JSON.stringify(global.result.EXCEPTION));
             cb(global.result.EXCEPTION);
         }
     };
@@ -206,8 +194,7 @@ export class Main extends event.EventEmitter{
             })
         }catch(e) {
             global.result.EXCEPTION.stack=e.stack;
-            Log.LogError(JSON.stringify(global.result.EXCEPTION));
-            //_log.error(JSON.stringify(global.result.EXCEPTION));
+            _log.error(JSON.stringify(global.result.EXCEPTION));
             cb(global.result.EXCEPTION);
         }
     };
@@ -219,8 +206,7 @@ export class Main extends event.EventEmitter{
             })
         }catch(e) {
             global.result.EXCEPTION.stack=e.stack;
-            Log.LogError(JSON.stringify(global.result.EXCEPTION));
-            //_log.error(JSON.stringify(global.result.EXCEPTION));
+            _log.error(JSON.stringify(global.result.EXCEPTION));
             cb(global.result.EXCEPTION);
         }
     };
@@ -231,8 +217,7 @@ export class Main extends event.EventEmitter{
             })
         }catch(e) {
             global.result.EXCEPTION.stack=e.stack;
-            Log.LogError(JSON.stringify(global.result.EXCEPTION));
-            //_log.error(JSON.stringify(global.result.EXCEPTION));
+            _log.error(JSON.stringify(global.result.EXCEPTION));
             cb(global.result.EXCEPTION);
         }
     };
@@ -243,8 +228,7 @@ export class Main extends event.EventEmitter{
             })
         }catch(e) {
             global.result.EXCEPTION.stack=e.stack;
-            Log.LogError(JSON.stringify(global.result.EXCEPTION));
-            //_log.error(JSON.stringify(global.result.EXCEPTION));
+            _log.error(JSON.stringify(global.result.EXCEPTION));
             cb(global.result.EXCEPTION);
         }
     };
@@ -255,11 +239,9 @@ export class Main extends event.EventEmitter{
                 data:data
             };
             this.emit('Event',result);
-            Log.LogDebug('emitiendo evento de recoger producto')
-            //_log.debug('emitiendo evento de recoger producto')
+            _log.debug('emitiendo evento de recoger producto')
         }catch(e) {
-            Log.LogError(e.stack+"Error al obtener el estado del sensor");
-            //_log.error(e.stack+"Error al obtener el estado del sensor");
+            _log.error(e.stack+"Error al obtener el estado del sensor");
 
         }
     };
@@ -270,11 +252,9 @@ export class Main extends event.EventEmitter{
                 data:data
             };
             this.emit('Event',result);
-            Log.LogDebug('emitiendo evento de estado de bandeja inferior');
-            //_log.debug('emitiendo evento de estado de bandeja inferior')
+            _log.debug('emitiendo evento de estado de bandeja inferior')
         }catch(e) {
-            Log.LogError(e.stack+"Error al obtener el estado de bandeja inferior");
-            //_log.error(e.stack+"Error al obtener el estado de bandeja inferior");
+            _log.error(e.stack+"Error al obtener el estado de bandeja inferior");
 
         }
     };
@@ -285,11 +265,9 @@ export class Main extends event.EventEmitter{
                 data:''
             };
             this.emit('Event',result);
-            Log.LogDebug('emitiendo evento de estado de bandeja inferior');
-            //_log.debug('emitiendo evento de estado de bandeja inferior')
+            _log.debug('emitiendo evento de estado de bandeja inferior')
         }catch(e) {
-            Log.LogError(e.stack+"Error al obtener el estado de bandeja inferior");
-            //_log.error(e.stack+"Error al obtener el estado de bandeja inferior");
+            _log.error(e.stack+"Error al obtener el estado de bandeja inferior");
 
         }
     };
@@ -300,8 +278,7 @@ export class Main extends event.EventEmitter{
             })
         }catch(e) {
             global.result.EXCEPTION.stack=e.stack;
-            Log.LogError(JSON.stringify(global.result.EXCEPTION));
-            //_log.error(JSON.stringify(global.result.EXCEPTION));
+            _log.error(JSON.stringify(global.result.EXCEPTION));
             cb(global.result.EXCEPTION);
         }
     };

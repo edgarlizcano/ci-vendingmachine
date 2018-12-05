@@ -1,4 +1,4 @@
-//import global.logger from "@ci24/ci-logmodule";
+import _log from "@ci24/ci-logmodule";
 import event from 'events';
 import {callback} from "./Interfaces";
 import _async from 'async';
@@ -7,7 +7,7 @@ import {Mux_class} from "./Mux_class";
 import global from'./Global';
 
 //let folderLogs = "/free/CI24/Logs/Machine/";
-//global.logger.init(folderLogs);
+//_log.init(folderLogs);
 
 export class Reader extends event.EventEmitter {
     constructor() {
@@ -21,12 +21,12 @@ export class Reader extends event.EventEmitter {
                 if(res === null){
                     cb(null)
                 }else{
-                    global.logger.write("error abriendo puerto ")
+                    _log.write("error abriendo puerto ")
                 }
             });
         }catch(err)
         {
-            global.logger.error("Exception:{0}"+err.toString());
+            _log.error("Exception:{0}"+err.toString());
             cb(err);
         }
     };
@@ -51,7 +51,7 @@ export class Reader extends event.EventEmitter {
             );
         }
         catch (err) {
-            global.logger.error("Exception:{0}"+ err.toString()+err.stack);
+            _log.error("Exception:{0}"+ err.toString()+err.stack);
             cb(err);
         }
     };
@@ -60,7 +60,7 @@ export class Reader extends event.EventEmitter {
 //*****************************************************************************
     public WriteCard = (data:any, cb:callback)=> {
         try {
-            global.logger.write('numReader:'+ data.numReader+'sector:'+ data.sector+'block:'+data.numBlocks);
+            _log.write('numReader:'+ data.numReader+'sector:'+ data.sector+'block:'+data.numBlocks);
             _async.series([
                     _async.apply(this.Mux.SetReader, null),
                     _async.apply(this.Reader.WriteCard, data)
@@ -77,7 +77,7 @@ export class Reader extends event.EventEmitter {
             );
         }
         catch (err) {
-            global.logger.write("Exception:{0}"+ err.toString(), global.logger.level.ERROR);
+            _log.write("Exception:{0}"+ err.toString(), _log.level.ERROR);
             cb(err);
         }
     };
@@ -87,7 +87,7 @@ export class Reader extends event.EventEmitter {
 //*****************************************************************************
     public ReadCard = (data:any, cb:callback)=> {
         try {
-            global.logger.write('numReader:'+ data.numReader+'sector:'+ data.sector+'block:'+data.numBlocks);
+            _log.write('numReader:'+ data.numReader+'sector:'+ data.sector+'block:'+data.numBlocks);
             _async.series([
                     _async.apply(this.Mux.SetReader, null),
                     _async.apply(this.Reader.ReadCard, data)
@@ -104,7 +104,7 @@ export class Reader extends event.EventEmitter {
             );
         }
         catch (err) {
-            global.logger.write("Exception:{0}"+ err.toString(), global.logger.level.ERROR);
+            _log.write("Exception:{0}"+ err.toString(), _log.level.ERROR);
             cb(err);
         }
     };
@@ -119,7 +119,7 @@ export class Reader extends event.EventEmitter {
                 ],(err:any|null,result?:any)=> {
                     if(err === null)
                     {
-                        global.logger.write('Resultado de funcion IdCard:{0}'+(JSON.stringify(result)));
+                        _log.write('Resultado de funcion IdCard:{0}'+(JSON.stringify(result)));
                         cb(null, result[1])
                     }
                     else
@@ -130,7 +130,7 @@ export class Reader extends event.EventEmitter {
             );
         }
         catch (err) {
-            global.logger.write("Exception:{0}"+err.toString(), global.logger.level.ERROR);
+            _log.write("Exception:{0}"+err.toString(), _log.level.ERROR);
             cb(err);
         }
     };
