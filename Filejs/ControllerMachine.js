@@ -12,12 +12,19 @@ var __extends = (this && this.__extends) || (function () {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var Global_1 = __importDefault(require("./Global"));
 var node_mcp23017_with_i2c_updated_1 = __importDefault(require("node-mcp23017_with_i2c_updated"));
 var events_1 = __importDefault(require("events"));
 var rpi_gpio_1 = __importDefault(require("rpi-gpio"));
-var async_1 = __importDefault(require("async"));
+var async_1 = __importStar(require("async"));
 var ci_syslogs_1 = require("ci-syslogs");
 var ControllerMachine = /** @class */ (function (_super) {
     __extends(ControllerMachine, _super);
@@ -34,16 +41,19 @@ var ControllerMachine = /** @class */ (function (_super) {
             device: '/dev/i2c-1',
             debug: true
         });
-        _this.position = {
-            P6: { value: false },
-            P5: { value: false },
-            P4: { value: false },
-            P3: { value: false },
-            P2: { value: false },
-            P1: { value: false },
-            P0: { value: false }
+        _this.position = 0;
+        _this.goingTo = 0;
+        _this.motorState = 0;
+        _this.dispense = false;
+        _this.checkPosition = function (pos) {
+            if (_this.position == pos) {
+                return true;
+            }
+            else {
+                return false;
+            }
         };
-        _this.initOuts = function (cb) {
+        _this.initOuts = function () {
             _this.Log.LogDebug("Inicializando salidas");
             for (var i = 0; i < 16; i++) {
                 try {
@@ -61,7 +71,7 @@ var ControllerMachine = /** @class */ (function (_super) {
                     _this.Log.LogError("Error al inicializar Pin: " + i + " de MCP2");
                 }
             }
-            cb(null, "inicialización A y B exitosa");
+            _this.Log.LogDebug("Inicializacion exitosa");
         };
         _this.stopAll = function () {
             _this.Log.LogDebug("Deteniendo toda la máquina");
@@ -82,13 +92,14 @@ var ControllerMachine = /** @class */ (function (_super) {
                 }
             }
         };
-        _this.motorStartDown = function (cb) {
+        _this.motorStartDown = function () {
             try {
-                if (_this.position.P0.value == true) {
+                if (_this.checkPosition(0)) {
                     _this.Log.LogDebug("El Elevador está en la PO, no puede bajar mas");
                 }
                 else {
                     _this.mcp2.digitalWrite(Global_1.default.MCP_Motor.Down.value, _this.mcp2.HIGH);
+                    _this.motorState = 2;
                     _this.Log.LogDebug("Elevador subiendo");
                 }
             }
@@ -96,47 +107,53 @@ var ControllerMachine = /** @class */ (function (_super) {
                 _this.Log.LogError("Error al subir ascensor" + e.stack);
             }
         };
-        _this.motorStopDown = function (cb) {
+        _this.motorStartUp = function () {
             try {
-                _this.mcp2.digitalWrite(Global_1.default.MCP_Motor.Down.value, _this.mcp2.LOW);
-                _this.Log.LogDebug("Elevador detenido");
-            }
-            catch (e) {
-                _this.Log.LogError("Error al detener ascensor" + e.stack);
-            }
-        };
-        _this.motorStartUp = function (cb) {
-            try {
-                if (_this.position.P0.value == true) {
-                    _this.mcp2.digitalWrite(Global_1.default.MCP_Motor.UP.value, _this.mcp2.HIGH);
-                    _this.Log.LogDebug("Elevador subiendo");
+                if (_this.checkPosition(6)) {
+                    _this.Log.LogDebug("El Elevador está en la P6, no puede subir mas");
                 }
                 else {
-                    _this.motorStartDown(function (callback) {
-                    });
+                    _this.mcp2.digitalWrite(Global_1.default.MCP_Motor.UP.value, _this.mcp2.HIGH);
+                    _this.motorState = 1;
+                    _this.Log.LogDebug("Elevador subiendo");
                 }
             }
             catch (e) {
                 _this.Log.LogError("Error al subir ascensor" + e.stack);
             }
         };
-        _this.motorStopUp = function (cb) {
+        _this.motorStop = function () {
             try {
+                _this.mcp2.digitalWrite(Global_1.default.MCP_Motor.Down.value, _this.mcp2.LOW);
                 _this.mcp2.digitalWrite(Global_1.default.MCP_Motor.UP.value, _this.mcp2.LOW);
+                _this.motorState = 0;
                 _this.Log.LogDebug("Elevador detenido");
             }
             catch (e) {
                 _this.Log.LogError("Error al detener ascensor" + e.stack);
             }
         };
-        _this.motorCinta = function (row, coll, cb) {
+        _this.motorCintaStart = function (row, coll) {
             try {
                 async_1.default.parallel([function () {
                         _this.mcp1.digitalWrite(row, _this.mcp2.HIGH);
                     }, function () {
                         _this.mcp1.digitalWrite(coll, _this.mcp2.HIGH);
                     }]);
-                _this.Log.LogDebug("Motor de celda activada");
+                _this.Log.LogDebug("Motor de celda activado");
+            }
+            catch (e) {
+                _this.Log.LogError("Error al activar celda" + e.stack);
+            }
+        };
+        _this.motorCintaStop = function (row, coll) {
+            try {
+                async_1.default.parallel([function () {
+                        _this.mcp1.digitalWrite(row, _this.mcp2.LOW);
+                    }, function () {
+                        _this.mcp1.digitalWrite(coll, _this.mcp2.LOW);
+                    }]);
+                _this.Log.LogDebug("Motor de celda detenido");
             }
             catch (e) {
                 _this.Log.LogError("Error al activar celda" + e.stack);
@@ -148,72 +165,93 @@ var ControllerMachine = /** @class */ (function (_super) {
                     case Global_1.default.Sensor.S1.PIN:
                         if (state === true) {
                             _this.Log.LogDebug("Sensor S1 On");
-                            _this.position.P1.value = true;
+                            _this.position = 1;
+                            if (_this.goingTo == _this.position) {
+                                _this.motorStop();
+                            }
                         }
                         else {
                             _this.Log.LogDebug("Sensor S1 Off");
-                            _this.position.P1.value = false;
                         }
+                        _this.emit("Sensor", _this.position, state);
                         break;
                     case Global_1.default.Sensor.S2.PIN:
                         if (state === true) {
                             _this.Log.LogDebug("Sensor S2 On");
-                            _this.position.P2.value = true;
+                            _this.position = 2;
+                            if (_this.goingTo == _this.position) {
+                                _this.motorStop();
+                            }
                         }
                         else {
                             _this.Log.LogDebug("Sensor S2 Off");
-                            _this.position.P2.value = false;
                         }
+                        _this.emit("Sensor", _this.position, state);
                         break;
                     case Global_1.default.Sensor.S3.PIN:
                         if (state === true) {
                             _this.Log.LogDebug("Sensor S3 On");
-                            _this.position.P3.value = true;
+                            _this.position = 3;
+                            if (_this.goingTo == _this.position) {
+                                _this.motorStop();
+                            }
                         }
                         else {
                             _this.Log.LogDebug("Sensor S3 Off");
-                            _this.position.P3.value = false;
                         }
+                        _this.emit("Sensor", _this.position, state);
                         break;
                     case Global_1.default.Sensor.S4.PIN:
                         if (state === true) {
                             _this.Log.LogDebug("Sensor S4 On");
-                            _this.position.P4.value = true;
+                            _this.position = 4;
+                            if (_this.goingTo == _this.position) {
+                                _this.motorStop();
+                            }
                         }
                         else {
                             _this.Log.LogDebug("Sensor S4 Off");
-                            _this.position.P4.value = false;
                         }
+                        _this.emit("Sensor", _this.position, state);
                         break;
                     case Global_1.default.Sensor.S5.PIN:
                         if (state === true) {
                             _this.Log.LogDebug("Sensor S5 On");
-                            _this.position.P5.value = true;
+                            _this.position = 5;
+                            if (_this.goingTo == _this.position) {
+                                _this.motorStop();
+                            }
                         }
                         else {
                             _this.Log.LogDebug("Sensor S5 Off");
-                            _this.position.P5.value = false;
                         }
+                        _this.emit("Sensor", _this.position, state);
                         break;
                     case Global_1.default.Sensor.S6.PIN:
                         if (state === true) {
                             _this.Log.LogDebug("Sensor S6 On");
-                            _this.position.P6.value = true;
+                            _this.position = 6;
+                            if (_this.goingTo == _this.position || _this.motorState == 1) {
+                                _this.motorStop();
+                            }
                         }
                         else {
                             _this.Log.LogDebug("Sensor S6 Off");
-                            _this.position.P6.value = false;
                         }
+                        _this.emit("Sensor", _this.position, state);
                         break;
                     case Global_1.default.Sensor.SM.PIN:
                         if (state === true) {
                             _this.Log.LogDebug("Sensor SM On");
-                            _this.position.P0.value = true;
+                            _this.position = 0;
+                            if (_this.goingTo == _this.position || _this.motorState == 0) {
+                                _this.motorStop();
+                            }
                         }
                         else {
                             _this.Log.LogDebug("Sensor SM Off");
-                            _this.position.P0.value = false;
                         }
+                        _this.emit("Sensor", _this.position, state);
                         break;
                     case Global_1.default.Pulso.P1.PIN:
                         if (state === true) {
@@ -321,8 +359,49 @@ var ControllerMachine = /** @class */ (function (_super) {
                 }
             }
         };
+        _this.GoTo = function (row) {
+            _this.goingTo = row;
+            if (_this.position == row) {
+                _this.Log.LogDebug("El elevador esta en posición");
+            }
+            else {
+                if (_this.position > row) {
+                    _this.motorStartDown();
+                }
+                else if (_this.position < row) {
+                    _this.motorStartUp();
+                }
+            }
+        };
+        _this.dispenseItem = function (row, coll, timewait) {
+            _this.Log.LogDebug("Comenzando proceso de dispensar item");
+            async_1.default.series([function () {
+                    _this.GoTo(row);
+                },
+                async_1.timeout(function () {
+                    if (_this.checkPosition(_this.position)) {
+                        //Programar retroceso
+                    }
+                    else {
+                        _this.Log.LogError("El elevador no está en posición para dispensar");
+                    }
+                }, timewait),
+                async_1.timeout(function () {
+                    _this.motorCintaStart(row, coll);
+                }, 2000),
+                async_1.timeout(function () {
+                    _this.on("Sensor", function (pos, state) {
+                        _this.motorCintaStop(row, coll);
+                    });
+                }, 1000),
+                async_1.timeout(function () {
+                    _this.GoTo(0);
+                }, 1000)
+            ]);
+        };
         _this.Log.LogDebug("Control inicializado");
         rpi_gpio_1.default.on('change', _this.signal);
+        _this.initOuts();
         return _this;
     }
     return ControllerMachine;
