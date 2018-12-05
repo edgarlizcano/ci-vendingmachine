@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="3a73f686-f2e2-4b30-83e3-41ab7788f280" name="ts_machine" url="http://192.168.14.78">
+        <fileTransfer host="192.168.14.78" port="22" rootFolder="/Logic" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+      <webServer id="967b3be0-c803-4322-a8ee-531803069f64" name="ts_Machine abajo" url="http://192.168.14.57">
+        <fileTransfer host="192.168.14.57" port="22" rootFolder="/Logic" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+      <webServer id="39d8c471-b277-4ed7-9714-55d69d8e2342" name="logica" url="http://192.168.14.57">
+        <fileTransfer host="192.168.14.57" port="22" rootFolder="/Logic" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+      <webServer id="7a5fe87f-7aa8-41ca-82cc-ad5f6cfa3d32" name="prueba" url="http://192.168.14.52">
+        <fileTransfer host="192.168.14.52" port="22" rootFolder="/Logic" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+      <webServer id="9bb63c1b-7ae5-443b-805a-49f16ece3c61" name="logica_prueba_52" url="http://192.168.14.51">
+        <fileTransfer host="192.168.14.51" port="22" rootFolder="/Logic" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+      <webServer id="c979bdc9-23f1-4da2-bfa2-02012a70c1ed" name="pruebas tecnología" url="http://192.168.14.51">
+        <fileTransfer host="192.168.14.51" port="22" rootFolder="/Logic" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+      <webServer id="54145b60-869c-4133-bf44-fd4e0d9050ad" name="Pruebas perfumes" url="http://192.168.14.42">
+        <fileTransfer host="192.168.14.42" port="22" rootFolder="/Logic" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

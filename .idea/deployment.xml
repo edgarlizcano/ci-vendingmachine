@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" serverName="ts_machine">
+    <serverData>
+      <paths name="Pruebas perfumes">
+        <serverdata>
+          <mappings>
+            <mapping deploy="Machine_tsc" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="logica">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/ci-ppa-business-logic/node_modules/@ci24/Machine_tsc" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="logica_prueba_52">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/ci-ppa-business-logic/node_modules/@ci24/Machine_tsc" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="prueba">
+        <serverdata>
+          <mappings>
+            <mapping deploy="Machine_tsc" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="pruebas tecnología">
+        <serverdata>
+          <mappings>
+            <mapping deploy="Machine_tsc" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="ts_Machine abajo">
+        <serverdata>
+          <mappings>
+            <mapping deploy="Machine_tsc" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="ts_machine">
+        <serverdata>
+          <mappings>
+            <mapping deploy="Machine_tsc" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>
