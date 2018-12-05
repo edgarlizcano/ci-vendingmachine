@@ -9,7 +9,6 @@ let out1  =  new Output();
 import {Reader} from './Reader';
 import {Sensor} from "./Sensor";
 import {Logger} from "ci-syslogs";
-
 let Log = new Logger("0.0.0.0",Logger.Facilities.Machine);
 let folderLogs = "/free/CI24/Logs/Machine/";
 let data = {

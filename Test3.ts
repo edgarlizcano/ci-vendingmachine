@@ -11,11 +11,16 @@ let data = {
 };
 
 _log.init(data);*/
+
+import {Logger} from "ci-syslogs";
+let Log = new Logger("0.0.0.0",Logger.Facilities.Machine);
 import {Main} from './main';
 let Machine = new Main();
 
-_log.debug("Ingrese la ubicacion que desea vender");
-_log.write("Ingrese la ubicacion que desea vender");
+Log.LogInfo("Ingrese la ubicacion que desea vender");
+// _log.debug("Ingrese la ubicacion que desea vender");
+// _log.write("Ingrese la ubicacion que desea vender");
+
 stdin.addListener("data", (d) => {
     // note:  d is an object, and when converted to a string it will
     // end with a linefeed.  so we (rather crudely) account for that
@@ -23,134 +28,156 @@ stdin.addListener("data", (d) => {
     let cmd = d.toString().trim();
     //_log.debug("entro");
     Machine.on('Event',(data:any)=>{
-        console.log(JSON.stringify(data));
+        Log.LogDebug(JSON.stringify(data));
+        //console.log(JSON.stringify(data));
     });
     console.log(`you entered: [${cmd}]`);
     switch (cmd){
         case 'a1':
         case 'A1':
             Machine.Sale('a1',(res:any|null,resp?:any)=> {
-                console.log('A1 time pin');
+                Log.LogDebug('A1 time pin');
+                //console.log('A1 time pin');
             });
             break;
         case 'c12':
         case 'C12':
             Machine.Sale('c12',(res:any|null,resp?:any)=> {
-                console.log('A1 time pin');
+                Log.LogDebug('c12 time pin');
+                //console.log('A1 time pin');
             });
             break;
         case 'b12':
         case 'B12':
             Machine.Sale('b12',(res:any|null,resp?:any)=> {
-                console.log('A1 time pin');
+                Log.LogDebug('b12 time pin');
+                //console.log('A1 time pin');
             });
             break;
         case 'b34':
         case 'B34':
             Machine.Sale('b34',(res:any|null,resp?:any)=> {
-                console.log('A1 time pin');
+                Log.LogDebug('b34 time pin');
+                //console.log('A1 time pin');
             });
             break;
         case 'b56':
         case 'B56':
             Machine.Sale('b56',(res:any|null,resp?:any)=> {
-                console.log('A1 time pin');
+                Log.LogDebug('b56 time pin');
+                //console.log('A1 time pin');
             });
             break;
         case 'c34':
         case 'C34':
             Machine.Sale('c34',(res:any|null,resp?:any)=> {
-                console.log('A1 time pin');
+                Log.LogDebug('c34 time pin');
+                //console.log('A1 time pin');
             });
             break;
         case 'c56':
         case 'C56':
             Machine.Sale('c56',(res:any|null,resp?:any)=> {
-                console.log('A1 time pin');
+                Log.LogDebug('c56 time pin');
+                //console.log('A1 time pin');
             });
             break;
         case 'c78':
         case 'C78':
             Machine.Sale('c78',(res:any|null,resp?:any)=> {
-                console.log('A1 time pin');
+                Log.LogDebug('c78 time pin');
+                //console.log('A1 time pin');
             });
             break;
         case 'c90':
         case 'C90':
             Machine.Sale('c90',(res:any|null,resp?:any)=> {
-                console.log('A1 time pin');
+                Log.LogDebug('c90 time pin');
+                //console.log('A1 time pin');
             });
             break;
         case 'd12':
         case 'D12':
             Machine.Sale('d12',(res:any|null,resp?:any)=> {
-                console.log('A1 time pin');
+                Log.LogDebug('d12 time pin');
+                //console.log('A1 time pin');
             });
             break;
         case 'd34':
         case 'D34':
             Machine.Sale('d34',(res:any|null,resp?:any)=> {
-                console.log('A1 time pin');
+                Log.LogDebug('d34 time pin');
+                //console.log('A1 time pin');
             });
             break;
         case 'd56':
         case 'D56':
             Machine.Sale('d56',(res:any|null,resp?:any)=> {
-                console.log('A1 time pin');
+                Log.LogDebug('d56 time pin');
+                //console.log('A1 time pin');
             });
             break;
         case 'd78':
         case 'D78':
             Machine.Sale('d78',(res:any|null,resp?:any)=> {
-                console.log('A1 time pin');
+                Log.LogDebug('d78 time pin');
+                //console.log('A1 time pin');
             });
             break;
         case 'd90':
         case 'D90':
             Machine.Sale('d90',(res:any|null,resp?:any)=> {
+                Log.LogDebug('d90 time pin');
                 console.log('d90 time pin');
             });
             break;
         case 'f34':
         case 'F34':
             Machine.Sale('f34',(res:any|null,resp?:any)=> {
-                console.log('f34 time pin');
+                Log.LogDebug('f34 time pin');
+                //console.log('f34 time pin');
             });
             break;
         case 'f12':
         case 'F12':
             Machine.Sale('f12',(res:any|null,resp?:any)=> {
-                console.log('f34 time pin');
+                Log.LogDebug('f12 time pin');
+                //console.log('f34 time pin');
             });
             break;
         case 'f56':
         case 'F56':
             Machine.Sale('f56',(res:any|null,resp?:any)=> {
-                console.log('f56 time pin');
+                Log.LogDebug('f56 time pin');
+                //console.log('f56 time pin');
             });
             break;
         case 'f78':
         case 'F78':
             Machine.Sale('f78',(res:any|null,resp?:any)=> {
-                console.log('f78 time pin');
+                Log.LogDebug('f78 time pin');
+                //console.log('f78 time pin');
             });
             break;
         case 'f90':
         case 'F90':
             Machine.Sale('f90',(res:any|null,resp?:any)=> {
-                console.log('f90 time pin');
+                Log.LogDebug('f90 time pin');
+                //console.log('f90 time pin');
             });
             break;
         case 'e34':
         case 'E34':
             Machine.Sale('e34',(res:any|null,resp?:any)=> {
-                console.log('e34 time pin');
+                Log.LogDebug('e34 time pin');
+                //console.log('e34 time pin');
             });
             break;
         case 'e12':
         case 'E12':
             Machine.Sale('e12',(res:any|null,resp?:any)=> {
-                console.log('e34 time pin');
+                Log.LogDebug('e12 time pin');
+                //console.log('e34 time pin');
             });
             break;
         case 'e56':
