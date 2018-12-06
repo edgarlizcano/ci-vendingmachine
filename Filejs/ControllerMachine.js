@@ -12,19 +12,12 @@ var __extends = (this && this.__extends) || (function () {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 var Global_1 = __importDefault(require("./Global"));
 var node_mcp23017_with_i2c_updated_1 = __importDefault(require("node-mcp23017_with_i2c_updated"));
 var events_1 = __importDefault(require("events"));
 var rpi_gpio_1 = __importDefault(require("rpi-gpio"));
-var async_1 = __importStar(require("async"));
+var async_1 = __importDefault(require("async"));
 var ci_syslogs_1 = require("ci-syslogs");
 var ci_logmodule_1 = __importDefault(require("@ci24/ci-logmodule"));
 var ControllerMachine = /** @class */ (function (_super) {
@@ -101,7 +94,7 @@ var ControllerMachine = /** @class */ (function (_super) {
                 rpi_gpio_1.default.setup(Global_1.default.elevator.Up.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
                 rpi_gpio_1.default.setup(Global_1.default.elevator.Down.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
                 rpi_gpio_1.default.setup(Global_1.default.general.stop.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
-                _this.Log.LogDebug("Inicializando sensores");
+                _this.Log.LogDebug("Sensores listos");
             }
             catch (e) {
                 _this.Log.LogError("Error al iniciar los sensores");
@@ -421,41 +414,82 @@ var ControllerMachine = /** @class */ (function (_super) {
                 }
             }
         };
-        _this.dispenseItem = function (row, coll, timewait) {
+        _this.waitPosition = function (piso) {
+            _this.Log.LogDebug("Esperando posición de elevador");
+            setInterval(function () {
+                if (Global_1.default.machinelocation == piso) {
+                    clearInterval();
+                    _this.Log.LogDebug("Elevador llego a la posición");
+                }
+            }, 100);
+        };
+        _this.prepareForDispense = function (height) {
+            var timeForDown = height * 17;
+            if (_this.checkPosition(Global_1.default.machinelocation)) {
+                _this.Log.LogDebug("Comenzando proceso de retroceso");
+                _this.motorStartDown();
+                setTimeout(function () {
+                    _this.motorStop();
+                }, timeForDown);
+                _this.Log.LogDebug("Elevador preparado para recibir");
+            }
+            else {
+                _this.Log.LogError("El elevador no está en posición para dispensar");
+            }
+        };
+        _this.prepareForDeliver = function (row, coll) {
+            setInterval(function () {
+                _this.on("Sensor", function () {
+                    _this.motorCintaStop(row, coll);
+                    clearInterval();
+                    _this.Log.LogDebug("Articulo recibido, comenzando la entrega");
+                });
+            });
+        };
+        /*public dispenseItem=(piso: number ,row: number, coll:number, height: number)=>{
+            this.Log.LogDebug("Comenzando proceso de dispensar item");
+            _async.series([
+                // Step 1 - Ir a ubicación
+                _async.apply(this.GoTo,piso),
+                // Step 2
+                _async.apply(this.waitPosition, piso),
+                // Step 3
+                _async.apply(this.prepareForDispense, height),
+                // Step 4
+                //_async.apply(this.motorCintaStart,row,coll),
+                // Step 5
+                //_async.apply(this.prepareForDeliver, row, coll),
+                // Step 6
+                //Modificar este paso para validar la entrega del producto
+                //_async.apply(this.GoTo,7)
+            ])
+        }*/
+        _this.dispenseItem = function (piso, row, coll, height) {
             _this.Log.LogDebug("Comenzando proceso de dispensar item");
-            async_1.default.series([function () {
-                    _this.GoTo(row);
-                },
-                async_1.timeout(function () {
-                    if (_this.checkPosition(Global_1.default.machinelocation)) {
-                        _this.Log.LogDebug("Comenzando proceso de retroceso");
-                        _this.motorStartDown();
-                        async_1.timeout(function () {
-                            _this.motorStop;
-                        }, 100);
-                    }
-                    else {
-                        _this.Log.LogError("El elevador no está en posición para dispensar");
-                    }
-                }, 1000),
-                async_1.timeout(function () {
-                    _this.motorCintaStart(row, coll);
-                }, 2000),
-                async_1.timeout(function () {
-                    _this.on("Sensor", function (pos, state) {
-                        _this.motorCintaStop(row, coll);
-                    });
-                }, 1000),
-                async_1.timeout(function () {
-                    _this.GoTo(0);
-                }, 1000)
-            ]);
+            _this.GoTo(piso);
+            _this.waitPosition(piso);
+            _this.prepareForDispense(height);
+            _this.motorCintaStart(row, coll);
+            _this.prepareForDeliver(row, coll);
+            _this.GoTo(7);
         };
         _this.Log.LogDebug("Control inicializado");
         rpi_gpio_1.default.on('change', _this.signal);
         _this.initOuts();
         _this.initSensors();
         return _this;
+        /*Gpio.read(global.Sensor.SM.PIN,(err:any, value?:any)=> {
+            if (err != null) {
+                if(value==true){
+                    this.Log.LogDebug("Sensor On "+"SM");
+                }else{
+                    this.motorStartDown();
+                }
+            }else{
+                this.Log.LogDebug("Error al leer posicion inicial");
+                this.Log.LogDebug(JSON.stringify(global.result.ERROR_READ_PIN_SM));
+            }
+        });*/
     }
     return ControllerMachine;
 }(events_1.default));

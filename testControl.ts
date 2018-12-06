@@ -1,6 +1,7 @@
 let stdin = process.openStdin();
 import {ControllerMachine} from "./ControllerMachine";
 let control = new ControllerMachine();
+let global = require("./Global");
 menu();
 stdin.addListener("data", (d) => {
     menu();
@@ -34,6 +35,18 @@ stdin.addListener("data", (d) => {
             console.log("yendo a 7")
             control.GoTo(7);
             break;
+        case "e7":
+            console.log("dispensando a1")
+            control.dispenseItem(global.motoresCelda.E7.piso,global.motoresCelda.E7.row, global.motoresCelda.E7.coll,14);
+            break;
+        case "b3":
+            console.log("dispensando a1")
+            control.dispenseItem(global.motoresCelda.B3.piso,global.motoresCelda.B3.row, global.motoresCelda.B3.coll,14);
+            break;
+        case "d5":
+            console.log("dispensando a1")
+            control.dispenseItem(global.motoresCelda.D5.piso,global.motoresCelda.D5.row, global.motoresCelda.D5.coll,14);
+            break;
         case "s":
             console.log("Stop")
             control.motorStop();
@@ -52,5 +65,7 @@ function  menu() {
     console.log("4 - goto 4");
     console.log("5 - goto 5");
     console.log("6 - goto 6");
+    console.log("7 - abajo");
     console.log("stop");
+    console.log("a1 - b3 - d5");
 }

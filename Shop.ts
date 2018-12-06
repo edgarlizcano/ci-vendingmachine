@@ -827,7 +827,6 @@ export class Shop extends event.EventEmitter {
         this.Is_Location =location;
         _log.write('sales steps'+ this.Is_pin);
 
-
         _async.series([
                 _async.apply(this.Input.initial_elevator_call, null),
                 _async.apply(this.Ubicacion, '1'),
@@ -1189,8 +1188,5 @@ export class Shop extends event.EventEmitter {
 
         }
     };
-
-
-
 
 }

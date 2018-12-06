@@ -226,7 +226,7 @@ export class Output extends event.EventEmitter {
         }
     };
 
-    public  ChangeOutputStatus = (data:any):void=> {
+    public ChangeOutputStatus = (data:any):void=> {
         try {
             switch (data.MCP) {
                 case 1:

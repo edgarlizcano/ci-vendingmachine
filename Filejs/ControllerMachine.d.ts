@@ -11,15 +11,18 @@ export declare class ControllerMachine extends Event {
     constructor();
     private checkPosition;
     private initOuts;
-    initSensors: () => void;
+    private initSensors;
     closeSensors: (cb: callback) => void;
     stopAll: () => void;
     private motorStartDown;
     private motorStartUp;
     motorStop: () => void;
-    motorCintaStart: (row: number, coll: number) => void;
-    motorCintaStop: (row: number, coll: number) => void;
-    signal: (pin: number, state: boolean) => void;
+    private motorCintaStart;
+    private motorCintaStop;
+    private signal;
     GoTo: (row: number) => void;
-    dispenseItem: (row: number, coll: number, timewait: number) => void;
+    private waitPosition;
+    private prepareForDispense;
+    private prepareForDeliver;
+    dispenseItem: (piso: number, row: number, coll: number, height: number) => void;
 }

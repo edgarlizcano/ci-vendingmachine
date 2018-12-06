@@ -32,6 +32,18 @@ export class ControllerMachine extends Event{
         Gpio.on('change', this.signal);
         this.initOuts();
         this.initSensors();
+        /*Gpio.read(global.Sensor.SM.PIN,(err:any, value?:any)=> {
+            if (err != null) {
+                if(value==true){
+                    this.Log.LogDebug("Sensor On "+"SM");
+                }else{
+                    this.motorStartDown();
+                }
+            }else{
+                this.Log.LogDebug("Error al leer posicion inicial");
+                this.Log.LogDebug(JSON.stringify(global.result.ERROR_READ_PIN_SM));
+            }
+        });*/
     }
 
     private checkPosition=(pos: number):boolean=>{
@@ -61,7 +73,7 @@ export class ControllerMachine extends Event{
         this.Log.LogDebug("Inicializacion exitosa");
     };
 
-    public initSensors= ():void =>{
+    private initSensors= ():void =>{
         try {
             this.Log.LogDebug("Inicializando sensores");
             //----------Sensores-------------------//
@@ -91,7 +103,7 @@ export class ControllerMachine extends Event{
             Gpio.setup(global.elevator.Down.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
 
             Gpio.setup(global.general.stop.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
-            this.Log.LogDebug("Inicializando sensores");
+            this.Log.LogDebug("Sensores listos");
         }catch(e) {
             this.Log.LogError("Error al iniciar los sensores");
             this.Log.LogError(e.stack+ JSON.stringify(global.result.ERROR_INIT_GPIO));
@@ -168,7 +180,7 @@ export class ControllerMachine extends Event{
         }
     };
 
-    public motorCintaStart= (row: number, coll:number) =>{
+    private motorCintaStart= (row: number, coll:number) =>{
         try {
             _async.parallel([()=>{
                 this.mcp1.digitalWrite(row, this.mcp2.HIGH);
@@ -181,7 +193,7 @@ export class ControllerMachine extends Event{
         }
     };
 
-    public motorCintaStop= (row: number, coll:number) =>{
+    private motorCintaStop= (row: number, coll:number) =>{
         try {
             _async.parallel([()=>{
                 this.mcp1.digitalWrite(row, this.mcp2.LOW);
@@ -194,7 +206,7 @@ export class ControllerMachine extends Event{
         }
     };
 
-    public signal=(pin:number,state:boolean)=> {
+    private signal=(pin:number,state:boolean)=>{
         if (state === true) {
             switch (pin) {
                 case global.Sensor.S1.PIN:
@@ -388,33 +400,65 @@ export class ControllerMachine extends Event{
         }
     }
 
-    public dispenseItem=(row: number, coll:number, timewait: number)=>{
+    private waitPosition=(piso:number)=>{
+        this.Log.LogDebug("Esperando posición de elevador");
+        setInterval(()=>{
+            if(global.machinelocation==piso){
+                clearInterval();
+                this.Log.LogDebug("Elevador llego a la posición");
+            }
+        },100)
+    }
+
+    private prepareForDispense=(height:number)=> {
+        let timeForDown = height * 17;
+        if (this.checkPosition(global.machinelocation)) {
+            this.Log.LogDebug("Comenzando proceso de retroceso");
+            this.motorStartDown();
+            setTimeout(() => {
+                this.motorStop();
+            }, timeForDown)
+            this.Log.LogDebug("Elevador preparado para recibir");
+        } else {
+            this.Log.LogError("El elevador no está en posición para dispensar");
+        }
+    }
+
+    private prepareForDeliver=(row: number, coll: number)=> {
+        setInterval(()=>{
+            this.on("Sensor", () => {
+                this.motorCintaStop(row, coll);
+                clearInterval();
+                this.Log.LogDebug("Articulo recibido, comenzando la entrega");
+            })
+        })
+    }
+
+    /*public dispenseItem=(piso: number ,row: number, coll:number, height: number)=>{
         this.Log.LogDebug("Comenzando proceso de dispensar item");
-        _async.series([()=>{
-                this.GoTo(row);
-            },
-                timeout(()=>{
-                    if(this.checkPosition(global.machinelocation)){
-                        this.Log.LogDebug("Comenzando proceso de retroceso");
-                        this.motorStartDown();
-                        timeout(()=>{
-                            this.motorStop
-                        },100)
-                    }else{
-                        this.Log.LogError("El elevador no está en posición para dispensar");
-                    }
-                },1000),
-                    timeout(()=>{
-                        this.motorCintaStart(row,coll);
-                    },2000),
-                        timeout(()=>{
-                            this.on("Sensor",(pos,state)=>{
-                            this.motorCintaStop(row, coll);
-                        })
-                        },1000),
-                            timeout(()=>{
-                                this.GoTo(0);
-                            },1000)
+        _async.series([
+            // Step 1 - Ir a ubicación
+            _async.apply(this.GoTo,piso),
+            // Step 2
+            _async.apply(this.waitPosition, piso),
+            // Step 3
+            _async.apply(this.prepareForDispense, height),
+            // Step 4
+            //_async.apply(this.motorCintaStart,row,coll),
+            // Step 5
+            //_async.apply(this.prepareForDeliver, row, coll),
+            // Step 6
+            //Modificar este paso para validar la entrega del producto
+            //_async.apply(this.GoTo,7)
         ])
+    }*/
+    public dispenseItem=(piso: number ,row: number, coll:number, height: number)=>{
+        this.Log.LogDebug("Comenzando proceso de dispensar item");
+        this.GoTo(piso);
+        this.waitPosition(piso);
+        this.prepareForDispense(height);
+        this.motorCintaStart(row,coll);
+        this.prepareForDeliver(row,coll);
+        this.GoTo(7);
     }
 }
