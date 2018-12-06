@@ -19,7 +19,6 @@ export class ControllerMachine extends Event{
         device: '/dev/i2c-1',
         debug: true
     });
-    //private position: number = 1;
     private goingTo: number = 0;
     private motorState: number = 0;
     //motorState 0 stop
@@ -396,8 +395,11 @@ export class ControllerMachine extends Event{
             },
                 timeout(()=>{
                     if(this.checkPosition(global.machinelocation)){
-                        //Programar retroceso
                         this.Log.LogDebug("Comenzando proceso de retroceso");
+                        this.motorStartDown();
+                        timeout(()=>{
+                            this.motorStop
+                        },100)
                     }else{
                         this.Log.LogError("El elevador no está en posición para dispensar");
                     }

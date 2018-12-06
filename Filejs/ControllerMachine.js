@@ -42,7 +42,6 @@ var ControllerMachine = /** @class */ (function (_super) {
             device: '/dev/i2c-1',
             debug: true
         });
-        //private position: number = 1;
         _this.goingTo = 0;
         _this.motorState = 0;
         //motorState 0 stop
@@ -429,8 +428,11 @@ var ControllerMachine = /** @class */ (function (_super) {
                 },
                 async_1.timeout(function () {
                     if (_this.checkPosition(Global_1.default.machinelocation)) {
-                        //Programar retroceso
                         _this.Log.LogDebug("Comenzando proceso de retroceso");
+                        _this.motorStartDown();
+                        async_1.timeout(function () {
+                            _this.motorStop;
+                        }, 100);
                     }
                     else {
                         _this.Log.LogError("El elevador no está en posición para dispensar");
