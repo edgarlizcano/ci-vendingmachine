@@ -12,7 +12,7 @@ import {Output} from './Output';*/
 export class Input extends event.EventEmitter {
     constructor(_principal:any) {
         super();
-        Gpio.on('change', this.pollcbsensor);
+        rpio.on('change', this.pollcbsensor);
         this.Principal=_principal;
     }
     // private Out1: any    = new Output();
@@ -26,7 +26,7 @@ export class Input extends event.EventEmitter {
     private P6=false;
     private SM=false;
 
-     public Open= ():void =>{
+    public Open= ():void =>{
         try {
             //----------Sensores-------------------//
             Gpio.setup(global.Sensor.S1.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
@@ -64,7 +64,7 @@ export class Input extends event.EventEmitter {
     public Close= (cb:callback):void=> {
         try {
             Gpio.destroy((err:any)=>{
-                _log.write('Desabilitados tods los sensores'+err);
+                _log.write('Desabilitados todos los sensores'+err);
                 cb(err);
             });
         }catch(e) {

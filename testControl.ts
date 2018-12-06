@@ -1,30 +1,42 @@
 let stdin = process.openStdin();
 import {ControllerMachine} from "./ControllerMachine";
 let control = new ControllerMachine();
+menu();
 stdin.addListener("data", (d) => {
-
+    menu();
     let cmd = d.toString().trim();
     switch (cmd) {
-        case "0":
-            control.GoTo(0);
-            break;
         case "1":
-            //control.motorStartUp();
+            console.log("yendo a 1")
+            control.GoTo(1);
             break;
         case "2":
-            //control.motorStopUp();
+            console.log("yendo a 2")
+            control.GoTo(2);
             break;
         case "3":
-            //control.motorStartDown();
+            console.log("yendo a 3")
+            control.GoTo(3);
             break;
         case "4":
-            //control.motorStopDown();
+            console.log("yendo a 4")
+            control.GoTo(4);
             break;
         case "5":
+            console.log("yendo a 5")
             control.GoTo(5);
             break;
         case "6":
+            console.log("yendo a 6")
             control.GoTo(6);
+            break;
+        case "7":
+            console.log("yendo a 7")
+            control.GoTo(7);
+            break;
+        case "s":
+            console.log("Stop")
+            control.motorStop();
             break;
         default:
             console.log("opcion incorrecta");
@@ -33,11 +45,12 @@ stdin.addListener("data", (d) => {
 })
 
 function  menu() {
-    console.log("0 - goto 0");
-    console.log("1 - iniciar subida");
-    console.log("2 - detener subida");
-    console.log("3 - iniciar bajada");
-    console.log("4 - detener bajada");
+    console.log("0 - goto main");
+    console.log("1 - goto 1");
+    console.log("2 - goto 2");
+    console.log("3 - goto 3");
+    console.log("4 - goto 4");
     console.log("5 - goto 5");
     console.log("6 - goto 6");
+    console.log("stop");
 }

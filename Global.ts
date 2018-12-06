@@ -65,6 +65,8 @@ global.MCP_row= {
     A:  {MCP: 1, value: 15, text: "Piso_A ",status: false, ID:'A'}
 };
 
+global.machinelocation= 7
+
 global.MCP_Columna= {
     1:   {MCP: 1, value: 0, text: "Columna_1  ",status: false, ID: 1},
     2:   {MCP: 1, value: 9, text: "Columna_2  ",status: false, ID: 2},

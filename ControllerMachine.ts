@@ -5,6 +5,7 @@ import Gpio from "rpi-gpio";
 import {callback} from "./Interfaces";
 import _async, {forEach, timeout} from "async";
 import {Logger} from "ci-syslogs";
+import _log from "@ci24/ci-logmodule";
 
 export class ControllerMachine extends Event{
     private Log = new Logger("0.0.0.0",Logger.Facilities.Machine);
@@ -18,9 +19,12 @@ export class ControllerMachine extends Event{
         device: '/dev/i2c-1',
         debug: true
     });
-    private position: number = 0;
+    //private position: number = 1;
     private goingTo: number = 0;
     private motorState: number = 0;
+    //motorState 0 stop
+    //motorState 1 up
+    //motorState 2 down
     private dispense: boolean = false;
 
     constructor(){
@@ -28,10 +32,11 @@ export class ControllerMachine extends Event{
         this.Log.LogDebug("Control inicializado");
         Gpio.on('change', this.signal);
         this.initOuts();
+        this.initSensors();
     }
 
     private checkPosition=(pos: number):boolean=>{
-        if(this.position==pos){
+        if(global.machinelocation==pos){
             return true
         }else{
             return false;
@@ -57,6 +62,56 @@ export class ControllerMachine extends Event{
         this.Log.LogDebug("Inicializacion exitosa");
     };
 
+    public initSensors= ():void =>{
+        try {
+            this.Log.LogDebug("Inicializando sensores");
+            //----------Sensores-------------------//
+            Gpio.setup(global.Sensor.S1.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
+            Gpio.setup(global.Sensor.S2.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
+            Gpio.setup(global.Sensor.S3.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
+            Gpio.setup(global.Sensor.S4.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
+            Gpio.setup(global.Sensor.S5.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
+            Gpio.setup(global.Sensor.S6.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
+            Gpio.setup(global.Sensor.SM.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
+            //Gpio.setup(global.Sensor.SM.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH, this.initial_elevator);
+
+            // Gpio.setup(global.Pulso.P1.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH,this.readInput_InP1);
+            // Gpio.setup(global.Pulso.P2.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH,this.readInput_InP2);
+            // Gpio.setup(global.Pulso.P3.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH,this.readInput_InP3);
+            // Gpio.setup(global.Pulso.P4.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH,this.readInput_InP4);
+            // Gpio.setup(global.Pulso.P5.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH,this.readInput_InP5);
+            // Gpio.setup(global.Pulso.P6.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH,this.readInput_InP6);
+
+            Gpio.setup(global.Aux.A1.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
+            Gpio.setup(global.Aux.A2.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
+
+            Gpio.setup(global.Card.Int.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
+            Gpio.setup(global.Card.Out.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
+
+            Gpio.setup(global.elevator.Up.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
+            Gpio.setup(global.elevator.Down.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
+
+            Gpio.setup(global.general.stop.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
+            this.Log.LogDebug("Inicializando sensores");
+        }catch(e) {
+            this.Log.LogError("Error al iniciar los sensores");
+            this.Log.LogError(e.stack+ JSON.stringify(global.result.ERROR_INIT_GPIO));
+        }
+    };
+
+    public closeSensors= (cb:callback):void=> {
+        try {
+            Gpio.destroy((err:any)=>{
+                this.Log.LogDebug("Sensores deshabilidatos");
+                _log.write('Desabilitados tods los sensores'+err);
+                cb(err);
+            });
+        }catch(e) {
+            _log.error(e.stack+"Error detener sensores  ");
+            cb(e);
+        }
+    };
+
     public stopAll=()=>{
         this.Log.LogDebug("Deteniendo toda la máquina");
         for (let i = 0; i < 16; i++) {
@@ -77,21 +132,21 @@ export class ControllerMachine extends Event{
 
     private motorStartDown= () =>{
         try {
-            if(this.checkPosition(0)){
+            if(this.checkPosition(7)){
                 this.Log.LogDebug("El Elevador está en la PO, no puede bajar mas");
             }else{
                 this.mcp2.digitalWrite(global.MCP_Motor.Down.value, this.mcp2.HIGH);
                 this.motorState = 2;
-                this.Log.LogDebug("Elevador subiendo");
+                this.Log.LogDebug("Elevador Bajando");
             }
         }catch(e) {
-            this.Log.LogError("Error al subir ascensor"+e.stack);
+            this.Log.LogError("Error al bajar ascensor"+e.stack);
         }
     };
 
     private motorStartUp= () =>{
         try {
-            if(this.checkPosition(6)){
+            if(this.checkPosition(1)){
                 this.Log.LogDebug("El Elevador está en la P6, no puede subir mas");
             }else{
                 this.mcp2.digitalWrite(global.MCP_Motor.UP.value, this.mcp2.HIGH);
@@ -146,86 +201,86 @@ export class ControllerMachine extends Event{
                 case global.Sensor.S1.PIN:
                     if (state === true) {
                         this.Log.LogDebug("Sensor S1 On");
-                        this.position= 1;
-                        if(this.goingTo == this.position){
+                        global.machinelocation= 1;
+                        if(this.goingTo == global.machinelocation||this.motorState == 1){
                             this.motorStop();
                         }
                     } else {
                         this.Log.LogDebug("Sensor S1 Off");
                     }
-                    this.emit("Sensor",this.position,state);
+                    this.emit("Sensor",global.machinelocation,state);
                     break;
                 case global.Sensor.S2.PIN:
                     if (state === true) {
                         this.Log.LogDebug("Sensor S2 On");
-                        this.position = 2;
-                        if(this.goingTo == this.position){
+                        global.machinelocation = 2;
+                        if(this.goingTo == global.machinelocation||this.motorState == 1){
                             this.motorStop();
                         }
                     } else {
                         this.Log.LogDebug("Sensor S2 Off");
                     }
-                    this.emit("Sensor",this.position,state);
+                    this.emit("Sensor",global.machinelocation,state);
                     break;
                 case global.Sensor.S3.PIN:
                     if (state === true) {
                         this.Log.LogDebug("Sensor S3 On");
-                        this.position = 3;
-                        if(this.goingTo == this.position){
+                        global.machinelocation = 3;
+                        if(this.goingTo == global.machinelocation){
                             this.motorStop();
                         }
                     } else {
                         this.Log.LogDebug("Sensor S3 Off");
                     }
-                    this.emit("Sensor",this.position,state);
+                    this.emit("Sensor",global.machinelocation,state);
                     break;
                 case global.Sensor.S4.PIN:
                     if (state === true) {
                         this.Log.LogDebug("Sensor S4 On");
-                        this.position= 4;
-                        if(this.goingTo == this.position){
+                        global.machinelocation= 4;
+                        if(this.goingTo == global.machinelocation){
                             this.motorStop();
                         }
                     } else {
                         this.Log.LogDebug("Sensor S4 Off");
                     }
-                    this.emit("Sensor",this.position,state);
+                    this.emit("Sensor",global.machinelocation,state);
                     break;
                 case global.Sensor.S5.PIN:
                     if (state === true) {
                         this.Log.LogDebug("Sensor S5 On");
-                        this.position = 5;
-                        if(this.goingTo == this.position){
+                        global.machinelocation = 5;
+                        if(this.goingTo == global.machinelocation){
                             this.motorStop();
                         }
                     } else {
                         this.Log.LogDebug("Sensor S5 Off");
                     }
-                    this.emit("Sensor",this.position,state);
+                    this.emit("Sensor",global.machinelocation,state);
                     break;
                 case global.Sensor.S6.PIN:
                     if (state === true) {
                         this.Log.LogDebug("Sensor S6 On");
-                        this.position = 6;
-                        if(this.goingTo == this.position||this.motorState == 1){
+                        global.machinelocation = 6;
+                        if(this.goingTo == global.machinelocation){
                             this.motorStop();
                         }
                     } else {
                         this.Log.LogDebug("Sensor S6 Off");
                     }
-                    this.emit("Sensor",this.position,state);
+                    this.emit("Sensor",global.machinelocation,state);
                     break;
                 case global.Sensor.SM.PIN:
                     if (state === true) {
                         this.Log.LogDebug("Sensor SM On");
-                        this.position = 0;
-                        if(this.goingTo == this.position||this.motorState == 0){
+                        global.machinelocation = 7;
+                        if(this.goingTo == global.machinelocation||this.motorState == 2){
                             this.motorStop();
                         }
                     } else {
                         this.Log.LogDebug("Sensor SM Off");
                     }
-                    this.emit("Sensor",this.position,state);
+                    this.emit("Sensor",global.machinelocation,state);
                     break;
                 case global.Pulso.P1.PIN:
                     if (state === true) {
@@ -323,13 +378,13 @@ export class ControllerMachine extends Event{
 
     public GoTo=(row:number)=>{
         this.goingTo = row;
-        if(this.position==row){
+        if(global.machinelocation==row){
             this.Log.LogDebug("El elevador esta en posición");
         }else{
-            if(this.position>row){
-                this.motorStartDown();
-            }else if(this.position<row){
+            if(global.machinelocation>row){
                 this.motorStartUp();
+            }else if(global.machinelocation<row){
+                this.motorStartDown();
             }
         }
     }
@@ -340,12 +395,13 @@ export class ControllerMachine extends Event{
                 this.GoTo(row);
             },
                 timeout(()=>{
-                    if(this.checkPosition(this.position)){
+                    if(this.checkPosition(global.machinelocation)){
                         //Programar retroceso
+                        this.Log.LogDebug("Comenzando proceso de retroceso");
                     }else{
                         this.Log.LogError("El elevador no está en posición para dispensar");
                     }
-                },timewait),
+                },1000),
                     timeout(()=>{
                         this.motorCintaStart(row,coll);
                     },2000),

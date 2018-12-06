@@ -26,6 +26,7 @@ var events_1 = __importDefault(require("events"));
 var rpi_gpio_1 = __importDefault(require("rpi-gpio"));
 var async_1 = __importStar(require("async"));
 var ci_syslogs_1 = require("ci-syslogs");
+var ci_logmodule_1 = __importDefault(require("@ci24/ci-logmodule"));
 var ControllerMachine = /** @class */ (function (_super) {
     __extends(ControllerMachine, _super);
     function ControllerMachine() {
@@ -41,12 +42,15 @@ var ControllerMachine = /** @class */ (function (_super) {
             device: '/dev/i2c-1',
             debug: true
         });
-        _this.position = 0;
+        //private position: number = 1;
         _this.goingTo = 0;
         _this.motorState = 0;
+        //motorState 0 stop
+        //motorState 1 up
+        //motorState 2 down
         _this.dispense = false;
         _this.checkPosition = function (pos) {
-            if (_this.position == pos) {
+            if (Global_1.default.machinelocation == pos) {
                 return true;
             }
             else {
@@ -73,6 +77,51 @@ var ControllerMachine = /** @class */ (function (_super) {
             }
             _this.Log.LogDebug("Inicializacion exitosa");
         };
+        _this.initSensors = function () {
+            try {
+                _this.Log.LogDebug("Inicializando sensores");
+                //----------Sensores-------------------//
+                rpi_gpio_1.default.setup(Global_1.default.Sensor.S1.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
+                rpi_gpio_1.default.setup(Global_1.default.Sensor.S2.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
+                rpi_gpio_1.default.setup(Global_1.default.Sensor.S3.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
+                rpi_gpio_1.default.setup(Global_1.default.Sensor.S4.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
+                rpi_gpio_1.default.setup(Global_1.default.Sensor.S5.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
+                rpi_gpio_1.default.setup(Global_1.default.Sensor.S6.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
+                rpi_gpio_1.default.setup(Global_1.default.Sensor.SM.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
+                //Gpio.setup(global.Sensor.SM.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH, this.initial_elevator);
+                // Gpio.setup(global.Pulso.P1.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH,this.readInput_InP1);
+                // Gpio.setup(global.Pulso.P2.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH,this.readInput_InP2);
+                // Gpio.setup(global.Pulso.P3.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH,this.readInput_InP3);
+                // Gpio.setup(global.Pulso.P4.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH,this.readInput_InP4);
+                // Gpio.setup(global.Pulso.P5.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH,this.readInput_InP5);
+                // Gpio.setup(global.Pulso.P6.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH,this.readInput_InP6);
+                rpi_gpio_1.default.setup(Global_1.default.Aux.A1.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
+                rpi_gpio_1.default.setup(Global_1.default.Aux.A2.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
+                rpi_gpio_1.default.setup(Global_1.default.Card.Int.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
+                rpi_gpio_1.default.setup(Global_1.default.Card.Out.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
+                rpi_gpio_1.default.setup(Global_1.default.elevator.Up.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
+                rpi_gpio_1.default.setup(Global_1.default.elevator.Down.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
+                rpi_gpio_1.default.setup(Global_1.default.general.stop.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
+                _this.Log.LogDebug("Inicializando sensores");
+            }
+            catch (e) {
+                _this.Log.LogError("Error al iniciar los sensores");
+                _this.Log.LogError(e.stack + JSON.stringify(Global_1.default.result.ERROR_INIT_GPIO));
+            }
+        };
+        _this.closeSensors = function (cb) {
+            try {
+                rpi_gpio_1.default.destroy(function (err) {
+                    _this.Log.LogDebug("Sensores deshabilidatos");
+                    ci_logmodule_1.default.write('Desabilitados tods los sensores' + err);
+                    cb(err);
+                });
+            }
+            catch (e) {
+                ci_logmodule_1.default.error(e.stack + "Error detener sensores  ");
+                cb(e);
+            }
+        };
         _this.stopAll = function () {
             _this.Log.LogDebug("Deteniendo toda la máquina");
             for (var i = 0; i < 16; i++) {
@@ -94,22 +143,22 @@ var ControllerMachine = /** @class */ (function (_super) {
         };
         _this.motorStartDown = function () {
             try {
-                if (_this.checkPosition(0)) {
+                if (_this.checkPosition(7)) {
                     _this.Log.LogDebug("El Elevador está en la PO, no puede bajar mas");
                 }
                 else {
                     _this.mcp2.digitalWrite(Global_1.default.MCP_Motor.Down.value, _this.mcp2.HIGH);
                     _this.motorState = 2;
-                    _this.Log.LogDebug("Elevador subiendo");
+                    _this.Log.LogDebug("Elevador Bajando");
                 }
             }
             catch (e) {
-                _this.Log.LogError("Error al subir ascensor" + e.stack);
+                _this.Log.LogError("Error al bajar ascensor" + e.stack);
             }
         };
         _this.motorStartUp = function () {
             try {
-                if (_this.checkPosition(6)) {
+                if (_this.checkPosition(1)) {
                     _this.Log.LogDebug("El Elevador está en la P6, no puede subir mas");
                 }
                 else {
@@ -165,93 +214,93 @@ var ControllerMachine = /** @class */ (function (_super) {
                     case Global_1.default.Sensor.S1.PIN:
                         if (state === true) {
                             _this.Log.LogDebug("Sensor S1 On");
-                            _this.position = 1;
-                            if (_this.goingTo == _this.position) {
+                            Global_1.default.machinelocation = 1;
+                            if (_this.goingTo == Global_1.default.machinelocation || _this.motorState == 1) {
                                 _this.motorStop();
                             }
                         }
                         else {
                             _this.Log.LogDebug("Sensor S1 Off");
                         }
-                        _this.emit("Sensor", _this.position, state);
+                        _this.emit("Sensor", Global_1.default.machinelocation, state);
                         break;
                     case Global_1.default.Sensor.S2.PIN:
                         if (state === true) {
                             _this.Log.LogDebug("Sensor S2 On");
-                            _this.position = 2;
-                            if (_this.goingTo == _this.position) {
+                            Global_1.default.machinelocation = 2;
+                            if (_this.goingTo == Global_1.default.machinelocation || _this.motorState == 1) {
                                 _this.motorStop();
                             }
                         }
                         else {
                             _this.Log.LogDebug("Sensor S2 Off");
                         }
-                        _this.emit("Sensor", _this.position, state);
+                        _this.emit("Sensor", Global_1.default.machinelocation, state);
                         break;
                     case Global_1.default.Sensor.S3.PIN:
                         if (state === true) {
                             _this.Log.LogDebug("Sensor S3 On");
-                            _this.position = 3;
-                            if (_this.goingTo == _this.position) {
+                            Global_1.default.machinelocation = 3;
+                            if (_this.goingTo == Global_1.default.machinelocation) {
                                 _this.motorStop();
                             }
                         }
                         else {
                             _this.Log.LogDebug("Sensor S3 Off");
                         }
-                        _this.emit("Sensor", _this.position, state);
+                        _this.emit("Sensor", Global_1.default.machinelocation, state);
                         break;
                     case Global_1.default.Sensor.S4.PIN:
                         if (state === true) {
                             _this.Log.LogDebug("Sensor S4 On");
-                            _this.position = 4;
-                            if (_this.goingTo == _this.position) {
+                            Global_1.default.machinelocation = 4;
+                            if (_this.goingTo == Global_1.default.machinelocation) {
                                 _this.motorStop();
                             }
                         }
                         else {
                             _this.Log.LogDebug("Sensor S4 Off");
                         }
-                        _this.emit("Sensor", _this.position, state);
+                        _this.emit("Sensor", Global_1.default.machinelocation, state);
                         break;
                     case Global_1.default.Sensor.S5.PIN:
                         if (state === true) {
                             _this.Log.LogDebug("Sensor S5 On");
-                            _this.position = 5;
-                            if (_this.goingTo == _this.position) {
+                            Global_1.default.machinelocation = 5;
+                            if (_this.goingTo == Global_1.default.machinelocation) {
                                 _this.motorStop();
                             }
                         }
                         else {
                             _this.Log.LogDebug("Sensor S5 Off");
                         }
-                        _this.emit("Sensor", _this.position, state);
+                        _this.emit("Sensor", Global_1.default.machinelocation, state);
                         break;
                     case Global_1.default.Sensor.S6.PIN:
                         if (state === true) {
                             _this.Log.LogDebug("Sensor S6 On");
-                            _this.position = 6;
-                            if (_this.goingTo == _this.position || _this.motorState == 1) {
+                            Global_1.default.machinelocation = 6;
+                            if (_this.goingTo == Global_1.default.machinelocation) {
                                 _this.motorStop();
                             }
                         }
                         else {
                             _this.Log.LogDebug("Sensor S6 Off");
                         }
-                        _this.emit("Sensor", _this.position, state);
+                        _this.emit("Sensor", Global_1.default.machinelocation, state);
                         break;
                     case Global_1.default.Sensor.SM.PIN:
                         if (state === true) {
                             _this.Log.LogDebug("Sensor SM On");
-                            _this.position = 0;
-                            if (_this.goingTo == _this.position || _this.motorState == 0) {
+                            Global_1.default.machinelocation = 7;
+                            if (_this.goingTo == Global_1.default.machinelocation || _this.motorState == 2) {
                                 _this.motorStop();
                             }
                         }
                         else {
                             _this.Log.LogDebug("Sensor SM Off");
                         }
-                        _this.emit("Sensor", _this.position, state);
+                        _this.emit("Sensor", Global_1.default.machinelocation, state);
                         break;
                     case Global_1.default.Pulso.P1.PIN:
                         if (state === true) {
@@ -361,15 +410,15 @@ var ControllerMachine = /** @class */ (function (_super) {
         };
         _this.GoTo = function (row) {
             _this.goingTo = row;
-            if (_this.position == row) {
+            if (Global_1.default.machinelocation == row) {
                 _this.Log.LogDebug("El elevador esta en posición");
             }
             else {
-                if (_this.position > row) {
-                    _this.motorStartDown();
-                }
-                else if (_this.position < row) {
+                if (Global_1.default.machinelocation > row) {
                     _this.motorStartUp();
+                }
+                else if (Global_1.default.machinelocation < row) {
+                    _this.motorStartDown();
                 }
             }
         };
@@ -379,13 +428,14 @@ var ControllerMachine = /** @class */ (function (_super) {
                     _this.GoTo(row);
                 },
                 async_1.timeout(function () {
-                    if (_this.checkPosition(_this.position)) {
+                    if (_this.checkPosition(Global_1.default.machinelocation)) {
                         //Programar retroceso
+                        _this.Log.LogDebug("Comenzando proceso de retroceso");
                     }
                     else {
                         _this.Log.LogError("El elevador no está en posición para dispensar");
                     }
-                }, timewait),
+                }, 1000),
                 async_1.timeout(function () {
                     _this.motorCintaStart(row, coll);
                 }, 2000),
@@ -402,6 +452,7 @@ var ControllerMachine = /** @class */ (function (_super) {
         _this.Log.LogDebug("Control inicializado");
         rpi_gpio_1.default.on('change', _this.signal);
         _this.initOuts();
+        _this.initSensors();
         return _this;
     }
     return ControllerMachine;

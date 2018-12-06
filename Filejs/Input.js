@@ -15,6 +15,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var ci_logmodule_1 = __importDefault(require("@ci24/ci-logmodule"));
 var Global_1 = __importDefault(require("./Global"));
+var rpio_1 = __importDefault(require("rpio"));
 var events_1 = __importDefault(require("events"));
 var rpi_gpio_1 = __importDefault(require("rpi-gpio"));
 /*import _async from "async";
@@ -64,7 +65,7 @@ var Input = /** @class */ (function (_super) {
         _this.Close = function (cb) {
             try {
                 rpi_gpio_1.default.destroy(function (err) {
-                    ci_logmodule_1.default.write('Desabilitados tods los sensores' + err);
+                    ci_logmodule_1.default.write('Desabilitados todos los sensores' + err);
                     cb(err);
                 });
             }
@@ -361,7 +362,7 @@ var Input = /** @class */ (function (_super) {
                 }
             }
         };
-        rpi_gpio_1.default.on('change', _this.pollcbsensor);
+        rpio_1.default.on('change', _this.pollcbsensor);
         _this.Principal = _principal;
         return _this;
     }
