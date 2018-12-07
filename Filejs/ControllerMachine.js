@@ -414,36 +414,37 @@ var ControllerMachine = /** @class */ (function (_super) {
                 }
             }
         };
-        _this.waitPosition = function (piso) {
+        _this.waitPosition = function (callback, piso) {
             _this.Log.LogDebug("Esperando posición de elevador");
-            setInterval(function () {
+            var wait = setInterval(function () {
                 if (Global_1.default.machinelocation == piso) {
-                    clearInterval();
+                    clearInterval(wait);
                     _this.Log.LogDebug("Elevador llego a la posición");
+                    callback(null);
                 }
-            }, 100);
+            }, 150);
         };
-        _this.prepareForDispense = function (height) {
+        _this.prepareForDispense = function (callback, height) {
             var timeForDown = height * 17;
             if (_this.checkPosition(Global_1.default.machinelocation)) {
                 _this.Log.LogDebug("Comenzando proceso de retroceso");
                 _this.motorStartDown();
                 setTimeout(function () {
                     _this.motorStop();
+                    _this.Log.LogDebug("Elevador preparado para recibir");
+                    callback(null);
                 }, timeForDown);
-                _this.Log.LogDebug("Elevador preparado para recibir");
             }
             else {
                 _this.Log.LogError("El elevador no está en posición para dispensar");
             }
         };
-        _this.prepareForDeliver = function (row, coll) {
-            setInterval(function () {
-                _this.on("Sensor", function () {
-                    _this.motorCintaStop(row, coll);
-                    clearInterval();
-                    _this.Log.LogDebug("Articulo recibido, comenzando la entrega");
-                });
+        _this.receiveItem = function (callback, row, coll) {
+            _this.motorCintaStart(row, coll);
+            _this.on("Sensor", function () {
+                _this.motorCintaStop(row, coll);
+                _this.Log.LogDebug("Articulo recibido, comenzando la entrega");
+                callback(null);
             });
         };
         /*public dispenseItem=(piso: number ,row: number, coll:number, height: number)=>{
@@ -466,12 +467,34 @@ var ControllerMachine = /** @class */ (function (_super) {
         }*/
         _this.dispenseItem = function (piso, row, coll, height) {
             _this.Log.LogDebug("Comenzando proceso de dispensar item");
-            _this.GoTo(piso);
-            _this.waitPosition(piso);
-            _this.prepareForDispense(height);
-            _this.motorCintaStart(row, coll);
-            _this.prepareForDeliver(row, coll);
-            _this.GoTo(7);
+            async_1.default.series([
+                function (callback) {
+                    _this.Log.LogDebug("Step 1 Ubicando elevador en posición");
+                    _this.GoTo(piso);
+                    callback(null);
+                },
+                function (callback) {
+                    _this.Log.LogDebug("Step 2 Esperando la posicion del elevador");
+                    _this.waitPosition(callback, piso);
+                },
+                function (callback) {
+                    _this.Log.LogDebug("Step 3 Ajustando posición del elevador segun tamaño");
+                    _this.prepareForDispense(callback, 14);
+                },
+                //agregar Subproceso para activar motor cinta
+                function (callback) {
+                    _this.Log.LogDebug("Step 4 Bajando elevador para realizar entrega");
+                    _this.GoTo(7);
+                    callback(null);
+                },
+            ], function (callback) {
+                if (!callback) {
+                    console.log("Listo");
+                }
+                else {
+                    console.log("error");
+                }
+            });
         };
         _this.Log.LogDebug("Control inicializado");
         rpi_gpio_1.default.on('change', _this.signal);

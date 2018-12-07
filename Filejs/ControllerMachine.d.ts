@@ -23,6 +23,6 @@ export declare class ControllerMachine extends Event {
     GoTo: (row: number) => void;
     private waitPosition;
     private prepareForDispense;
-    private prepareForDeliver;
+    private receiveItem;
     dispenseItem: (piso: number, row: number, coll: number, height: number) => void;
 }

@@ -37,15 +37,15 @@ stdin.addListener("data", (d) => {
             break;
         case "e7":
             console.log("dispensando a1")
-            control.dispenseItem(global.motoresCelda.E7.piso,global.motoresCelda.E7.row, global.motoresCelda.E7.coll,14);
+            control.dispenseItem(5,global.motoresCelda.E7.row, global.motoresCelda.E7.coll,14);
             break;
         case "b3":
             console.log("dispensando a1")
-            control.dispenseItem(global.motoresCelda.B3.piso,global.motoresCelda.B3.row, global.motoresCelda.B3.coll,14);
+            control.dispenseItem(2,global.motoresCelda.B3.row, global.motoresCelda.B3.coll,14);
             break;
         case "d5":
             console.log("dispensando a1")
-            control.dispenseItem(global.motoresCelda.D5.piso,global.motoresCelda.D5.row, global.motoresCelda.D5.coll,14);
+            control.dispenseItem(4,global.motoresCelda.D5.row, global.motoresCelda.D5.coll,14);
             break;
         case "s":
             console.log("Stop")

@@ -400,37 +400,38 @@ export class ControllerMachine extends Event{
         }
     }
 
-    private waitPosition=(piso:number)=>{
+    private waitPosition=(callback:callback, piso:number)=>{
         this.Log.LogDebug("Esperando posición de elevador");
-        setInterval(()=>{
+        let wait: any = setInterval(()=>{
             if(global.machinelocation==piso){
-                clearInterval();
+                clearInterval(wait);
                 this.Log.LogDebug("Elevador llego a la posición");
+                callback(null);
             }
-        },100)
+        },150)
     }
 
-    private prepareForDispense=(height:number)=> {
+    private prepareForDispense=(callback: callback, height:number)=> {
         let timeForDown = height * 17;
         if (this.checkPosition(global.machinelocation)) {
             this.Log.LogDebug("Comenzando proceso de retroceso");
             this.motorStartDown();
             setTimeout(() => {
                 this.motorStop();
+                this.Log.LogDebug("Elevador preparado para recibir");
+                callback(null)
             }, timeForDown)
-            this.Log.LogDebug("Elevador preparado para recibir");
         } else {
             this.Log.LogError("El elevador no está en posición para dispensar");
         }
     }
 
-    private prepareForDeliver=(row: number, coll: number)=> {
-        setInterval(()=>{
-            this.on("Sensor", () => {
-                this.motorCintaStop(row, coll);
-                clearInterval();
-                this.Log.LogDebug("Articulo recibido, comenzando la entrega");
-            })
+    private receiveItem=(callback: callback, row: number, coll: number)=> {
+        this.motorCintaStart(row, coll);
+        this.on("Sensor", () => {
+            this.motorCintaStop(row, coll);
+            this.Log.LogDebug("Articulo recibido, comenzando la entrega");
+            callback(null);
         })
     }
 
@@ -454,11 +455,32 @@ export class ControllerMachine extends Event{
     }*/
     public dispenseItem=(piso: number ,row: number, coll:number, height: number)=>{
         this.Log.LogDebug("Comenzando proceso de dispensar item");
-        this.GoTo(piso);
-        this.waitPosition(piso);
-        this.prepareForDispense(height);
-        this.motorCintaStart(row,coll);
-        this.prepareForDeliver(row,coll);
-        this.GoTo(7);
+        _async.series([
+            (callback:any)=>{
+                this.Log.LogDebug("Step 1 Ubicando elevador en posición");
+                this.GoTo(piso);
+                callback(null)
+            },
+            (callback:any)=>{
+                this.Log.LogDebug("Step 2 Esperando la posicion del elevador");
+                this.waitPosition(callback,piso);
+            },
+            (callback:any)=>{
+                this.Log.LogDebug("Step 3 Ajustando posición del elevador segun tamaño");
+                this.prepareForDispense(callback, 14)
+            },
+            //agregar Subproceso para activar motor cinta
+            (callback:any)=>{
+                this.Log.LogDebug("Step 4 Bajando elevador para realizar entrega");
+                this.GoTo(7);
+                callback(null);
+            },
+        ],(callback)=>{
+            if(!callback){
+                console.log("Listo")
+            }else{
+                console.log("error")
+            }
+        })
     }
 }
