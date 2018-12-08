@@ -1,11 +1,11 @@
 import global from'./Global';
+import Maps from './Maps';
 import MCP23017 from "node-mcp23017_with_i2c_updated";
 import Event from 'events';
 import Gpio from "rpi-gpio";
 import {callback} from "./Interfaces";
 import _async, {forEach, timeout} from "async";
 import {Logger} from "ci-syslogs";
-import _log from "@ci24/ci-logmodule";
 
 export class ControllerMachine extends Event{
     private Log = new Logger("0.0.0.0",Logger.Facilities.Machine);
@@ -32,22 +32,45 @@ export class ControllerMachine extends Event{
         Gpio.on('change', this.signal);
         this.initOuts();
         this.initSensors();
-        /*Gpio.read(global.Sensor.SM.PIN,(err:any, value?:any)=> {
-            if (err != null) {
-                if(value==true){
-                    this.Log.LogDebug("Sensor On "+"SM");
-                }else{
-                    this.motorStartDown();
-                }
-            }else{
-                this.Log.LogDebug("Error al leer posicion inicial");
-                this.Log.LogDebug(JSON.stringify(global.result.ERROR_READ_PIN_SM));
-            }
-        });*/
     }
 
+    private findElevator=():void=>{
+        Object.keys(Maps.Sensor).forEach(key => {
+            Gpio.read(Maps.Sensor[key].PIN,(err:any, value?:any)=> {
+                if (err != null) {
+                    if(value==true){
+                        this.Log.LogDebug("Elevador encontrado en"+ Maps.Sensor[key].Piso +" On");
+                        Maps.MachineLocation = Maps.Sensor[key].Piso;
+                    }else{
+                        this.Log.LogDebug("Elevador no encontrado en "+ Maps.Sensor[key].Piso);
+                    }
+                }else{
+                    this.Log.LogDebug("Error al leer sensor: "+Maps.Sensor[key].GPIO);
+                    this.Log.LogDebug(Maps.Sensor[key].GPIO);
+                }
+            })
+        })
+        if(Maps.machinelocation == null){
+            this.Log.LogDebug("Iniciando búsqueda");
+            this.motorStartUp();
+            setTimeout(()=>{
+                this.motorStop();
+                if(Maps.MachineLocation == null){
+                    this.motorStartDown()
+                    setTimeout(()=>{
+                        this.motorStop();
+                        if(Maps.MachineLocation == null){
+                            this.Log.LogAlert("Elevador no pudo ser encontrado");
+                        }
+                    },1200)
+                }
+            },1200)
+        }
+    }
+
+
     private checkPosition=(pos: number):boolean=>{
-        if(global.machinelocation==pos){
+        if(Maps.machinelocation==pos){
             return true
         }else{
             return false;
@@ -114,11 +137,10 @@ export class ControllerMachine extends Event{
         try {
             Gpio.destroy((err:any)=>{
                 this.Log.LogDebug("Sensores deshabilidatos");
-                _log.write('Desabilitados tods los sensores'+err);
                 cb(err);
             });
         }catch(e) {
-            _log.error(e.stack+"Error detener sensores  ");
+            this.Log.LogError(e.stack+"Error detener sensores  ");
             cb(e);
         }
     };
@@ -435,24 +457,6 @@ export class ControllerMachine extends Event{
         })
     }
 
-    /*public dispenseItem=(piso: number ,row: number, coll:number, height: number)=>{
-        this.Log.LogDebug("Comenzando proceso de dispensar item");
-        _async.series([
-            // Step 1 - Ir a ubicación
-            _async.apply(this.GoTo,piso),
-            // Step 2
-            _async.apply(this.waitPosition, piso),
-            // Step 3
-            _async.apply(this.prepareForDispense, height),
-            // Step 4
-            //_async.apply(this.motorCintaStart,row,coll),
-            // Step 5
-            //_async.apply(this.prepareForDeliver, row, coll),
-            // Step 6
-            //Modificar este paso para validar la entrega del producto
-            //_async.apply(this.GoTo,7)
-        ])
-    }*/
     public dispenseItem=(piso: number ,row: number, coll:number, height: number)=>{
         this.Log.LogDebug("Comenzando proceso de dispensar item");
         _async.series([

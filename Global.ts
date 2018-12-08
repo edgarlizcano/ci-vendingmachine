@@ -10,6 +10,7 @@ global.Sensor = {
     S6:      {GPIO:16, PIN:  36},
     SM:      {GPIO: 7, PIN:  26}
 };
+
 global.State_Machine = {
     No_task            : 1,
     Go_to_level        : 2,

@@ -9,6 +9,7 @@ export declare class ControllerMachine extends Event {
     private motorState;
     private dispense;
     constructor();
+    private findElevator;
     private checkPosition;
     private initOuts;
     private initSensors;

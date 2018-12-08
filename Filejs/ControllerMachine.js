@@ -14,12 +14,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var Global_1 = __importDefault(require("./Global"));
+var Maps_1 = __importDefault(require("./Maps"));
 var node_mcp23017_with_i2c_updated_1 = __importDefault(require("node-mcp23017_with_i2c_updated"));
 var events_1 = __importDefault(require("events"));
 var rpi_gpio_1 = __importDefault(require("rpi-gpio"));
 var async_1 = __importDefault(require("async"));
 var ci_syslogs_1 = require("ci-syslogs");
-var ci_logmodule_1 = __importDefault(require("@ci24/ci-logmodule"));
 var ControllerMachine = /** @class */ (function (_super) {
     __extends(ControllerMachine, _super);
     function ControllerMachine() {
@@ -41,8 +41,43 @@ var ControllerMachine = /** @class */ (function (_super) {
         //motorState 1 up
         //motorState 2 down
         _this.dispense = false;
+        _this.findElevator = function () {
+            Object.keys(Maps_1.default.Sensor).forEach(function (key) {
+                rpi_gpio_1.default.read(Maps_1.default.Sensor[key].PIN, function (err, value) {
+                    if (err != null) {
+                        if (value == true) {
+                            _this.Log.LogDebug("Elevador encontrado en" + Maps_1.default.Sensor[key].Piso + " On");
+                            Maps_1.default.MachineLocation = Maps_1.default.Sensor[key].Piso;
+                        }
+                        else {
+                            _this.Log.LogDebug("Elevador no encontrado en " + Maps_1.default.Sensor[key].Piso);
+                        }
+                    }
+                    else {
+                        _this.Log.LogDebug("Error al leer sensor: " + Maps_1.default.Sensor[key].GPIO);
+                        _this.Log.LogDebug(Maps_1.default.Sensor[key].GPIO);
+                    }
+                });
+            });
+            if (Maps_1.default.machinelocation == null) {
+                _this.Log.LogDebug("Iniciando búsqueda");
+                _this.motorStartUp();
+                setTimeout(function () {
+                    _this.motorStop();
+                    if (Maps_1.default.MachineLocation == null) {
+                        _this.motorStartDown();
+                        setTimeout(function () {
+                            _this.motorStop();
+                            if (Maps_1.default.MachineLocation == null) {
+                                _this.Log.LogAlert("Elevador no pudo ser encontrado");
+                            }
+                        }, 1200);
+                    }
+                }, 1200);
+            }
+        };
         _this.checkPosition = function (pos) {
-            if (Global_1.default.machinelocation == pos) {
+            if (Maps_1.default.machinelocation == pos) {
                 return true;
             }
             else {
@@ -105,12 +140,11 @@ var ControllerMachine = /** @class */ (function (_super) {
             try {
                 rpi_gpio_1.default.destroy(function (err) {
                     _this.Log.LogDebug("Sensores deshabilidatos");
-                    ci_logmodule_1.default.write('Desabilitados tods los sensores' + err);
                     cb(err);
                 });
             }
             catch (e) {
-                ci_logmodule_1.default.error(e.stack + "Error detener sensores  ");
+                _this.Log.LogError(e.stack + "Error detener sensores  ");
                 cb(e);
             }
         };
@@ -447,24 +481,6 @@ var ControllerMachine = /** @class */ (function (_super) {
                 callback(null);
             });
         };
-        /*public dispenseItem=(piso: number ,row: number, coll:number, height: number)=>{
-            this.Log.LogDebug("Comenzando proceso de dispensar item");
-            _async.series([
-                // Step 1 - Ir a ubicación
-                _async.apply(this.GoTo,piso),
-                // Step 2
-                _async.apply(this.waitPosition, piso),
-                // Step 3
-                _async.apply(this.prepareForDispense, height),
-                // Step 4
-                //_async.apply(this.motorCintaStart,row,coll),
-                // Step 5
-                //_async.apply(this.prepareForDeliver, row, coll),
-                // Step 6
-                //Modificar este paso para validar la entrega del producto
-                //_async.apply(this.GoTo,7)
-            ])
-        }*/
         _this.dispenseItem = function (piso, row, coll, height) {
             _this.Log.LogDebug("Comenzando proceso de dispensar item");
             async_1.default.series([
@@ -501,18 +517,6 @@ var ControllerMachine = /** @class */ (function (_super) {
         _this.initOuts();
         _this.initSensors();
         return _this;
-        /*Gpio.read(global.Sensor.SM.PIN,(err:any, value?:any)=> {
-            if (err != null) {
-                if(value==true){
-                    this.Log.LogDebug("Sensor On "+"SM");
-                }else{
-                    this.motorStartDown();
-                }
-            }else{
-                this.Log.LogDebug("Error al leer posicion inicial");
-                this.Log.LogDebug(JSON.stringify(global.result.ERROR_READ_PIN_SM));
-            }
-        });*/
     }
     return ControllerMachine;
 }(events_1.default));
