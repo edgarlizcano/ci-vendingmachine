@@ -1,13 +1,13 @@
 let Maps: any = {};
 
 Maps.Sensor = {
-    S1:      {Piso:1, GPIO:13, PIN:  33},
-    S2:      {Piso:2, GPIO: 6, PIN:  31},
-    S3:      {Piso:3, GPIO: 5, PIN:  29},
-    S4:      {Piso:4, GPIO:21, PIN:  40},
-    S5:      {Piso:5, GPIO:20, PIN:  38},
-    S6:      {Piso:6, GPIO:16, PIN:  36},
-    SM:      {Piso:7, GPIO: 7, PIN:  26}
+    S1:      {Piso:1, GPIO:13, PIN:  33, test: false},
+    S2:      {Piso:2, GPIO: 6, PIN:  31, test: false},
+    S3:      {Piso:3, GPIO: 5, PIN:  29, test: false},
+    S4:      {Piso:4, GPIO:21, PIN:  40, test: false},
+    S5:      {Piso:5, GPIO:20, PIN:  38, test: false},
+    S6:      {Piso:6, GPIO:16, PIN:  36, test: false},
+    SM:      {Piso:7, GPIO: 7, PIN:  26, test: false}
 };
 
 Maps.Pulso = {
@@ -114,4 +114,14 @@ Maps.motoresCelda = {
     F0:{piso:6, row:10, coll:0},
 };
 
-exports = Maps;
+Maps.row= {
+    M:  {Piso: 7, MCP: 1, value: 10, text: "Piso_Principal ",status: false, ID:'M'},
+    F:  {Piso: 6, MCP: 1, value: 10, text: "Piso_F ",status: false, ID:'F'},
+    E:  {Piso: 5, MCP: 1, value: 13, text: "Piso_E ",status: false, ID:'E'},
+    D:  {Piso: 4, MCP: 1, value: 12, text: "Piso_D ",status: false, ID:'D'},
+    C:  {Piso: 3, MCP: 1, value: 11, text: "Piso_C ",status: false, ID:'C'},
+    B:  {Piso: 2, MCP: 1, value: 14, text: "Piso_B ",status: false, ID:'B'},
+    A:  {Piso: 1, MCP: 1, value: 15, text: "Piso_A ",status: false, ID:'A'}
+};
+
+export = Maps;
