@@ -14,14 +14,14 @@ export class Sensor extends event.EventEmitter {
        setTimeout(()=>{
            this.Check_Sensor(this.data, (err: any, dta?: any) => {
                _log.write('err' + err);
-               let intervalGoLevel: any = setInterval(() => {
-                   this.Get_state((err:any,dta?:any)=>{})
-               }, 2000);
+               if(err == null){
+                   this.isCheck=true;
+                   let intervalGoLevel: any = setInterval(() => {
+                       this.Get_state((err:any,dta?:any)=>{})
+                   }, 2000);
+               }
            });
        },3000);
-
-
-
     }
     private Sensorcomand = new ProcessDataSensor();
     private Mux          = new Mux_class();
@@ -29,9 +29,7 @@ export class Sensor extends event.EventEmitter {
         port:'/dev/ttyAMA0',
         baudRate:9600
     };
-
-
-
+    public isCheck: any = false;
     public Check_Sensor=( data:any,callback:callback)=> {
         try{
             _async.series([
@@ -48,6 +46,7 @@ export class Sensor extends event.EventEmitter {
             callback(exception);
         }
     };
+
     public Get_state=( callback:callback)=> {
         try{
             _async.series([

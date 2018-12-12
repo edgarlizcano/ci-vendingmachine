@@ -6,6 +6,7 @@ export declare class Sensor extends event.EventEmitter {
     private Sensorcomand;
     private Mux;
     private data;
+    isCheck: any;
     Check_Sensor: (data: any, callback: callback) => void;
     Get_state: (callback: callback) => void;
     Open_port: (data: any, callback: callback) => void;

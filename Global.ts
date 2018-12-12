@@ -58,12 +58,12 @@ global.motoresPiso = {
 };
 
 global.MCP_row= {
-    F:  {MCP: 1, value: 10, text: "Piso_F ",status: false, ID:'F'},
-    E:  {MCP: 1, value: 13, text: "Piso_E ",status: false, ID:'E'},
-    D:  {MCP: 1, value: 12, text: "Piso_D ",status: false, ID:'D'},
-    C:  {MCP: 1, value: 11, text: "Piso_C ",status: false, ID:'C'},
-    B:  {MCP: 1, value: 14, text: "Piso_B ",status: false, ID:'B'},
-    A:  {MCP: 1, value: 15, text: "Piso_A ",status: false, ID:'A'}
+    F:  {MCP: 1, value: 10, text: "Piso_F ",status: false, ID:6},
+    E:  {MCP: 1, value: 13, text: "Piso_E ",status: false, ID:5},
+    D:  {MCP: 1, value: 12, text: "Piso_D ",status: false, ID:4},
+    C:  {MCP: 1, value: 11, text: "Piso_C ",status: false, ID:3},
+    B:  {MCP: 1, value: 14, text: "Piso_B ",status: false, ID:2},
+    A:  {MCP: 1, value: 15, text: "Piso_A ",status: false, ID:1}
 };
 
 global.machinelocation= 7

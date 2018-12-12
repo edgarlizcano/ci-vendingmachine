@@ -2,6 +2,7 @@ import _log from "@ci24/ci-logmodule";
 import event from 'events';
 import {callback} from "./Interfaces";
 import global from'./Global';
+import Maps from './Maps';
 
 //let folderLogs = "/free/CI24/Logs/Machine/";
 //_log.init(folderLogs);

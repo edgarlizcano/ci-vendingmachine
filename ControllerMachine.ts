@@ -5,6 +5,10 @@ import Gpio from "rpi-gpio";
 import {callback} from "./Interfaces";
 import _async from "async";
 import {Logger} from "ci-syslogs";
+import _log from "@ci24/ci-logmodule";
+import {Sensor} from "./Sensor";
+import global from'./Global';
+import {start} from "repl";
 
 export class ControllerMachine extends Event{
     private Log = new Logger("0.0.0.0",Logger.Facilities.Machine);
@@ -18,21 +22,49 @@ export class ControllerMachine extends Event{
         device: '/dev/i2c-1',
         debug: true
     });
+    //Controla el destino del elevador al moverlo
     private goingTo: number = 0;
-    private motorState: number = 0;//motorState: 0 stop, 1 going up, 2 going down
+    //Controla el estado del motor. motorState: [0 stop, 1 going up, 2 going down]
+    private motorState: number = 0;
+    //Indica la posición actual del elevador
+    private location:any = null;
+    private sensorPiso:any;
     //motorState 1 up
     //motorState 2 down
-    private dispense: boolean = false;
+    private receivingItem: boolean = false;
+    private isDelivery: boolean = false;
+    private enableMachine: boolean = false;
+    //Estado de la máquina, si esta inactiva o en una operación
+    private estatemachine: boolean = true;
 
     constructor(){
         super();
         this.Log.LogDebug("Control inicializado");
         Gpio.on('change', this.signal);
+        this.on("Sensor",(pin, state)=>{
+            if(this.estatemachine==false && pin!=Maps.elevator.Up.PIN && pin!=Maps.elevator.Down.PIN){
+                this.Log.LogAlert("Alerta, sensor activado cuando la máquina está inactiva")
+                this.emit("Event",{cmd:"Alerta"})
+            }
+        })
         this.initOuts();
         this.initSensors();
-        if(Maps.machinelocation==null){
-            this.findElevator();
-        }
+        this.sensorPiso = new Sensor();
+        this.Log.LogDebug("chequeando serial");
+        setTimeout(()=>{
+            if(this.sensorPiso.isCheck==true){
+                this.Log.LogDebug("Máquina habilitada");
+                this.enableMachine = true;
+                this.emit("Event",{cmd:"Máquina Lista"})
+                if(this.location==null){
+                    this.findElevator((cb:any)=>{
+                        this.Log.LogDebug("listo")
+                    });
+                }
+            }else{
+                this.emit("Event",{cmd:"Error al abrir puerto serial"})
+            }
+        },5000)
     }
     //Inicializa salidas
     private initOuts= ():void=> {
@@ -113,42 +145,51 @@ export class ControllerMachine extends Event{
         }
     }
     //Busca la posición del elevador si no está establecida
-    private findElevator=():void=>{
-        Object.keys(Maps.Sensor).forEach(key => {
-            Gpio.read(Maps.Sensor[key].PIN,(err:any, value?:any)=> {
-                if (err != null) {
-                    if(value==true){
-                        this.Log.LogDebug("Elevador encontrado en"+ Maps.Sensor[key].Piso +" On");
-                        Maps.MachineLocation = Maps.Sensor[key].Piso;
-                    }else{
-                        this.Log.LogDebug("Elevador no encontrado en "+ Maps.Sensor[key].Piso);
-                    }
-                }else{
-                    this.Log.LogDebug("Error al leer sensor: "+Maps.Sensor[key].GPIO);
-                    this.Log.LogDebug(Maps.Sensor[key].GPIO);
-                }
-            })
+    private findElevator=(callback:any):void=>{
+        //innecesario
+        if(this.location==7){
+            callback(null);
+        }
+        this.estatemachine=true;
+        //Lee el sensor de piso 7 para chequear si está allí
+        Gpio.read(26,(err:any,state?:boolean)=>{
+            if(state == true){
+                this.location = 7;
+                callback(null);
+            }
         })
-        if(Maps.machinelocation == null){
-            this.Log.LogDebug("Iniciando búsqueda");
+        //Proceso de busqueda de elevador
+        if(this.location == null){
+            this.Log.LogDebug("Ubicación desconocida - Iniciando búsqueda");
             this.motorStartUp();
+            this.once("Sensor",()=>{
+                this.Log.LogDebug("Deteccion de elevador");
+                this.motorStop();
+            })
+            //Mueve el elevador para conseguir ubicación
             setTimeout(()=>{
                 this.motorStop();
-                if(Maps.MachineLocation == null){
+                if(this.location == null){
                     this.motorStartDown()
                     setTimeout(()=>{
-                        this.motorStop();
-                        if(Maps.MachineLocation == null){
+                        if(this.location == null){
                             this.Log.LogAlert("Elevador no pudo ser encontrado");
+                            //Analizar esto
+                            //callback("Error - El elevador no pudo ser encontrado")
                         }
-                    },1200)
+                        this.motorStop();
+                    },2000)
+                }else{
+                    this.Log.LogDebug("Elevador encontrado en el piso: "+this.location);
+                    this.gotoInitPosition(callback)
                 }
-            },1200)
+            },2000)
+
         }
     }
     //Chequea posición del elevador según parámetro
     private checkPosition=(pos: number):boolean=>{
-        if(Maps.machinelocation==pos){
+        if(this.location==pos){
             return true
         }else{
             return false;
@@ -189,17 +230,22 @@ export class ControllerMachine extends Event{
             this.mcp2.digitalWrite(Maps.MCP_Motor.UP.value, this.mcp2.LOW);
             this.motorState = 0;
             this.Log.LogDebug("Elevador detenido");
+            this.goingTo=0;
         }catch(e) {
             this.Log.LogError("Error al detener ascensor"+e.stack);
         }
     };
     //Inicia el motor de una cinta específica
-    private motorCintaStart= (row: number, coll:number) =>{
+    public motorCintaStart= (row: number, coll:number, coll2:number) =>{
         try {
             _async.parallel([()=>{
-                this.mcp1.digitalWrite(row, this.mcp2.HIGH);
+                this.mcp1.digitalWrite(Number(row), this.mcp1.HIGH);
             },()=>{
-                this.mcp1.digitalWrite(coll, this.mcp2.HIGH);
+                this.mcp1.digitalWrite(Number(coll), this.mcp1.HIGH);
+            },()=>{
+                if(coll2!=null){
+                    this.mcp1.digitalWrite(Number(coll2), this.mcp1.HIGH);
+                }
             }])
             this.Log.LogDebug("Motor de celda activado");
         }catch(e) {
@@ -207,12 +253,16 @@ export class ControllerMachine extends Event{
         }
     };
     //Detiene el motor de una cinta específica
-    private motorCintaStop= (row: number, coll:number) =>{
+    public motorCintaStop= (row: number, coll:number, coll2:number) =>{
         try {
             _async.parallel([()=>{
-                this.mcp1.digitalWrite(row, this.mcp2.LOW);
+                this.mcp1.digitalWrite(Number(row), this.mcp1.LOW);
             },()=>{
-                this.mcp1.digitalWrite(coll, this.mcp2.LOW);
+                this.mcp1.digitalWrite(Number(coll), this.mcp1.LOW);
+            },()=>{
+                if(coll2!=null){
+                    this.mcp1.digitalWrite(Number(coll2), this.mcp1.LOW);
+                }
             }])
             this.Log.LogDebug("Motor de celda detenido");
         }catch(e) {
@@ -221,91 +271,124 @@ export class ControllerMachine extends Event{
     };
     //Recibe señal de entrada y determina de donde proviene
     private signal=(pin:number,state:boolean)=>{
-        if (state === true) {
             switch (pin) {
                 case Maps.Sensor.S1.PIN:
                     if (state === true) {
                         this.Log.LogDebug("Sensor S1 On");
-                        Maps.machinelocation = 1;
-                        if(this.goingTo == Maps.machinelocation||this.motorState == 1){
+                        if(this.motorState!=0){
+                            this.location = 1;
+                        }
+                        if(this.goingTo == this.location||this.motorState == 1){
                             this.motorStop();
                         }
                     } else {
                         this.Log.LogDebug("Sensor S1 Off");
                     }
-                    this.emit("Sensor",Maps.machinelocation,state);
+                    if(this.receivingItem){
+                        this.emit("Item recibido",this.location,state);
+                    }
+                    this.emit("Sensor",this.location,state);
                     break;
                 case Maps.Sensor.S2.PIN:
                     if (state === true) {
                         this.Log.LogDebug("Sensor S2 On");
-                        Maps.machinelocation = 2;
-                        if(this.goingTo == Maps.machinelocation||this.motorState == 1){
+                        if(this.motorState!=0){
+                            this.location = 2;
+                        }
+                        if(this.goingTo == this.location){
                             this.motorStop();
                         }
                     } else {
                         this.Log.LogDebug("Sensor S2 Off");
                     }
-                    this.emit("Sensor",Maps.machinelocation,state);
+                    if(this.receivingItem){
+                        this.emit("Item recibido",this.location,state);
+                    }
+                    this.emit("Sensor",this.location,state);
                     break;
                 case Maps.Sensor.S3.PIN:
                     if (state === true) {
                         this.Log.LogDebug("Sensor S3 On");
-                        Maps.machinelocation = 3;
-                        if(this.goingTo == Maps.machinelocation){
+                        if(this.motorState!=0){
+                            this.location = 3;
+                        }
+                        if(this.goingTo == this.location){
                             this.motorStop();
                         }
                     } else {
                         this.Log.LogDebug("Sensor S3 Off");
                     }
-                    this.emit("Sensor",Maps.machinelocation,state);
+                    if(this.receivingItem){
+                        this.emit("Item recibido",this.location,state);
+                    }
+                    this.emit("Sensor",this.location,state);
                     break;
                 case Maps.Sensor.S4.PIN:
                     if (state === true) {
                         this.Log.LogDebug("Sensor S4 On");
-                        Maps.machinelocation= 4;
-                        if(this.goingTo == Maps.machinelocation){
+                        if(this.motorState!=0){
+                            this.location = 4;
+                        }
+                        if(this.goingTo == this.location){
                             this.motorStop();
                         }
                     } else {
                         this.Log.LogDebug("Sensor S4 Off");
                     }
-                    this.emit("Sensor",Maps.machinelocation,state);
+                    if(this.receivingItem){
+                        this.emit("Item recibido",this.location,state);
+                    }
+                    this.emit("Sensor",this.location,state);
                     break;
                 case Maps.Sensor.S5.PIN:
                     if (state === true) {
                         this.Log.LogDebug("Sensor S5 On");
-                        Maps.machinelocation = 5;
-                        if(this.goingTo == Maps.machinelocation){
+                        if(this.motorState!=0){
+                            this.location = 5;
+                        }
+                        if(this.goingTo == this.location){
                             this.motorStop();
                         }
                     } else {
                         this.Log.LogDebug("Sensor S5 Off");
                     }
-                    this.emit("Sensor",Maps.machinelocation,state);
+                    if(this.receivingItem){
+                        this.emit("Item recibido",this.location,state);
+                    }
+                    this.emit("Sensor",this.location,state);
                     break;
                 case Maps.Sensor.S6.PIN:
                     if (state === true) {
                         this.Log.LogDebug("Sensor S6 On");
-                        Maps.machinelocation = 6;
-                        if(this.goingTo == Maps.machinelocation){
+                        if(this.motorState!=0){
+                            this.location = 6;
+                        }
+                        if(this.goingTo == this.location){
                             this.motorStop();
                         }
                     } else {
                         this.Log.LogDebug("Sensor S6 Off");
                     }
-                    this.emit("Sensor",Maps.machinelocation,state);
+                    if(this.receivingItem){
+                        this.emit("Item recibido",this.location,state);
+                    }
+                    this.emit("Sensor",this.location,state);
                     break;
                 case Maps.Sensor.SM.PIN:
                     if (state === true) {
                         this.Log.LogDebug("Sensor SM On");
-                        Maps.machinelocation = 7;
-                        if(this.goingTo == Maps.machinelocation||this.motorState == 2){
-                            this.motorStop();
+                        if(this.motorState!=0){
+                            this.location = 7;
+                        }
+                        if(this.goingTo == this.location||this.motorState == 2){
+                            setTimeout(()=>{
+                                this.motorStop();
+                            },200)
                         }
                     } else {
                         this.Log.LogDebug("Sensor SM Off");
                     }
-                    this.emit("Sensor",Maps.machinelocation,state);
+                    this.emit("Sensor",this.location,state);
                     break;
                 case Maps.Pulso.P1.PIN:
                     if (state === true) {
@@ -378,17 +461,21 @@ export class ControllerMachine extends Event{
                     }
                     break;
                 case Maps.elevator.Up.PIN:
-                    if (state === true) {
-                        this.Log.LogDebug("Elevador subiendo???");
+                    if (state === false) {
+                        this.Log.LogDebug("Elevador subiendo de forma manual");
+                        this.motorStartUp();
                     } else {
-                        this.Log.LogDebug("Elevador detuvo subida?");
+                        this.Log.LogDebug("Elevador detuvo subida manual");
+                        this.motorStop()
                     }
                     break;
                 case Maps.elevator.Down.PIN:
-                    if (state === true) {
-                        this.Log.LogDebug("Elevador bajando???");
+                    if (state === false) {
+                        this.Log.LogDebug("Elevador bajando de forma manual");
+                        this.motorStartDown()
                     } else {
-                        this.Log.LogDebug("Elevador detuvo bajada?");
+                        this.Log.LogDebug("Elevador detuvo bajada manual");
+                        this.motorStop()
                     }
                     break;
                 case Maps.general.stop.PIN:
@@ -398,87 +485,212 @@ export class ControllerMachine extends Event{
                         this.Log.LogDebug("Elevador se mueve??");
                     }
             }
-        }
     }
     //Enviar el elevador a una fila específica
-    public GoTo=(row:number)=>{
-        this.goingTo = row;
-        if(Maps.machinelocation==row){
-            this.Log.LogDebug("El elevador esta en posición");
-        }else{
-            if(Maps.machinelocation>row){
-                this.motorStartUp();
-            }else if(Maps.machinelocation<row){
-                this.motorStartDown();
+    public GoTo=(callback:any,row:number)=>{
+        this.Log.LogDebug("Elevador se dirige a la posición: "+row)
+        if(this.enableMachine==true){
+            this.goingTo = row;
+            if(this.location==row){
+                this.Log.LogDebug("El elevador esta en posición");
+                callback(null);//Agregue este
+            }else{
+                if(this.location>row){
+                    this.motorStartUp();
+                }else if(this.location<row){
+                    this.motorStartDown();
+                }
+                //atascos
+                let time:any= setTimeout(()=>{
+                    if(this.motorState!=0){
+                        this.motorStop()
+                        this.emit("Event",{cmd:"Elevador atascado"})
+                        callback("Posible atasco del elevador")
+                    }
+                },15000)
+
+                //Espera la posición de destino
+                let wait:any = setInterval(()=>{
+                    if(this.location==row){
+                        this.Log.LogDebug("Elevador llego a la posición");
+                        if(this.isDelivery==true){
+                            setTimeout(()=>{
+                                this.motorStop();
+                                callback(null)
+                            },150)
+                        }else{
+                            callback(null);
+                        }
+                        clearTimeout(time);
+                        clearInterval(wait);
+                        wait=null;
+                    }
+                },150)
             }
+        }else{
+            this.Log.LogError("La máquina esta deshabilidata debido a falla de inicio de puerto de sensor")
         }
     }
-    //Espera a que el elevador se ubique en la posición deseada
-    private waitPosition=(callback:callback, piso:number)=>{
-        this.Log.LogDebug("Esperando posición de elevador");
-        let wait: any = setInterval(()=>{
-            if(Maps.machinelocation==piso){
-                clearInterval(wait);
-                this.Log.LogDebug("Elevador llego a la posición");
-                callback(null);
-            }
-        },150)
-    }
     //Prepara y ajusta posición del elevador para recibir artículo
-    private prepareForDispense=(callback: callback, height:number)=> {
-        let timeForDown = height * 17;
-        if (this.checkPosition(Maps.machinelocation)) {
+    private prepareForDispense=(callback: any, height:number)=> {
+        let timeForDown = height * 10;
+        if (this.checkPosition(this.location)) {
             this.Log.LogDebug("Comenzando proceso de retroceso para ajuste de altura");
             this.motorStartDown();
             setTimeout(() => {
                 this.motorStop();
                 this.Log.LogDebug("Elevador ubicado y listo para recibir");
+                this.receivingItem= true;
                 callback(null)
             }, timeForDown)
         } else {
             this.Log.LogError("El elevador no está en posición para recibir");
         }
     }
-    //Enciende cinta específica para dispensar un artículo
-    private receiveItem=(callback: callback, row: number, coll: number)=> {
-        this.motorCintaStart(row, coll);
-        this.on("Sensor", () => {
-            this.motorCintaStop(row, coll);
-            this.Log.LogDebug("Articulo recibido en el elevador");
-            callback(null);
-        })
-    }
     //Proceso completo para dispensar artículo al cliente
-    public dispenseItem=(piso: number ,row: number, coll:number, height: number)=>{
-        this.Log.LogDebug("Comenzando proceso de dispensar item");
+    public dispenseItem=(piso: number, c1:number,c2:number|null, height: number, callback:callback)=>{
+        this.estatemachine=true;
+        if(this.enableMachine){
+            this.findRow(piso,c1,c2,(err:any,row:any,coll_1:any,coll_2:any)=>{
+                this.Log.LogDebug("Dispensando desde piso "+piso+" columna 1: "+c1+" columna 2+ "+c2)
+                this.Log.LogDebug("Comenzando proceso de dispensar item");
+                _async.series([
+                    (callback:any)=>{
+                        this.Log.LogDebug("Step 1 Verificando posición de elevador");
+                        if(this.location==7){
+                            callback(null)
+                        }else{
+                            this.findElevator(callback);
+                        }
+                    },
+                    (callback:any)=>{
+                        this.Log.LogDebug("Step 2 Ubicando elevador en posición");
+                        this.GoTo(callback,piso);
+                    },
+                    (callback:any)=>{
+                        this.Log.LogDebug("Step 3 Ajustando posición del elevador segun tamaño");
+                        this.prepareForDispense(callback, height)
+                    },
+                    (callback:any)=>{
+                        this.Log.LogDebug("Step 4 Dispensado artículo desde cinta");
+                        this.motorCintaStart(row, coll_1, coll_2);
+                        this.receivingItem= true;
+                        this.once("Item recibido",()=>{
+                            console.log("Articulo recibido")
+                            this.motorCintaStop(row, coll_1, coll_2);
+                            this.receivingItem=false;
+                            callback(null);
+                        })
+                    },
+                    (callback:any)=>{
+                        this.Log.LogDebug("Step 5 Bajando elevador para realizar entrega");
+                        this.receivingItem= false;
+                        this.isDelivery=true;
+                        //Tal vez un tiempo?
+                        this.GoTo(callback,7);
+                    },
+                    (callback:any)=>{
+                        this.Log.LogDebug("Step 6 Esperando evento del retiro del articulo");
+                        this.emit("Event",{cmd:"Ok_dispensing", data:true})
+                        let wait:any = setInterval(()=>{
+                            if (global.Is_empty){
+                                //this.GoTo(callback,6)
+                                this.gotoInitPosition(callback)
+                                clearInterval(wait)
+                                wait=null;
+                            }
+                        },5000)
+                    },
+                    (callback:any)=>{
+                        this.motorStartDown();
+                        setTimeout(() => {
+                            this.motorStop();
+                            this.Log.LogDebug("Elevador ubicado en posición inicial");
+                            this.receivingItem= true;
+                            callback(null)
+                        }, 400)
+                    }
+                ],(result?:any)=> {
+                    this.receivingItem=false;
+                    this.estatemachine=false;
+                    if(result == null) {
+                        this.Log.LogDebug('Proceso de venta completo '+result);
+                        callback(result);
+                    } else{
+                        this.Log.LogAlert("Error");
+                        callback(result);
+                    }
+                })
+            })
+        }else{
+            callback("Máquina deshabilitada por falla en sensor serial")
+        }
+    }
+    //Obtiene los pines de los motores de las celdas
+    private findRow= (row: number, col_1:number,col_2:number|null, callback:any) =>{
+        let coll:number;
+        let coll2:any=null;
+        let r:number;
+        try {
+            _async.mapSeries(global.MCP_Columna,
+                (Columna:any,cb:callback)=>{
+                    if(Columna.ID.toString()==col_1){
+                        coll=Columna.value;
+                    }
+                    cb(null);
+                },(err:any,data?:any)=>{
+                    _async.mapSeries(global.MCP_Columna,
+                        (Columna:any,cb:callback)=>{
+                        if(Columna.ID.toString()==col_2){
+                            coll2=Columna.value;
+                        }
+                        cb(null);
+                    },(err:any,data?:any)=>{
+                        _async.mapSeries(global.MCP_row,(Row:any,cb:callback)=>{
+                            if(Row.ID.toString()==row){
+                                r=Row.value;
+                            }
+                            cb(null);
+                        },(err:any,data?:any)=>{
+                            callback(null, r, coll, coll2);
+                        });
+                    });
+                });
+        }catch(e) {
+            _log.error(e.stack+'error seleccionando columna' );
+        }
+    };
+    //Ubicar el elevador en la posición inicial
+    private gotoInitPosition=(callback:callback)=>{
+        this.Log.LogDebug("InitPos - Elevador va a posición inicial");
         _async.series([
+            //Step 1 - Ubicando elevador en posicion 7
             (callback:any)=>{
-                this.Log.LogDebug("Step 1 Ubicando elevador en posición");
-                this.GoTo(piso);
-                callback(null)
+                //this.GoTo(callback,6);
+                this.Log.LogDebug("InitPos - Ubicando elevador en la parte inferior, piso 7")
+                this.GoTo(callback,7);
             },
+            //Step 2 - Ajustando altura de Elevador
             (callback:any)=>{
-                this.Log.LogDebug("Step 2 Esperando la posicion del elevador");
-                this.waitPosition(callback,piso);
-            },
-            (callback:any)=>{
-                this.Log.LogDebug("Step 3 Ajustando posición del elevador segun tamaño");
-                this.prepareForDispense(callback, 14)
-            },
-            (callback:any)=>{
-                this.Log.LogDebug("Step 4 Dispensado artículo desde cinta");
-                this.receiveItem(callback,row,coll);
-            },
-            (callback:any)=>{
-                this.Log.LogDebug("Step 5 Bajando elevador para realizar entrega");
-                this.GoTo(7);
+                this.Log.LogDebug("InitPos - Ajustando altura para bloqueo de puerta principal")
+                this.motorStartUp();
+                setTimeout(() => {
+                    this.motorStop();
+                    this.Log.LogDebug("InitPos - Elevador ubicado en posición inicial");
+                    //this.receivingItem= true;
+                    //Le indica al elevador que se encuentra abajo -- Pendiente
+                    this.location=7;
+                    callback(null)
+                }, 200)
+            }
+        ],(result?:any)=> {
+            if(result == null) {
+                this.Log.LogDebug('InitPos - Elevador ubicado correctamente '+result);
+                this.estatemachine = false;
                 callback(null);
-            },
-        ],(callback)=>{
-            if(!callback){
-                console.log("Entrega Completa")
-            }else{
-                console.log("error")
+            } else{
+                this.Log.LogAlert("Error ubicando en la posición inicial");
+                callback(result);
             }
         })
     }

@@ -30,6 +30,7 @@ var Sensor = /** @class */ (function (_super) {
             port: '/dev/ttyAMA0',
             baudRate: 9600
         };
+        _this.isCheck = false;
         _this.Check_Sensor = function (data, callback) {
             try {
                 async_1.default.series([
@@ -75,9 +76,12 @@ var Sensor = /** @class */ (function (_super) {
         setTimeout(function () {
             _this.Check_Sensor(_this.data, function (err, dta) {
                 ci_logmodule_1.default.write('err' + err);
-                var intervalGoLevel = setInterval(function () {
-                    _this.Get_state(function (err, dta) { });
-                }, 2000);
+                if (err == null) {
+                    _this.isCheck = true;
+                    var intervalGoLevel = setInterval(function () {
+                        _this.Get_state(function (err, dta) { });
+                    }, 2000);
+                }
             });
         }, 3000);
         return _this;

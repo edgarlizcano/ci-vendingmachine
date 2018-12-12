@@ -7,7 +7,12 @@ export declare class ControllerMachine extends Event {
     private mcp2;
     private goingTo;
     private motorState;
-    private dispense;
+    private location;
+    private sensorPiso;
+    private receivingItem;
+    private isDelivery;
+    private enableMachine;
+    private estatemachine;
     constructor();
     private initOuts;
     private initSensors;
@@ -18,12 +23,12 @@ export declare class ControllerMachine extends Event {
     private motorStartDown;
     private motorStartUp;
     motorStop: () => void;
-    private motorCintaStart;
-    private motorCintaStop;
+    motorCintaStart: (row: number, coll: number, coll2: number) => void;
+    motorCintaStop: (row: number, coll: number, coll2: number) => void;
     private signal;
-    GoTo: (row: number) => void;
-    private waitPosition;
+    GoTo: (callback: any, row: number) => void;
     private prepareForDispense;
-    private receiveItem;
-    dispenseItem: (piso: number, row: number, coll: number, height: number) => void;
+    dispenseItem: (piso: number, c1: number, c2: number | null, height: number, callback: callback) => void;
+    private findRow;
+    private gotoInitPosition;
 }

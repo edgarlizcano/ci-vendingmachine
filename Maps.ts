@@ -1,5 +1,6 @@
 let Maps: any = {};
 
+//Sensores
 Maps.Sensor = {
     S1:      {Piso:1, GPIO:13, PIN:  33, test: false},
     S2:      {Piso:2, GPIO: 6, PIN:  31, test: false},
@@ -10,8 +11,9 @@ Maps.Sensor = {
     SM:      {Piso:7, GPIO: 7, PIN:  26, test: false}
 };
 
+//pines de señales pulso de cambio de vuelta
 Maps.Pulso = {
-    P1:      {GPIO :17,  PIN:  11, text: "Piso_1 "},//pines de señales pulso de cambio de vuelta
+    P1:      {GPIO :17,  PIN:  11, text: "Piso_1 "},
     P2:      {GPIO :27,  PIN:  13, text: "Piso_2 "},
     P3:      {GPIO :22,  PIN:  15, text: "Piso_3 "},
     P4:      {GPIO :10,  PIN:  19, text: "Piso_4 "},
@@ -123,5 +125,7 @@ Maps.row= {
     B:  {Piso: 2, MCP: 1, value: 14, text: "Piso_B ",status: false, ID:'B'},
     A:  {Piso: 1, MCP: 1, value: 15, text: "Piso_A ",status: false, ID:'A'}
 };
+
+Maps.Is_empty =true;
 
 export = Maps;

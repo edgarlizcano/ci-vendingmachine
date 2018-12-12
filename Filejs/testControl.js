@@ -10,16 +10,15 @@ stdin.addListener("data", function (d) {
     var cmd = d.toString().trim();
     switch (cmd) {
         case "1":
-            console.log("yendo a 1");
-            control.GoTo(1);
+            control.motorCintaStart(11, 4, 3);
             break;
         case "2":
-            console.log("yendo a 2");
-            control.GoTo(2);
+            control.motorCintaStop(11, 4, 3);
             break;
         case "3":
-            console.log("yendo a 3");
-            control.GoTo(3);
+            control.findRow(4, 9, null, function (err, f, c, c2) {
+                console.log("fila: " + f + "Coll: " + c + "Coll2: " + c2);
+            });
             break;
         case "4":
             console.log("yendo a 4");
@@ -37,17 +36,38 @@ stdin.addListener("data", function (d) {
             console.log("yendo a 7");
             control.GoTo(7);
             break;
-        case "e7":
-            console.log("dispensando a1");
-            control.dispenseItem(5, global.motoresCelda.E7.row, global.motoresCelda.E7.coll, 14);
+        case "c4":
+            console.log("dispensando c4");
+            control.dispenseItem(3, 4, null, 14, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
             break;
         case "b3":
-            console.log("dispensando a1");
-            control.dispenseItem(2, global.motoresCelda.B3.row, global.motoresCelda.B3.coll, 14);
+            console.log("dispensando b3");
+            control.dispenseItem(4, 3, null, 14, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
             break;
-        case "d5":
-            console.log("dispensando a1");
-            control.dispenseItem(4, global.motoresCelda.D5.row, global.motoresCelda.D5.coll, 14);
+        case "f2":
+            console.log("dispensando f2");
+            control.dispenseItem(6, 2, null, 14, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
             break;
         case "s":
             console.log("Stop");
@@ -67,5 +87,5 @@ function menu() {
     console.log("6 - goto 6");
     console.log("7 - abajo");
     console.log("stop");
-    console.log("a1 - b3 - d5");
+    console.log("c2");
 }
