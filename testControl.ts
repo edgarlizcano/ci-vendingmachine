@@ -10,35 +10,46 @@ stdin.addListener("data", (d) => {
     let cmd = d.toString().trim();
     switch (cmd) {
         case "1":
-            control.motorCintaStart(11, 4,3)
+            console.log("yendo a 1")
+            control.GoTo(null,1);
             break;
         case "2":
-            control.motorCintaStop(11, 4,3)
+            console.log("yendo a 2")
+            control.GoTo((data:any)=>{console.log("llego :"+ data)},2);
             break;
         case "3":
-            control.findRow(4,9,null,(err:any, f:any, c:any, c2:any)=>{
-                console.log("fila: "+ f+"Coll: "+c+"Coll2: "+c2)
-            })
+            console.log("yendo a 3")
+            control.GoTo((data:any)=>{console.log("llego :"+ data)},3);
             break;
         case "4":
             console.log("yendo a 4")
-            control.GoTo(4);
+            control.GoTo((data:any)=>{console.log("llego :"+ data)},4);
             break;
         case "5":
             console.log("yendo a 5")
-            control.GoTo(5);
+            control.GoTo((data:any)=>{console.log("llego :"+ data)},5);
             break;
         case "6":
             console.log("yendo a 6")
-            control.GoTo(6);
+            control.GoTo((data:any)=>{console.log("llego :"+ data)},6);
             break;
         case "7":
             console.log("yendo a 7")
-            control.GoTo(7);
+            control.GoTo((data:any)=>{console.log("llego :"+ data)},7);
             break;
         case "c4":
             console.log("dispensando c4")
             control.dispenseItem(3,4, null,14,(err)=>{
+                if(err == null){
+                    console.log("Proceso completado con callback")
+                }else{
+                    console.log("Error al finalizar")
+                }
+            });
+            break;
+        case "f9":
+            console.log("dispensando f9")
+            control.dispenseItem(6,9, null,14,(err)=>{
                 if(err == null){
                     console.log("Proceso completado con callback")
                 }else{

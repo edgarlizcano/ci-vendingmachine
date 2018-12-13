@@ -19,7 +19,6 @@ var events_1 = __importDefault(require("events"));
 var rpi_gpio_1 = __importDefault(require("rpi-gpio"));
 var async_1 = __importDefault(require("async"));
 var ci_syslogs_1 = require("ci-syslogs");
-var ci_logmodule_1 = __importDefault(require("@ci24/ci-logmodule"));
 var Sensor_1 = require("./Sensor");
 var Global_1 = __importDefault(require("./Global"));
 var ControllerMachine = /** @class */ (function (_super) {
@@ -49,7 +48,12 @@ var ControllerMachine = /** @class */ (function (_super) {
         _this.isDelivery = false;
         _this.enableMachine = false;
         //Estado de la máquina, si esta inactiva o en una operación
-        _this.estatemachine = true;
+        _this.estatemachine = false;
+        //Habilita o deshabilita seguridad
+        _this.securityState = function (state) {
+            _this.estatemachine = state;
+            _this.Log.LogDebug("La seguridad esta en: " + state);
+        };
         //Inicializa salidas
         _this.initOuts = function () {
             _this.Log.LogDebug("Inicializando salidas");
@@ -135,7 +139,6 @@ var ControllerMachine = /** @class */ (function (_super) {
             if (_this.location == 7) {
                 callback(null);
             }
-            _this.estatemachine = true;
             //Lee el sensor de piso 7 para chequear si está allí
             rpi_gpio_1.default.read(26, function (err, state) {
                 if (state == true) {
@@ -170,6 +173,9 @@ var ControllerMachine = /** @class */ (function (_super) {
                         _this.gotoInitPosition(callback);
                     }
                 }, 2000);
+            }
+            else {
+                callback(null);
             }
         };
         //Chequea posición del elevador según parámetro
@@ -473,21 +479,25 @@ var ControllerMachine = /** @class */ (function (_super) {
                 case Maps_1.default.elevator.Up.PIN:
                     if (state === false) {
                         _this.Log.LogDebug("Elevador subiendo de forma manual");
+                        _this.securityState(false);
                         _this.motorStartUp();
                     }
                     else {
                         _this.Log.LogDebug("Elevador detuvo subida manual");
                         _this.motorStop();
+                        _this.securityState(true);
                     }
                     break;
                 case Maps_1.default.elevator.Down.PIN:
                     if (state === false) {
                         _this.Log.LogDebug("Elevador bajando de forma manual");
+                        _this.securityState(false);
                         _this.motorStartDown();
                     }
                     else {
                         _this.Log.LogDebug("Elevador detuvo bajada manual");
                         _this.motorStop();
+                        _this.securityState(true);
                     }
                     break;
                 case Maps_1.default.general.stop.PIN:
@@ -501,55 +511,42 @@ var ControllerMachine = /** @class */ (function (_super) {
         };
         //Enviar el elevador a una fila específica
         _this.GoTo = function (callback, row) {
+            _this.securityState(false);
             _this.Log.LogDebug("Elevador se dirige a la posición: " + row);
-            if (_this.enableMachine == true) {
-                _this.goingTo = row;
-                if (_this.location == row) {
-                    _this.Log.LogDebug("El elevador esta en posición");
-                    callback(null); //Agregue este
-                }
-                else {
-                    if (_this.location > row) {
-                        _this.motorStartUp();
-                    }
-                    else if (_this.location < row) {
-                        _this.motorStartDown();
-                    }
-                    //atascos
-                    var time_1 = setTimeout(function () {
-                        if (_this.motorState != 0) {
-                            _this.motorStop();
-                            _this.emit("Event", { cmd: "Elevador atascado" });
-                            callback("Posible atasco del elevador");
-                        }
-                    }, 15000);
-                    //Espera la posición de destino
-                    var wait_1 = setInterval(function () {
-                        if (_this.location == row) {
-                            _this.Log.LogDebug("Elevador llego a la posición");
-                            if (_this.isDelivery == true) {
-                                setTimeout(function () {
-                                    _this.motorStop();
-                                    callback(null);
-                                }, 150);
-                            }
-                            else {
-                                callback(null);
-                            }
-                            clearTimeout(time_1);
-                            clearInterval(wait_1);
-                            wait_1 = null;
-                        }
-                    }, 150);
-                }
+            _this.goingTo = row;
+            if (_this.location == row) {
+                _this.Log.LogDebug("El elevador esta en posición");
+                callback(null); //Agregue este
             }
             else {
-                _this.Log.LogError("La máquina esta deshabilidata debido a falla de inicio de puerto de sensor");
+                if (_this.location > row) {
+                    _this.motorStartUp();
+                }
+                else if (_this.location < row) {
+                    _this.motorStartDown();
+                }
+                //Espera la posición de destino
+                var wait_1 = setInterval(function () {
+                    if (_this.location == row) {
+                        _this.Log.LogDebug("Elevador llego a la posición");
+                        if (_this.isDelivery == true) {
+                            setTimeout(function () {
+                                _this.motorStop();
+                                callback(null);
+                            }, 150);
+                        }
+                        else {
+                            callback(null);
+                        }
+                        clearInterval(wait_1);
+                        wait_1 = null;
+                    }
+                }, 150);
             }
         };
         //Prepara y ajusta posición del elevador para recibir artículo
         _this.prepareForDispense = function (callback, height) {
-            var timeForDown = height * 10;
+            var timeForDown = height * 13;
             if (_this.checkPosition(_this.location)) {
                 _this.Log.LogDebug("Comenzando proceso de retroceso para ajuste de altura");
                 _this.motorStartDown();
@@ -566,7 +563,8 @@ var ControllerMachine = /** @class */ (function (_super) {
         };
         //Proceso completo para dispensar artículo al cliente
         _this.dispenseItem = function (piso, c1, c2, height, callback) {
-            _this.estatemachine = true;
+            _this.Log.LogDebug("Comenzando proceso de dispensar item en el piso " + piso);
+            _this.securityState(false);
             if (_this.enableMachine) {
                 _this.findRow(piso, c1, c2, function (err, row, coll_1, coll_2) {
                     _this.Log.LogDebug("Dispensando desde piso " + piso + " columna 1: " + c1 + " columna 2+ " + c2);
@@ -612,25 +610,14 @@ var ControllerMachine = /** @class */ (function (_super) {
                             _this.emit("Event", { cmd: "Ok_dispensing", data: true });
                             var wait = setInterval(function () {
                                 if (Global_1.default.Is_empty) {
-                                    //this.GoTo(callback,6)
                                     _this.gotoInitPosition(callback);
                                     clearInterval(wait);
                                     wait = null;
                                 }
-                            }, 5000);
-                        },
-                        function (callback) {
-                            _this.motorStartDown();
-                            setTimeout(function () {
-                                _this.motorStop();
-                                _this.Log.LogDebug("Elevador ubicado en posición inicial");
-                                _this.receivingItem = true;
-                                callback(null);
-                            }, 400);
+                            }, 20000);
                         }
                     ], function (result) {
                         _this.receivingItem = false;
-                        _this.estatemachine = false;
                         if (result == null) {
                             _this.Log.LogDebug('Proceso de venta completo ' + result);
                             callback(result);
@@ -648,6 +635,7 @@ var ControllerMachine = /** @class */ (function (_super) {
         };
         //Obtiene los pines de los motores de las celdas
         _this.findRow = function (row, col_1, col_2, callback) {
+            _this.Log.LogDebug("Buscando pines");
             var coll;
             var coll2 = null;
             var r;
@@ -676,7 +664,7 @@ var ControllerMachine = /** @class */ (function (_super) {
                 });
             }
             catch (e) {
-                ci_logmodule_1.default.error(e.stack + 'error seleccionando columna');
+                _this.Log.LogError(e.stack + 'error seleccionando columna');
             }
         };
         //Ubicar el elevador en la posición inicial
@@ -685,7 +673,6 @@ var ControllerMachine = /** @class */ (function (_super) {
             async_1.default.series([
                 //Step 1 - Ubicando elevador en posicion 7
                 function (callback) {
-                    //this.GoTo(callback,6);
                     _this.Log.LogDebug("InitPos - Ubicando elevador en la parte inferior, piso 7");
                     _this.GoTo(callback, 7);
                 },
@@ -696,16 +683,16 @@ var ControllerMachine = /** @class */ (function (_super) {
                     setTimeout(function () {
                         _this.motorStop();
                         _this.Log.LogDebug("InitPos - Elevador ubicado en posición inicial");
-                        //this.receivingItem= true;
                         //Le indica al elevador que se encuentra abajo -- Pendiente
                         _this.location = 7;
+                        _this.securityState(true);
                         callback(null);
                     }, 200);
                 }
             ], function (result) {
                 if (result == null) {
                     _this.Log.LogDebug('InitPos - Elevador ubicado correctamente ' + result);
-                    _this.estatemachine = false;
+                    _this.securityState(true);
                     callback(null);
                 }
                 else {
@@ -714,11 +701,30 @@ var ControllerMachine = /** @class */ (function (_super) {
                 }
             });
         };
+        //Control de tiempo de atascos - Probar
+        _this.controlTime = function (callback) {
+            var date = _this.location - _this.goingTo;
+            if (date < 0) {
+                date = date * -1;
+            }
+            var time = date * 2000;
+            setTimeout(function () {
+                if (_this.checkPosition(_this.goingTo)) {
+                    callback(null);
+                }
+                else {
+                    _this.Log.LogAlert("Posible atasco del elevador");
+                    _this.motorStop();
+                    callback("Posible atasco del elevador");
+                }
+            }, time);
+        };
         _this.Log.LogDebug("Control inicializado");
         rpi_gpio_1.default.on('change', _this.signal);
         _this.on("Sensor", function (pin, state) {
-            if (_this.estatemachine == false && pin != Maps_1.default.elevator.Up.PIN && pin != Maps_1.default.elevator.Down.PIN) {
-                _this.Log.LogAlert("Alerta, sensor activado cuando la máquina está inactiva");
+            _this.Log.LogDebug("alerta de " + pin);
+            if (_this.estatemachine == true && pin != Maps_1.default.elevator.Up.PIN && pin != Maps_1.default.elevator.Down.PIN) {
+                _this.Log.LogAlert("Alerta, sensor activado cuando la máquina está inactiva pin: " + pin);
                 _this.emit("Event", { cmd: "Alerta" });
             }
         });
@@ -730,15 +736,17 @@ var ControllerMachine = /** @class */ (function (_super) {
             if (_this.sensorPiso.isCheck == true) {
                 _this.Log.LogDebug("Máquina habilitada");
                 _this.enableMachine = true;
-                _this.emit("Event", { cmd: "Máquina Lista" });
+                _this.securityState(false);
+                _this.emit("Event", { cmd: "Maquina_Lista" });
                 if (_this.location == null) {
                     _this.findElevator(function (cb) {
-                        _this.Log.LogDebug("listo");
+                        _this.Log.LogDebug("Fin de proceso de busqueda de elevador");
+                        _this.securityState(true);
                     });
                 }
             }
             else {
-                _this.emit("Event", { cmd: "Error al abrir puerto serial" });
+                _this.emit("Event", { cmd: "Error_puerto_serial" });
             }
         }, 5000);
         return _this;

@@ -14,6 +14,7 @@ export declare class ControllerMachine extends Event {
     private enableMachine;
     private estatemachine;
     constructor();
+    private securityState;
     private initOuts;
     private initSensors;
     closeSensors: (cb: callback) => void;
@@ -31,4 +32,5 @@ export declare class ControllerMachine extends Event {
     dispenseItem: (piso: number, c1: number, c2: number | null, height: number, callback: callback) => void;
     private findRow;
     private gotoInitPosition;
+    private controlTime;
 }
