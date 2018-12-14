@@ -29,8 +29,13 @@ export declare class ControllerMachine extends Event {
     private signal;
     GoTo: (callback: any, row: number) => void;
     private prepareForDispense;
+    private waitForRemoveItem;
     dispenseItem: (piso: number, c1: number, c2: number | null, height: number, callback: callback) => void;
     private findRow;
     private gotoInitPosition;
+    private atasco;
+    private intentos;
     private controlTime;
+    private controlAtasco;
+    GoTo2: (callback: any, row: number) => void;
 }

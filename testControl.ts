@@ -76,6 +76,15 @@ stdin.addListener("data", (d) => {
                 console.log("Error al finalizar")
             }})
             break;
+        case "a3":
+            console.log("dispensando a3")
+            control.dispenseItem(1,3,4,14,(err)=>{
+                if(err == null){
+                    console.log("Proceso completado con callback")
+                }else{
+                    console.log("Error al finalizar")
+                }})
+            break;
         case "s":
             console.log("Stop")
             control.motorStop();
