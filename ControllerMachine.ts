@@ -618,8 +618,6 @@ export class ControllerMachine extends Event{
         this.Log.LogDebug("Comenzando proceso de dispensar item en el piso "+piso);
         this.securityState(false)
         if(this.enableMachine){
-            this.findRow(piso,c1,c2,(err:any,row:any,coll_1:any,coll_2:any)=>{
-                this.Log.LogDebug("Dispensando desde piso "+piso+" columna 1: "+c1+" columna 2+ "+c2)
                 this.Log.LogDebug("Comenzando proceso de dispensar item");
                 _async.series([
                     (callback:any)=>{
@@ -636,24 +634,18 @@ export class ControllerMachine extends Event{
                     },
                     (callback:any)=>{
                         this.Log.LogDebug("Step 3 Ajustando posición del elevador segun tamaño");
-                        this.prepareForDispense(callback, height)
+                        setTimeout(()=>{
+                            this.prepareForDispense(callback, height)
+                        },1000)
                     },
                     (callback:any)=>{
                         this.Log.LogDebug("Step 4 Dispensado artículo desde cinta");
-                        this.motorCintaStart(row, coll_1, coll_2);
-                        this.receivingItem= true;
-                        this.once("Item recibido",()=>{
-                            console.log("Articulo recibido")
-                            this.motorCintaStop(row, coll_1, coll_2);
-                            this.receivingItem=false;
-                            callback(null);
-                        })
+                        this.dispense(piso,c1,c2,callback)
                     },
                     (callback:any)=>{
                         this.Log.LogDebug("Step 5 Bajando elevador para realizar entrega");
                         this.receivingItem= false;
                         this.isDelivery=true;
-                        //Tal vez un tiempo?
                         this.GoTo(callback,7);
                     },
                     (callback:any)=>{
@@ -678,7 +670,6 @@ export class ControllerMachine extends Event{
                         callback(result);
                     }
                 })
-            })
         }else{
             callback("Máquina deshabilitada por falla en sensor serial")
         }
@@ -750,15 +741,45 @@ export class ControllerMachine extends Event{
         })
     }
 
+    //Beta de dispensar
+    private dispense=(piso:number, coll_1:number, coll_2:any,callback: any)=> {
+        this.findRow(piso, coll_1,coll_2,(err:any,row:any,c1:any,c2:any )=>{
+            this.Log.LogDebug("Dispensando desde piso "+piso+" columna 1: "+c1+" columna 2+ "+c2)
+            this.Log.LogDebug("Dispensado artículo desde cinta");
+            this.motorCintaStart(row, c1, c2);
+            this.receivingItem= true;
+            this.once("Item recibido",()=>{
+                console.log("Articulo recibido")
+                this.motorCintaStop(row, coll_1, coll_2);
+                this.receivingItem=false;
+                callback(null);
+            })
+        })
+    }
+    //Test celdas
+    private testCeldas=(piso:number, coll_1:number, coll_2:number,callback: any)=> {
+        this.findRow(piso, coll_1,coll_2,(err:any,row:any,c1:any,c2:any )=>{
+            this.Log.LogDebug("Iniciando test de celda");
+            this.motorCintaStart(row, c1, c2);
+            setTimeout(()=>{
+                this.motorCintaStop(row, coll_1, coll_2);
+                console.log("Test de celda finalizado")
+                callback(null);
+            },4000)
+        })
+    }
+
+    //**************************Beta*******************************!//
     //Control de atascos - Probar
     private atasco:boolean = false;
     private intentos:number=0;
 
     //Controla el tiempo de avance del motor
     private controlTime=(row:number, callback:any)=>{
+        //Espera la posición de destino
         let nPisos = this.location - this.goingTo;
         let time = 0;
-        let countTime = 100;
+        let countTime = 500;
         if(nPisos<0){
             nPisos = nPisos * -1;
         }
@@ -767,21 +788,16 @@ export class ControllerMachine extends Event{
         //Espera la posición de destino
         let wait:any = setInterval(()=>{
             console.log(countTime)
-            countTime+=100;
-            //Si llega a la posición
-            if(this.location==row){
-                this.Log.LogDebug("Elevador llego a la posición");
-                callback(null);
-                clearInterval(wait);
+            countTime=countTime+100;
+            if(this.location == this.goingTo){
+                this.Log.LogDebug("Elevador llego en: "+countTime)
+                clearInterval(wait)
                 wait=null;
-                this.intentos = 0
-                this.atasco = false
+                callback(null)
             }
-            //Si no ha llegado al cumplir el tiempo
             if(countTime>time){
-                this.Log.LogAlert("Leyendo posible atasco, tiempo transcurrido: "+countTime)
-                this.motorStop()
-                this.controlAtasco(callback,row);
+                this.Log.LogDebug("Leyendo posible atasco, countTime: "+countTime)
+                this.controlAtasco(this.motorState,callback);
                 clearInterval(wait)
                 wait=null;
             }
@@ -799,13 +815,12 @@ export class ControllerMachine extends Event{
             this.Log.LogDebug("Comenzando proceso de desatasco número: "+this.intentos)
             if(this.motorState==1){
                 this.Log.LogDebug("Bajando para desatascar")
-                console.log("Bajando 1 seg");
                 this.motorStartDown()
                 setTimeout(()=>{
                     this.motorStop()
                     setTimeout(()=>{
                         this.GoTo(callback,row)
-                        callback(null)
+                        //callback(null)
                     },1500)
                 },1500)
             }else{
@@ -815,13 +830,13 @@ export class ControllerMachine extends Event{
                     this.motorStop()
                     setTimeout(()=>{
                         this.GoTo(callback,row)
-                        callback(null)
+                        //callback(null)
                     },1500)
                 },1500)
             }
         }
-
     }
+
     //Enviar el elevador a una fila específica con control de atascos
     public GoTo2=(callback:any,row:number)=>{
         this.securityState(false);
@@ -841,5 +856,9 @@ export class ControllerMachine extends Event{
         }
     }
 
-    //Version 4.1
+    //Version 5
+    //Separación de modulo de dispensar y se agregó a dispense Item - Probar
+    //Validación de que se paso de piso - Probar
+    //Verificacion de tiempos de atasco - Probar
+
 }

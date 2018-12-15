@@ -33,6 +33,8 @@ export declare class ControllerMachine extends Event {
     dispenseItem: (piso: number, c1: number, c2: number | null, height: number, callback: callback) => void;
     private findRow;
     private gotoInitPosition;
+    private dispense;
+    private testCeldas;
     private atasco;
     private intentos;
     private controlTime;

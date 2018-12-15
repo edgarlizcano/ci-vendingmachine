@@ -573,7 +573,7 @@ var ControllerMachine = /** @class */ (function (_super) {
                 }
                 _this.Log.LogDebug("Esperando posición del elevador");
                 //v5
-                var atasco = false;
+                var atasco_1 = false;
                 var time_1 = 0;
                 //Espera la posición de destino
                 var wait_1 = setInterval(function () {
@@ -637,68 +637,59 @@ var ControllerMachine = /** @class */ (function (_super) {
             _this.Log.LogDebug("Comenzando proceso de dispensar item en el piso " + piso);
             _this.securityState(false);
             if (_this.enableMachine) {
-                _this.findRow(piso, c1, c2, function (err, row, coll_1, coll_2) {
-                    _this.Log.LogDebug("Dispensando desde piso " + piso + " columna 1: " + c1 + " columna 2+ " + c2);
-                    _this.Log.LogDebug("Comenzando proceso de dispensar item");
-                    async_1.default.series([
-                        function (callback) {
-                            _this.Log.LogDebug("Step 1 Verificando posición de elevador");
-                            if (_this.checkPosition(7)) {
-                                callback(null);
-                            }
-                            else {
-                                _this.findElevator(callback);
-                            }
-                        },
-                        function (callback) {
-                            _this.Log.LogDebug("Step 2 Ubicando elevador en posición");
-                            _this.GoTo(callback, piso);
-                        },
-                        function (callback) {
-                            _this.Log.LogDebug("Step 3 Ajustando posición del elevador segun tamaño");
-                            _this.prepareForDispense(callback, height);
-                        },
-                        function (callback) {
-                            _this.Log.LogDebug("Step 4 Dispensado artículo desde cinta");
-                            _this.motorCintaStart(row, coll_1, coll_2);
-                            _this.receivingItem = true;
-                            _this.once("Item recibido", function () {
-                                console.log("Articulo recibido");
-                                _this.motorCintaStop(row, coll_1, coll_2);
-                                _this.receivingItem = false;
-                                callback(null);
-                            });
-                        },
-                        function (callback) {
-                            _this.Log.LogDebug("Step 5 Bajando elevador para realizar entrega");
-                            _this.receivingItem = false;
-                            _this.isDelivery = true;
-                            //Tal vez un tiempo?
-                            _this.GoTo(callback, 7);
-                        },
-                        function (callback) {
-                            _this.Log.LogDebug("Step 6 Esperando evento del retiro del articulo");
-                            _this.emit("Event", { cmd: "Ok_dispensing", data: true });
-                            _this.waitForRemoveItem(callback);
-                        },
-                        function (callback) {
-                            _this.Log.LogDebug("Step 7 Asegurando puerta");
-                            setTimeout(function () {
-                                _this.gotoInitPosition(callback);
-                            }, 8000);
-                        }
-                    ], function (result) {
-                        _this.receivingItem = false;
-                        if (result == null) {
-                            _this.Log.LogDebug('Proceso de venta completo ' + result);
-                            callback(result);
+                _this.Log.LogDebug("Comenzando proceso de dispensar item");
+                async_1.default.series([
+                    function (callback) {
+                        _this.Log.LogDebug("Step 1 Verificando posición de elevador");
+                        if (_this.checkPosition(7)) {
+                            callback(null);
                         }
                         else {
-                            _this.Log.LogAlert("Error: " + result);
-                            _this.stopAll();
-                            callback(result);
+                            _this.findElevator(callback);
                         }
-                    });
+                    },
+                    function (callback) {
+                        _this.Log.LogDebug("Step 2 Ubicando elevador en posición");
+                        _this.GoTo(callback, piso);
+                    },
+                    function (callback) {
+                        _this.Log.LogDebug("Step 3 Ajustando posición del elevador segun tamaño");
+                        setTimeout(function () {
+                            _this.prepareForDispense(callback, height);
+                        }, 1000);
+                    },
+                    function (callback) {
+                        _this.Log.LogDebug("Step 4 Dispensado artículo desde cinta");
+                        _this.dispense(piso, c1, c2, callback);
+                    },
+                    function (callback) {
+                        _this.Log.LogDebug("Step 5 Bajando elevador para realizar entrega");
+                        _this.receivingItem = false;
+                        _this.isDelivery = true;
+                        _this.GoTo(callback, 7);
+                    },
+                    function (callback) {
+                        _this.Log.LogDebug("Step 6 Esperando evento del retiro del articulo");
+                        _this.emit("Event", { cmd: "Ok_dispensing", data: true });
+                        _this.waitForRemoveItem(callback);
+                    },
+                    function (callback) {
+                        _this.Log.LogDebug("Step 7 Asegurando puerta");
+                        setTimeout(function () {
+                            _this.gotoInitPosition(callback);
+                        }, 8000);
+                    }
+                ], function (result) {
+                    _this.receivingItem = false;
+                    if (result == null) {
+                        _this.Log.LogDebug('Proceso de venta completo ' + result);
+                        callback(result);
+                    }
+                    else {
+                        _this.Log.LogAlert("Error: " + result);
+                        _this.stopAll();
+                        callback(result);
+                    }
                 });
             }
             else {
@@ -771,14 +762,43 @@ var ControllerMachine = /** @class */ (function (_super) {
                 }
             });
         };
+        //Beta de dispensar
+        _this.dispense = function (piso, coll_1, coll_2, callback) {
+            _this.findRow(piso, coll_1, coll_2, function (err, row, c1, c2) {
+                _this.Log.LogDebug("Dispensando desde piso " + piso + " columna 1: " + c1 + " columna 2+ " + c2);
+                _this.Log.LogDebug("Dispensado artículo desde cinta");
+                _this.motorCintaStart(row, c1, c2);
+                _this.receivingItem = true;
+                _this.once("Item recibido", function () {
+                    console.log("Articulo recibido");
+                    _this.motorCintaStop(row, coll_1, coll_2);
+                    _this.receivingItem = false;
+                    callback(null);
+                });
+            });
+        };
+        //Test celdas
+        _this.testCeldas = function (piso, coll_1, coll_2, callback) {
+            _this.findRow(piso, coll_1, coll_2, function (err, row, c1, c2) {
+                _this.Log.LogDebug("Iniciando test de celda");
+                _this.motorCintaStart(row, c1, c2);
+                setTimeout(function () {
+                    _this.motorCintaStop(row, coll_1, coll_2);
+                    console.log("Test de celda finalizado");
+                    callback(null);
+                }, 4000);
+            });
+        };
+        //**************************Beta*******************************!//
         //Control de atascos - Probar
         _this.atasco = false;
         _this.intentos = 0;
         //Controla el tiempo de avance del motor
         _this.controlTime = function (row, callback) {
+            //Espera la posición de destino
             var nPisos = _this.location - _this.goingTo;
             var time = 0;
-            var countTime = 100;
+            var countTime = 500;
             if (nPisos < 0) {
                 nPisos = nPisos * -1;
             }
@@ -787,21 +807,16 @@ var ControllerMachine = /** @class */ (function (_super) {
             //Espera la posición de destino
             var wait = setInterval(function () {
                 console.log(countTime);
-                countTime += 100;
-                //Si llega a la posición
-                if (_this.location == row) {
-                    _this.Log.LogDebug("Elevador llego a la posición");
-                    callback(null);
+                countTime = countTime + 100;
+                if (_this.location == _this.goingTo) {
+                    _this.Log.LogDebug("Elevador llego en: " + countTime);
                     clearInterval(wait);
                     wait = null;
-                    _this.intentos = 0;
-                    _this.atasco = false;
+                    callback(null);
                 }
-                //Si no ha llegado al cumplir el tiempo
                 if (countTime > time) {
-                    _this.Log.LogAlert("Leyendo posible atasco, tiempo transcurrido: " + countTime);
-                    _this.motorStop();
-                    _this.controlAtasco(callback, row);
+                    _this.Log.LogDebug("Leyendo posible atasco, countTime: " + countTime);
+                    _this.controlAtasco(_this.motorState, callback);
                     clearInterval(wait);
                     wait = null;
                 }
@@ -820,13 +835,12 @@ var ControllerMachine = /** @class */ (function (_super) {
                 _this.Log.LogDebug("Comenzando proceso de desatasco número: " + _this.intentos);
                 if (_this.motorState == 1) {
                     _this.Log.LogDebug("Bajando para desatascar");
-                    console.log("Bajando 1 seg");
                     _this.motorStartDown();
                     setTimeout(function () {
                         _this.motorStop();
                         setTimeout(function () {
                             _this.GoTo(callback, row);
-                            callback(null);
+                            //callback(null)
                         }, 1500);
                     }, 1500);
                 }
@@ -837,7 +851,7 @@ var ControllerMachine = /** @class */ (function (_super) {
                         _this.motorStop();
                         setTimeout(function () {
                             _this.GoTo(callback, row);
-                            callback(null);
+                            //callback(null)
                         }, 1500);
                     }, 1500);
                 }
