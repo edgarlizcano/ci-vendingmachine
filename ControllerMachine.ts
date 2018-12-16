@@ -415,7 +415,6 @@ export class ControllerMachine extends Event{
                     this.emit("Sensor",this.location,state);
                     break;
                 case Maps.Sensor.SM.PIN:
-                    this.Log.LogDebug("Sensor SM leyo");
                     if (state === true) {
                         this.Log.LogDebug("Sensor SM On");
                         if(this.motorState!=0){
@@ -513,7 +512,8 @@ export class ControllerMachine extends Event{
                     if (state === false) {
                         this.Log.LogDebug("Elevador subiendo de forma manual");
                         this.securityState(false)
-                        this.motorStartUp();
+                        //this.motorStartUp();
+                        this.mcp2.digitalWrite(Maps.MCP_Motor.UP.value, this.mcp2.HIGH);
                     } else {
                         this.Log.LogDebug("Elevador detuvo subida manual");
                         this.motorStop()
@@ -524,7 +524,8 @@ export class ControllerMachine extends Event{
                     if (state === false) {
                         this.Log.LogDebug("Elevador bajando de forma manual");
                         this.securityState(false)
-                        this.motorStartDown()
+                        //this.motorStartDown()
+                        this.mcp2.digitalWrite(Maps.MCP_Motor.Down.value, this.mcp2.HIGH);
                     } else {
                         this.Log.LogDebug("Elevador detuvo bajada manual");
                         this.motorStop()
@@ -640,7 +641,9 @@ export class ControllerMachine extends Event{
                     },
                     (callback:any)=>{
                         this.Log.LogDebug("Step 4 Dispensado artículo desde cinta");
-                        this.dispense(piso,c1,c2,callback)
+                        setTimeout(()=>{
+                            this.dispense(piso,c1,c2,callback)
+                        },1000)
                     },
                     (callback:any)=>{
                         this.Log.LogDebug("Step 5 Bajando elevador para realizar entrega");
@@ -860,5 +863,6 @@ export class ControllerMachine extends Event{
     //Separación de modulo de dispensar y se agregó a dispense Item - Probar
     //Validación de que se paso de piso - Probar
     //Verificacion de tiempos de atasco - Probar
+    //Bajar y subir por botones sin limites
 
 }

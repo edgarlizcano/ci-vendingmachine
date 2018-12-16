@@ -416,7 +416,6 @@ var ControllerMachine = /** @class */ (function (_super) {
                     _this.emit("Sensor", _this.location, state);
                     break;
                 case Maps_1.default.Sensor.SM.PIN:
-                    _this.Log.LogDebug("Sensor SM leyo");
                     if (state === true) {
                         _this.Log.LogDebug("Sensor SM On");
                         if (_this.motorState != 0) {
@@ -526,7 +525,8 @@ var ControllerMachine = /** @class */ (function (_super) {
                     if (state === false) {
                         _this.Log.LogDebug("Elevador subiendo de forma manual");
                         _this.securityState(false);
-                        _this.motorStartUp();
+                        //this.motorStartUp();
+                        _this.mcp2.digitalWrite(Maps_1.default.MCP_Motor.UP.value, _this.mcp2.HIGH);
                     }
                     else {
                         _this.Log.LogDebug("Elevador detuvo subida manual");
@@ -538,7 +538,8 @@ var ControllerMachine = /** @class */ (function (_super) {
                     if (state === false) {
                         _this.Log.LogDebug("Elevador bajando de forma manual");
                         _this.securityState(false);
-                        _this.motorStartDown();
+                        //this.motorStartDown()
+                        _this.mcp2.digitalWrite(Maps_1.default.MCP_Motor.Down.value, _this.mcp2.HIGH);
                     }
                     else {
                         _this.Log.LogDebug("Elevador detuvo bajada manual");
@@ -660,7 +661,9 @@ var ControllerMachine = /** @class */ (function (_super) {
                     },
                     function (callback) {
                         _this.Log.LogDebug("Step 4 Dispensado artículo desde cinta");
-                        _this.dispense(piso, c1, c2, callback);
+                        setTimeout(function () {
+                            _this.dispense(piso, c1, c2, callback);
+                        }, 1000);
                     },
                     function (callback) {
                         _this.Log.LogDebug("Step 5 Bajando elevador para realizar entrega");
