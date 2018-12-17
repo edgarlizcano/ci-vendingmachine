@@ -12,12 +12,13 @@ export declare class ControllerMachine extends Event {
     private receivingItem;
     private isDelivery;
     private enableMachine;
-    private estatemachine;
+    private securityMachine;
     constructor();
     private securityState;
     private initOuts;
     private initSensors;
-    closeSensors: (cb: callback) => void;
+    private resetSensors;
+    closeSensors: (callback: any) => void;
     stopAll: () => void;
     private findElevator;
     private checkPosition;
@@ -26,7 +27,9 @@ export declare class ControllerMachine extends Event {
     motorStop: () => void;
     motorCintaStart: (row: number, coll: number, coll2: number) => void;
     motorCintaStop: (row: number, coll: number, coll2: number) => void;
-    private signal;
+    private controlSensors;
+    private manualController;
+    private mainSignal;
     GoTo: (callback: any, row: number) => void;
     private prepareForDispense;
     private waitForRemoveItem;
@@ -35,9 +38,9 @@ export declare class ControllerMachine extends Event {
     private gotoInitPosition;
     private dispense;
     private testCeldas;
-    private atasco;
-    private intentos;
+    private bloking;
+    private attempts;
     private controlTime;
-    private controlAtasco;
-    GoTo2: (callback: any, row: number) => void;
+    private controlBlocking;
+    GoTo_Beta: (callback: any, row: number) => void;
 }

@@ -26,27 +26,23 @@ export class ControllerMachine extends Event{
     private motorState: number = 0;
     //Indica la posición actual del elevador
     private location:any = null;
+    //Sensor serial de piso
     private sensorPiso:any;
-    //motorState 1 up
-    //motorState 2 down
+    //Estado de recepción de articulo en la bandeja
     private receivingItem: boolean = false;
+    //Estado de despacho de item
     private isDelivery: boolean = false;
+    //Estado de la máquina, si esta habilitada y lista
     private enableMachine: boolean = false;
-    //Estado de la máquina, si esta inactiva o en una operación
-    private estatemachine: boolean = false;
+    //Estado de seguridad de la máquina
+    private securityMachine: boolean = false;
 
     constructor(){
         super();
         this.Log.LogDebug("Control inicializado");
-        Gpio.on('change', this.signal);
-        this.on("Sensor",(pin, state)=>{
-            if(this.estatemachine==true && pin!=Maps.elevator.Up.PIN && pin!=Maps.elevator.Down.PIN){
-                this.Log.LogAlert("Alerta, sensor activado cuando la máquina está inactiva pin: "+pin)
-                this.emit("Event",{cmd:"Alerta"})
-            }
-        })
+        Gpio.on('change', this.mainSignal);
         this.initOuts();
-        this.initSensors();
+        this.initSensors(null);
         this.sensorPiso = new Sensor();
         this.Log.LogDebug("chequeando serial");
         setTimeout(()=>{
@@ -67,7 +63,7 @@ export class ControllerMachine extends Event{
     }
     //Habilita o deshabilita seguridad
     private securityState=(state:boolean)=>{
-        this.estatemachine=state;
+        this.securityMachine=state;
         this.Log.LogDebug("La seguridad esta en: "+state);
     }
     //Inicializa salidas
@@ -90,7 +86,7 @@ export class ControllerMachine extends Event{
         this.Log.LogDebug("Inicializacion exitosa");
     };
     //Inicializa sensores
-    private initSensors= ():void =>{
+    private initSensors= (callback:any):void =>{
         try {
             this.Log.LogDebug("Inicializando sensores");
             //----------Sensores----------//
@@ -114,20 +110,42 @@ export class ControllerMachine extends Event{
             Gpio.setup(Maps.general.stop.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
 
             this.Log.LogDebug("Sensores listos");
+            callback(null)
         }catch(e) {
             this.Log.LogError("Error al iniciar los sensores de entrada");
+            callback("Error al iniciar los sensores de entrada. "+e.stackTrace)
         }
     };
+    //Resetear sensores
+    private resetSensors=():void=>{
+        _async.series([
+            (callback:any)=>{
+                this.closeSensors(callback)
+            },
+            (callback:any)=>{
+                this.initSensors(callback)
+            },
+            (callback:any)=>{
+                this.findElevator(callback)
+            },
+        ],(result?:any)=> {
+            if(result == null) {
+                this.Log.LogDebug('Sensores reiniciados '+result);
+            } else{
+                this.Log.LogAlert("Error: "+result);
+            }
+        })
+    }
     //Deshabilita todos los sensores
-    public closeSensors= (cb:callback):void=> {
+    public closeSensors= (callback:any):void=> {
         try {
             Gpio.destroy((err:any)=>{
                 this.Log.LogDebug("Sensores deshabilidatos");
-                cb(err);
+                callback(err)
             });
         }catch(e) {
             this.Log.LogError(e.stack+"Error detener sensores  ");
-            cb(e);
+            callback(e);
         }
     };
     //Detiene todos los pines de salida
@@ -152,8 +170,7 @@ export class ControllerMachine extends Event{
     private findElevator=(callback:any):void=>{
         //Proceso de busqueda de elevador
         if(this.location == null){
-            this.Log.LogDebug("Ubicación desconocida - Iniciando búsqueda");
-            this.motorStartUp();
+            //Revisar - Innecesario
             this.once("Sensor",(piso, state)=>{
                 if(state == true){
                     this.Log.LogDebug("Deteccion de elevador en: "+piso);
@@ -161,6 +178,8 @@ export class ControllerMachine extends Event{
                     this.motorStop();
                 }
             })
+            this.Log.LogDebug("Ubicación desconocida - Iniciando búsqueda");
+            this.motorStartUp();
             //Mueve el elevador para conseguir ubicación
             setTimeout(()=>{
                 this.motorStop();
@@ -265,178 +284,116 @@ export class ControllerMachine extends Event{
             this.Log.LogError("Error al activar celda"+e.stack);
         }
     };
+    //Controla acciones de según señales de sensores
+    private controlSensors=(piso:number,pin:number, state:boolean)=>{
+        //Se emite la alerta si se activa un sensor cuando esta activa el estado de seguridad
+        if(this.securityMachine==true && pin!=Maps.elevator.Up.PIN && pin!=Maps.elevator.Down.PIN){
+            this.Log.LogAlert("Alerta, sensor activado cuando la máquina está inactiva pin: "+pin)
+            this.gotoInitPosition(null);
+            this.emit("Event",{cmd:"Alerta"})
+        }
+        //Acciones cuando se activa o desactiva un sensor
+        if (state === true) {
+            this.Log.LogDebug("Sensor de piso "+piso+" On");
+            //Detecta que el elevador llego a la posición deseada
+            if(this.goingTo == this.location){
+                //Si se dirige a hacer una entrega, baja un poco más
+                if(this.isDelivery==true && this.goingTo == 7){
+                    setTimeout(()=>{
+                        this.motorStop();
+                    },200)
+                }else{
+                    this.motorStop();
+                }
+            }
+            //Si el motor esta en subida y se lee un sensor posterior se detiene
+            if(this.goingTo < piso && this.motorState == 1){
+                this.Log.LogAlert("Se paso de posición "+this.goingTo+" - Se detectó el elevador en la posición "+piso)
+                this.motorStop();
+                //Agregar acciones posteriores
+            }
+            //Si el motor esta en bajada y se lee un sensor posterior se detiene
+            if(this.goingTo > piso && this.motorState == 2){
+                this.Log.LogAlert("Se paso de posición "+this.goingTo+" - Se detectó el elevador en la posición "+piso)
+                this.motorStop();
+                //Agregar acciones posteriores
+            }
+        } else {
+            this.Log.LogDebug("Sensor de piso "+piso+" Off");
+        }
+        //Alertas de seguridad por activaciones de sensor inesperados
+        switch (this.motorState) {
+            case 0:
+                //Emite Alerta si se activa un sensor en espera por retiro del producto
+                if(this.isDelivery == true && piso<Maps.row.M.Piso){
+                    this.Log.LogAlert("Alerta, sensor activado del piso "+piso+" cuando se espera por retiro del producto")
+                    this.emit("Event",{cmd:"Alerta"})
+                }
+                //Emite el evento de entrega del articulo en el elevador si y solo si esta habilitado el estado y el motor está detenido
+                if(this.receivingItem && this.goingTo == piso){
+                    this.emit("Item recibido",this.location,state);
+                }
+                break
+            case 1:
+                this.location = piso;
+                if(piso>this.location){
+                    this.Log.LogAlert("Alerta, sensor activado del piso "+piso+" no debió activarse")
+                    this.emit("Event",{cmd:"Alerta"})
+                }
+                break
+            case 2:
+                this.location = piso;
+                if(piso<this.location){
+                    this.Log.LogAlert("Alerta, sensor activado del piso "+piso+" no debió activarse")
+                    this.emit("Event",{cmd:"Alerta"})
+                }
+                break
+        }
+        this.emit("Sensor",this.location,state);
+    }
+    //Control de mandos de controladora
+    private manualController = (pin:number, state:boolean)=>{
+        if (state === false) {
+            this.securityState(false)
+            switch (pin) {
+                case Maps.elevator.Up.PIN:
+                    this.Log.LogDebug("Elevador subiendo de forma manual");
+                    this.mcp2.digitalWrite(Maps.MCP_Motor.UP.value, this.mcp2.HIGH);
+                    break
+                case Maps.elevator.Down.PIN:
+                    this.Log.LogDebug("Elevador bajando de forma manual");
+                    this.mcp2.digitalWrite(Maps.MCP_Motor.Down.value, this.mcp2.HIGH);
+                    break
+            }
+        } else {
+            this.Log.LogDebug("Elevador se detuvo de forma manual");
+            this.motorStop()
+            this.securityState(true)
+        }
+    }
     //Recibe señal de entrada y determina de donde proviene
-    private signal=(pin:number,state:boolean)=>{
+    private mainSignal=(pin:number,state:boolean)=>{
             switch (pin) {
                 case Maps.Sensor.S1.PIN:
-                    if (state === true) {
-                        this.Log.LogDebug("Sensor S1 On");
-                        if(this.motorState!=0){
-                            this.location = 1;
-                        }
-                        if(this.goingTo == this.location||this.motorState == 1){
-                            this.motorStop();
-                        }
-                        if(this.goingTo == 2 && this.motorState == 1){
-                            this.Log.LogAlert("Se paso de posición 2 - Se detectó el elevador en la posición 1")
-                            this.motorStop();
-                        }
-                    } else {
-                        this.Log.LogDebug("Sensor S1 Off");
-                    }
-                    if(this.receivingItem){
-                        this.emit("Item recibido",this.location,state);
-                    }
-                    this.emit("Sensor",this.location,state);
+                    this.controlSensors(1,pin,state);
                     break;
                 case Maps.Sensor.S2.PIN:
-                    if (state === true) {
-                        this.Log.LogDebug("Sensor S2 On");
-                        if(this.motorState!=0){
-                            this.location = 2;
-                        }
-                        if(this.goingTo == this.location){
-                            this.motorStop();
-                        }
-                        if(this.goingTo == 3 && this.motorState == 1){
-                            this.Log.LogAlert("Se paso de posición 3 - Se detectó el elevador en la posición 2")
-                            this.motorStop();
-                        }
-                        if(this.goingTo == 1 && this.motorState == 2){
-                            this.Log.LogAlert("Se paso de posición 1 - Se detectó el elevador en la posición 2")
-                            this.motorStop();
-                        }
-                    } else {
-                        this.Log.LogDebug("Sensor S2 Off");
-                    }
-                    if(this.receivingItem){
-                        this.emit("Item recibido",this.location,state);
-                    }
-                    this.emit("Sensor",this.location,state);
+                    this.controlSensors(2,pin,state);
                     break;
                 case Maps.Sensor.S3.PIN:
-                    if (state === true) {
-                        this.Log.LogDebug("Sensor S3 On");
-                        if(this.motorState!=0){
-                            this.location = 3;
-                        }
-                        if(this.goingTo == this.location){
-                            this.motorStop();
-                        }
-                        if(this.goingTo == 4 && this.motorState == 1){
-                            this.Log.LogAlert("Se paso de posición 4 - Se detectó el elevador en la posición 3")
-                            this.motorStop();
-                        }
-                        if(this.goingTo == 2 && this.motorState == 2){
-                            this.Log.LogAlert("Se paso de posición 2 - Se detectó el elevador en la posición 3")
-                            this.motorStop();
-                        }
-                    } else {
-                        this.Log.LogDebug("Sensor S3 Off");
-                    }
-                    if(this.receivingItem){
-                        this.emit("Item recibido",this.location,state);
-                    }
-                    this.emit("Sensor",this.location,state);
+                    this.controlSensors(3,pin,state);
                     break;
                 case Maps.Sensor.S4.PIN:
-                    if (state === true) {
-                        this.Log.LogDebug("Sensor S4 On");
-                        if(this.motorState!=0){
-                            this.location = 4;
-                        }
-                        if(this.goingTo == this.location){
-                            this.motorStop();
-                        }
-                        if(this.goingTo == 5 && this.motorState == 1){
-                            this.Log.LogAlert("Se paso de posición 5 - Se detectó el elevador en la posición 4")
-                            this.motorStop();
-                        }
-                        if(this.goingTo == 3 && this.motorState == 2){
-                            this.Log.LogAlert("Se paso de posición 3 - Se detectó el elevador en la posición 4")
-                            this.motorStop();
-                        }
-                    } else {
-                        this.Log.LogDebug("Sensor S4 Off");
-                    }
-                    if(this.receivingItem){
-                        this.emit("Item recibido",this.location,state);
-                    }
-                    this.emit("Sensor",this.location,state);
+                    this.controlSensors(4,pin,state);
                     break;
                 case Maps.Sensor.S5.PIN:
-                    if (state === true) {
-                        this.Log.LogDebug("Sensor S5 On");
-                        if(this.motorState!=0){
-                            this.location = 5;
-                        }
-                        if(this.goingTo == this.location){
-                            this.motorStop();
-                        }
-                        if(this.goingTo == 6 && this.motorState == 1){
-                            this.Log.LogAlert("Se paso de posición 6 - Se detectó el elevador en la posición 5")
-                            this.motorStop();
-                        }
-                        if(this.goingTo == 4 && this.motorState == 2){
-                            this.Log.LogAlert("Se paso de posición 4 - Se detectó el elevador en la posición 5")
-                            this.motorStop();
-                        }
-                    } else {
-                        this.Log.LogDebug("Sensor S5 Off");
-                    }
-                    if(this.receivingItem){
-                        this.emit("Item recibido",this.location,state);
-                    }
-                    this.emit("Sensor",this.location,state);
+                    this.controlSensors(5,pin,state);
                     break;
                 case Maps.Sensor.S6.PIN:
-                    if (state === true) {
-                        this.Log.LogDebug("Sensor S6 On");
-                        if(this.motorState!=0){
-                            this.location = 6;
-                        }
-                        if(this.goingTo == this.location){
-                            this.motorStop();
-                        }
-                        if(this.goingTo == 7 && this.motorState == 1){
-                            this.Log.LogAlert("Se paso de posición 7 - Se detectó el elevador en la posición 6")
-                            this.motorStop();
-                        }
-                        if(this.goingTo == 5 && this.motorState == 2){
-                            this.Log.LogAlert("Se paso de posición 5 - Se detectó el elevador en la posición 6")
-                            this.motorStop();
-                        }
-                    } else {
-                        this.Log.LogDebug("Sensor S6 Off");
-                    }
-                    if(this.receivingItem){
-                        this.emit("Item recibido",this.location,state);
-                    }
-                    this.emit("Sensor",this.location,state);
+                    this.controlSensors(6,pin,state);
                     break;
                 case Maps.Sensor.SM.PIN:
-                    if (state === true) {
-                        this.Log.LogDebug("Sensor SM On");
-                        if(this.motorState!=0){
-                            this.location = 7;
-                        }
-                        if(this.goingTo == this.location||this.motorState == 2){
-                            if(this.isDelivery==true){
-                                setTimeout(()=>{
-                                    this.motorStop();
-                                },200)
-                            }else{
-                                this.motorStop();
-                            }
-                        }
-                        if(this.goingTo == 6 && this.motorState == 2){
-                            this.Log.LogAlert("Se paso de posición 6 - Se detectó el elevador en la posición 7")
-                            this.motorStop();
-                        }
-                    } else {
-                        this.Log.LogDebug("Sensor SM Off");
-                    }
-                    this.emit("Sensor",this.location,state);
+                    this.controlSensors(7,pin,state);
                     break;
                 case Maps.Pulso.P1.PIN:
                     if (state === true) {
@@ -509,28 +466,10 @@ export class ControllerMachine extends Event{
                     }
                     break;
                 case Maps.elevator.Up.PIN:
-                    if (state === false) {
-                        this.Log.LogDebug("Elevador subiendo de forma manual");
-                        this.securityState(false)
-                        //this.motorStartUp();
-                        this.mcp2.digitalWrite(Maps.MCP_Motor.UP.value, this.mcp2.HIGH);
-                    } else {
-                        this.Log.LogDebug("Elevador detuvo subida manual");
-                        this.motorStop()
-                        this.securityState(true)
-                    }
+                    this.manualController(Maps.elevator.Up.PIN, state)
                     break;
                 case Maps.elevator.Down.PIN:
-                    if (state === false) {
-                        this.Log.LogDebug("Elevador bajando de forma manual");
-                        this.securityState(false)
-                        //this.motorStartDown()
-                        this.mcp2.digitalWrite(Maps.MCP_Motor.Down.value, this.mcp2.HIGH);
-                    } else {
-                        this.Log.LogDebug("Elevador detuvo bajada manual");
-                        this.motorStop()
-                        this.securityState(true)
-                    }
+                    this.manualController(Maps.elevator.Down.PIN, state)
                     break;
                 case Maps.general.stop.PIN:
                     if (state === true) {
@@ -555,7 +494,6 @@ export class ControllerMachine extends Event{
                 this.motorStartDown();
             }
             this.Log.LogDebug("Esperando posición del elevador");
-            //v5
             let atasco:boolean = false;
             let time:number = 0;
 
@@ -568,6 +506,7 @@ export class ControllerMachine extends Event{
                     wait=null;
                     callback(null);
                 }
+                //Si el proceso de movimiento dura mas de 8 Sec se detiene el elevador
                 if(time>12000){
                     this.Log.LogDebug("Error de atasco despues de 12 segundos");
                     clearInterval(wait);
@@ -655,7 +594,6 @@ export class ControllerMachine extends Event{
                         setTimeout(()=>{
                             this.waitForRemoveItem(callback)
                         },1000)
-
                     },
                     (callback:any)=>{
                         this.Log.LogDebug("Step 7 Asegurando puerta");
@@ -699,7 +637,8 @@ export class ControllerMachine extends Event{
                         }
                         cb(null);
                     },(err:any,data?:any)=>{
-                        _async.mapSeries(global.MCP_row,(Row:any,cb:callback)=>{
+                        _async.mapSeries(global.MCP_row,
+                            (Row:any,cb:callback)=>{
                             if(Row.ID.toString()==row){
                                 r=Row.value;
                             }
@@ -712,9 +651,9 @@ export class ControllerMachine extends Event{
         }catch(e) {
             this.Log.LogError(e.stack+'error seleccionando columna' );
         }
-    };
+    }
     //Ubicar el elevador en la posición inicial
-    private gotoInitPosition=(callback:callback)=>{
+    private gotoInitPosition=(callback:any)=>{
         this.Log.LogDebug("InitPos - Elevador va a posición inicial");
         _async.series([
             //Step 1 - Ubicando elevador en posicion 7
@@ -774,15 +713,14 @@ export class ControllerMachine extends Event{
 
     //**************************Beta*******************************!//
     //Control de atascos - Probar
-    private atasco:boolean = false;
-    private intentos:number=0;
-
+    private bloking:boolean = false;
+    private attempts:number=0;
     //Controla el tiempo de avance del motor
     private controlTime=(row:number, callback:any)=>{
         //Espera la posición de destino
         let nPisos = this.location - this.goingTo;
         let time = 0;
-        let countTime = 500;
+        let countTime = 0;
         if(nPisos<0){
             nPisos = nPisos * -1;
         }
@@ -790,35 +728,33 @@ export class ControllerMachine extends Event{
         this.Log.LogDebug("Se movera "+nPisos+ " en un tiempo límite para llegar a destino es "+time)
         //Espera la posición de destino
         let wait:any = setInterval(()=>{
-            console.log(countTime)
             countTime=countTime+100;
             if(this.location == this.goingTo){
-                this.Log.LogDebug("Elevador llego en: "+countTime)
-                this.atasco=false
-                this.intentos=0
+                this.Log.LogDebug("Elevador llego en: "+countTime+" ms")
+                this.bloking=false
+                this.attempts=0
                 clearInterval(wait)
                 wait=null;
                 callback(null)
             }
             if(countTime>time){
                 this.Log.LogDebug("Leyendo posible atasco, countTime: "+countTime)
-                this.controlAtasco(this.motorState,callback);
+                this.controlBlocking(this.motorState,callback);
                 clearInterval(wait)
                 wait=null;
             }
         },100)
     }
-
     //Controla intentos de desatascos del elevador
-    private controlAtasco=(callback:any, row:number)=>{
-        this.atasco = true
-        this.intentos ++
-        if(this.intentos>3){
+    private controlBlocking=(callback:any, row:number)=>{
+        this.bloking = true
+        this.attempts ++
+        if(this.attempts>3){
             this.Log.LogCritical("Elevador atascado luego de 3 intentos - Se requiere revisión")
             callback("Elevador atascado luego de 3 intentos - Se requiere revisión")
         }else{
-            this.Log.LogAlert("Intento de desatasco número :"+this.intentos)
-            this.Log.LogDebug("Comenzando proceso de desatasco número: "+this.intentos)
+            this.Log.LogAlert("Intento de desatasco número :"+this.attempts)
+            this.Log.LogDebug("Comenzando proceso de desatasco número: "+this.attempts)
             if(this.motorState==1){
                 this.motorStop()
                 this.Log.LogDebug("Bajando para desatascar")
@@ -842,9 +778,8 @@ export class ControllerMachine extends Event{
             }
         }
     }
-
     //Enviar el elevador a una fila específica con control de atascos
-    public GoTo2=(callback:any,row:number)=>{
+    public GoTo_Beta=(callback:any,row:number)=>{
         this.securityState(false);
         this.Log.LogDebug("Elevador se dirige a la posición: "+row)
         this.goingTo = row;
@@ -862,10 +797,12 @@ export class ControllerMachine extends Event{
         }
     }
 
-    //Version 5
+    //Version 6
     //Separación de modulo de dispensar y se agregó a dispense Item - Probar
     //Validación de que se paso de piso - Probar
     //Verificacion de tiempos de atasco - Probar
     //Bajar y subir por botones sin limites
-
+    //Separación módulo de control de sensores
+    //Alertas de sensores inesperados
+    //Reseteo de sensores en caso de atasco
 }
