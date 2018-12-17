@@ -596,23 +596,21 @@ export class ControllerMachine extends Event{
     }
     //Tiempo de espera para que el cliente retire el producto
     private waitForRemoveItem=(callback:any)=>{
-        setTimeout(()=>{
-            if(global.Is_empty == false){
-                this.Log.LogDebug("Hay un producto en el elevador para retirar")
-                let wait:any = setInterval(()=>{
-                    if (global.Is_empty){
-                        callback(null)
-                        clearInterval(wait)
-                        wait=null;
-                    }
-                },500)
-            }else{
-                this.Log.LogDebug("No Hay producto en el elevador, se ajustará en 30s")
-                setTimeout(()=>{
+        if(global.Is_empty == false){
+            this.Log.LogDebug("Hay un producto en el elevador para retirar")
+            let wait:any = setInterval(()=>{
+                if (global.Is_empty){
                     callback(null)
-                },22000)
-            }
-        },1000)
+                    clearInterval(wait)
+                    wait=null;
+                }
+            },500)
+        }else{
+            this.Log.LogDebug("No Hay producto en el elevador, se ajustará en 30s")
+            setTimeout(()=>{
+                callback(null)
+            },22000)
+        }
     }
     //Proceso completo para dispensar artículo al cliente
     public dispenseItem=(piso: number, c1:number,c2:number|null, height: number, callback:callback)=>{
@@ -654,7 +652,10 @@ export class ControllerMachine extends Event{
                     (callback:any)=>{
                         this.Log.LogDebug("Step 6 Esperando evento del retiro del articulo");
                         this.emit("Event",{cmd:"Ok_dispensing", data:true})
-                        this.waitForRemoveItem(callback)
+                        setTimeout(()=>{
+                            this.waitForRemoveItem(callback)
+                        },1000)
+
                     },
                     (callback:any)=>{
                         this.Log.LogDebug("Step 7 Asegurando puerta");
@@ -743,7 +744,6 @@ export class ControllerMachine extends Event{
             }
         })
     }
-
     //Beta de dispensar
     private dispense=(piso:number, coll_1:number, coll_2:any,callback: any)=> {
         this.findRow(piso, coll_1,coll_2,(err:any,row:any,c1:any,c2:any )=>{
@@ -794,6 +794,8 @@ export class ControllerMachine extends Event{
             countTime=countTime+100;
             if(this.location == this.goingTo){
                 this.Log.LogDebug("Elevador llego en: "+countTime)
+                this.atasco=false
+                this.intentos=0
                 clearInterval(wait)
                 wait=null;
                 callback(null)
@@ -806,6 +808,7 @@ export class ControllerMachine extends Event{
             }
         },100)
     }
+
     //Controla intentos de desatascos del elevador
     private controlAtasco=(callback:any, row:number)=>{
         this.atasco = true
@@ -817,23 +820,23 @@ export class ControllerMachine extends Event{
             this.Log.LogAlert("Intento de desatasco número :"+this.intentos)
             this.Log.LogDebug("Comenzando proceso de desatasco número: "+this.intentos)
             if(this.motorState==1){
+                this.motorStop()
                 this.Log.LogDebug("Bajando para desatascar")
                 this.motorStartDown()
                 setTimeout(()=>{
                     this.motorStop()
                     setTimeout(()=>{
                         this.GoTo(callback,row)
-                        //callback(null)
                     },1500)
                 },1500)
             }else{
+                this.motorStop()
                 this.Log.LogDebug("Subiendo para desatascar")
                 this.motorStartUp
                 setTimeout(()=>{
                     this.motorStop()
                     setTimeout(()=>{
                         this.GoTo(callback,row)
-                        //callback(null)
                     },1500)
                 },1500)
             }

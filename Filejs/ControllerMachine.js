@@ -614,24 +614,22 @@ var ControllerMachine = /** @class */ (function (_super) {
         };
         //Tiempo de espera para que el cliente retire el producto
         _this.waitForRemoveItem = function (callback) {
-            setTimeout(function () {
-                if (Global_1.default.Is_empty == false) {
-                    _this.Log.LogDebug("Hay un producto en el elevador para retirar");
-                    var wait_2 = setInterval(function () {
-                        if (Global_1.default.Is_empty) {
-                            callback(null);
-                            clearInterval(wait_2);
-                            wait_2 = null;
-                        }
-                    }, 500);
-                }
-                else {
-                    _this.Log.LogDebug("No Hay producto en el elevador, se ajustará en 30s");
-                    setTimeout(function () {
+            if (Global_1.default.Is_empty == false) {
+                _this.Log.LogDebug("Hay un producto en el elevador para retirar");
+                var wait_2 = setInterval(function () {
+                    if (Global_1.default.Is_empty) {
                         callback(null);
-                    }, 22000);
-                }
-            }, 1000);
+                        clearInterval(wait_2);
+                        wait_2 = null;
+                    }
+                }, 500);
+            }
+            else {
+                _this.Log.LogDebug("No Hay producto en el elevador, se ajustará en 30s");
+                setTimeout(function () {
+                    callback(null);
+                }, 22000);
+            }
         };
         //Proceso completo para dispensar artículo al cliente
         _this.dispenseItem = function (piso, c1, c2, height, callback) {
@@ -674,7 +672,9 @@ var ControllerMachine = /** @class */ (function (_super) {
                     function (callback) {
                         _this.Log.LogDebug("Step 6 Esperando evento del retiro del articulo");
                         _this.emit("Event", { cmd: "Ok_dispensing", data: true });
-                        _this.waitForRemoveItem(callback);
+                        setTimeout(function () {
+                            _this.waitForRemoveItem(callback);
+                        }, 1000);
                     },
                     function (callback) {
                         _this.Log.LogDebug("Step 7 Asegurando puerta");
@@ -813,6 +813,8 @@ var ControllerMachine = /** @class */ (function (_super) {
                 countTime = countTime + 100;
                 if (_this.location == _this.goingTo) {
                     _this.Log.LogDebug("Elevador llego en: " + countTime);
+                    _this.atasco = false;
+                    _this.intentos = 0;
                     clearInterval(wait);
                     wait = null;
                     callback(null);
@@ -837,24 +839,24 @@ var ControllerMachine = /** @class */ (function (_super) {
                 _this.Log.LogAlert("Intento de desatasco número :" + _this.intentos);
                 _this.Log.LogDebug("Comenzando proceso de desatasco número: " + _this.intentos);
                 if (_this.motorState == 1) {
+                    _this.motorStop();
                     _this.Log.LogDebug("Bajando para desatascar");
                     _this.motorStartDown();
                     setTimeout(function () {
                         _this.motorStop();
                         setTimeout(function () {
                             _this.GoTo(callback, row);
-                            //callback(null)
                         }, 1500);
                     }, 1500);
                 }
                 else {
+                    _this.motorStop();
                     _this.Log.LogDebug("Subiendo para desatascar");
                     _this.motorStartUp;
                     setTimeout(function () {
                         _this.motorStop();
                         setTimeout(function () {
                             _this.GoTo(callback, row);
-                            //callback(null)
                         }, 1500);
                     }, 1500);
                 }
