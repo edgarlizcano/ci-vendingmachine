@@ -50,6 +50,13 @@ var ControllerMachine = /** @class */ (function (_super) {
         _this.enableMachine = false;
         //Estado de seguridad de la máquina
         _this.securityMachine = false;
+        //Proceso de dispensa actual
+        _this.currentProcess = {
+            piso: null,
+            c1: null,
+            c2: null,
+            height: null
+        };
         //Habilita o deshabilita seguridad
         _this.securityState = function (state) {
             _this.securityMachine = state;
@@ -104,7 +111,7 @@ var ControllerMachine = /** @class */ (function (_super) {
             }
         };
         //Resetear sensores
-        _this.resetSensors = function () {
+        _this.resetSensors = function (callback) {
             async_1.default.series([
                 function (callback) {
                     _this.closeSensors(callback);
@@ -117,9 +124,11 @@ var ControllerMachine = /** @class */ (function (_super) {
                 },
             ], function (result) {
                 if (result == null) {
+                    callback(null);
                     _this.Log.LogDebug('Sensores reiniciados ' + result);
                 }
                 else {
+                    callback(result);
                     _this.Log.LogAlert("Error: " + result);
                 }
             });
@@ -179,10 +188,11 @@ var ControllerMachine = /** @class */ (function (_super) {
                         setTimeout(function () {
                             if (_this.location == null) {
                                 _this.Log.LogAlert("Elevador no pudo ser encontrado");
-                                callback("Error - El elevador no pudo ser encontrado");
+                                _this.blokingType = 2;
+                                _this.controlBlocking(callback);
                             }
                             _this.motorStop();
-                        }, 2000);
+                        }, 2500);
                     }
                     else {
                         _this.Log.LogDebug("Elevador encontrado en el piso: " + _this.location);
@@ -309,13 +319,13 @@ var ControllerMachine = /** @class */ (function (_super) {
                     }
                 }
                 //Si el motor esta en subida y se lee un sensor posterior se detiene
-                if (_this.goingTo < piso && _this.motorState == 1) {
+                if (_this.location < piso && _this.motorState == 1) {
                     _this.Log.LogAlert("Se paso de posición " + _this.goingTo + " - Se detectó el elevador en la posición " + piso);
                     _this.motorStop();
                     //Agregar acciones posteriores
                 }
                 //Si el motor esta en bajada y se lee un sensor posterior se detiene
-                if (_this.goingTo > piso && _this.motorState == 2) {
+                if (_this.location > piso && _this.motorState == 2) {
                     _this.Log.LogAlert("Se paso de posición " + _this.goingTo + " - Se detectó el elevador en la posición " + piso);
                     _this.motorStop();
                     //Agregar acciones posteriores
@@ -511,7 +521,6 @@ var ControllerMachine = /** @class */ (function (_super) {
                     _this.motorStartDown();
                 }
                 _this.Log.LogDebug("Esperando posición del elevador");
-                var atasco_1 = false;
                 var time_1 = 0;
                 //Espera la posición de destino
                 var wait_1 = setInterval(function () {
@@ -572,6 +581,11 @@ var ControllerMachine = /** @class */ (function (_super) {
         //Proceso completo para dispensar artículo al cliente
         _this.dispenseItem = function (piso, c1, c2, height, callback) {
             _this.Log.LogDebug("Comenzando proceso de dispensar item en el piso " + piso);
+            //Almacenando datos del proceso actual
+            _this.currentProcess.piso = piso;
+            _this.currentProcess.c1 = c1;
+            _this.currentProcess.c2 = c2;
+            _this.currentProcess.height = height;
             _this.securityState(false);
             if (_this.enableMachine) {
                 _this.Log.LogDebug("Comenzando proceso de dispensar item");
@@ -623,7 +637,13 @@ var ControllerMachine = /** @class */ (function (_super) {
                 ], function (result) {
                     _this.receivingItem = false;
                     if (result == null) {
+                        _this.blokingType = 0;
+                        _this.attempts = 0;
                         _this.Log.LogDebug('Proceso de venta completo ' + result);
+                        _this.currentProcess.piso = null;
+                        _this.currentProcess.c1 = null;
+                        _this.currentProcess.c2 = null;
+                        _this.currentProcess.height = null;
                         callback(result);
                     }
                     else {
@@ -686,15 +706,16 @@ var ControllerMachine = /** @class */ (function (_super) {
                     _this.motorStartUp();
                     setTimeout(function () {
                         _this.motorStop();
-                        _this.Log.LogDebug("InitPos - Elevador ubicado en posición inicial");
                         _this.securityState(true);
                         callback(null);
                     }, 400);
                 }
             ], function (result) {
                 if (result == null) {
-                    _this.Log.LogDebug('InitPos - Elevador ubicado correctamente ' + result);
+                    _this.Log.LogDebug("InitPos - Elevador ubicado en posición inicial");
                     _this.securityState(true);
+                    _this.blokingType = 0;
+                    _this.attempts = 0;
                     callback(null);
                 }
                 else {
@@ -732,12 +753,18 @@ var ControllerMachine = /** @class */ (function (_super) {
         };
         //**************************Beta*******************************!//
         //Control de atascos - Probar
-        _this.bloking = false;
+        _this.blokingType = 0;
         _this.attempts = 0;
         //Controla el tiempo de avance del motor
-        _this.controlTime = function (row, callback) {
+        _this.controlTime = function (callback) {
             //Espera la posición de destino
-            var nPisos = _this.location - _this.goingTo;
+            var nPisos = 0;
+            if (_this.location != null) {
+                nPisos = _this.location - _this.goingTo;
+            }
+            else {
+                nPisos = 4;
+            }
             var time = 0;
             var countTime = 0;
             if (nPisos < 0) {
@@ -750,52 +777,101 @@ var ControllerMachine = /** @class */ (function (_super) {
                 countTime = countTime + 100;
                 if (_this.location == _this.goingTo) {
                     _this.Log.LogDebug("Elevador llego en: " + countTime + " ms");
-                    _this.bloking = false;
+                    _this.blokingType = 0;
                     _this.attempts = 0;
                     clearInterval(wait);
                     wait = null;
                     callback(null);
                 }
+                //Lectura de posible bloqueo
                 if (countTime > time) {
                     _this.Log.LogDebug("Leyendo posible atasco, countTime: " + countTime);
-                    _this.controlBlocking(_this.motorState, callback);
+                    if (countTime > 12000) {
+                        if (_this.location != null) {
+                            _this.blokingType = 1; //Bloqueo en proceso de dispensa y paso el tiempo máximo de un desplazamiento
+                        }
+                        else {
+                            _this.blokingType = 2; //Bloqueo en proceso de busqueda y paso el tiempo máximo de un desplazamiento
+                        }
+                    }
+                    else {
+                        if (_this.motorState == 1) {
+                            _this.blokingType = 3; //Bloqueo en proceso de dispensa subiendo y se paso del tiempo de posición
+                        }
+                        else {
+                            _this.blokingType = 4; //Bloqueo en proceso de dispensa bajando y se paso del tiempo de posición
+                        }
+                    }
+                    _this.controlBlocking(callback);
                     clearInterval(wait);
                     wait = null;
                 }
             }, 100);
         };
         //Controla intentos de desatascos del elevador
-        _this.controlBlocking = function (callback, row) {
-            _this.bloking = true;
+        _this.controlBlocking = function (callback) {
             _this.attempts++;
+            _this.Log.LogAlert("Intento de desatasco número :" + _this.attempts);
+            _this.Log.LogDebug("Comenzando proceso de desatasco número: " + _this.attempts);
             if (_this.attempts > 3) {
                 _this.Log.LogCritical("Elevador atascado luego de 3 intentos - Se requiere revisión");
                 callback("Elevador atascado luego de 3 intentos - Se requiere revisión");
             }
             else {
-                _this.Log.LogAlert("Intento de desatasco número :" + _this.attempts);
-                _this.Log.LogDebug("Comenzando proceso de desatasco número: " + _this.attempts);
-                if (_this.motorState == 1) {
-                    _this.motorStop();
-                    _this.Log.LogDebug("Bajando para desatascar");
-                    _this.motorStartDown();
-                    setTimeout(function () {
+                switch (_this.blokingType) {
+                    case 1:
+                        _this.location = null;
+                        _this.resetSensors(function (err) {
+                            if (err) {
+                                callback("No se pudo recuperar el elevador despues de un atasco");
+                            }
+                            else {
+                                _this.findElevator(function (err) {
+                                    if (err) {
+                                        callback("No se pudo conseguir el elevador");
+                                    }
+                                    else {
+                                        _this.dispenseItem(_this.currentProcess.piso, _this.currentProcess.c1, _this.currentProcess.c2, _this.currentProcess.height, callback);
+                                    }
+                                });
+                            }
+                        });
+                        break;
+                    case 2:
+                        _this.location = null;
+                        _this.resetSensors(function (err) {
+                            if (err) {
+                                callback("No se pudo recuperar el elevador despues de un atasco");
+                            }
+                            else {
+                                _this.findElevator(function (err) {
+                                    if (err) {
+                                        callback("No se pudo conseguir el elevador");
+                                    }
+                                    else {
+                                        _this.gotoInitPosition(callback);
+                                    }
+                                });
+                            }
+                        });
+                        break;
+                    case 3:
                         _this.motorStop();
+                        _this.Log.LogDebug("Bajando para desatascar");
+                        _this.motorStartDown();
                         setTimeout(function () {
-                            _this.GoTo(callback, row);
-                        }, 1500);
-                    }, 1500);
-                }
-                else {
-                    _this.motorStop();
-                    _this.Log.LogDebug("Subiendo para desatascar");
-                    _this.motorStartUp;
-                    setTimeout(function () {
+                            _this.motorStop();
+                            setTimeout(function () {
+                                _this.dispenseItem(_this.currentProcess.piso, _this.currentProcess.c1, _this.currentProcess.c2, _this.currentProcess.height, callback);
+                            }, 1500);
+                        }, 300);
+                        break;
+                    case 4:
                         _this.motorStop();
-                        setTimeout(function () {
-                            _this.GoTo(callback, row);
-                        }, 1500);
-                    }, 1500);
+                        //Detener máquina
+                        _this.Log.LogDebug("Subiendo para desatascar");
+                        callback("Elevador atascado, no se puede completar el proceso");
+                        break;
                 }
             }
         };
@@ -816,7 +892,7 @@ var ControllerMachine = /** @class */ (function (_super) {
                     _this.motorStartDown();
                 }
                 //Espera la posición de destino y verifica atascos
-                _this.controlTime(row, callback);
+                _this.controlTime(callback);
             }
         };
         _this.Log.LogDebug("Control inicializado");

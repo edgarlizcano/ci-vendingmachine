@@ -36,6 +36,13 @@ export class ControllerMachine extends Event{
     private enableMachine: boolean = false;
     //Estado de seguridad de la máquina
     private securityMachine: boolean = false;
+    //Proceso de dispensa actual
+    private currentProcess: any = {
+        piso: null,
+        c1: null,
+        c2: null,
+        height: null
+    }
 
     constructor(){
         super();
@@ -61,6 +68,7 @@ export class ControllerMachine extends Event{
             }
         },5000)
     }
+
     //Habilita o deshabilita seguridad
     private securityState=(state:boolean)=>{
         this.securityMachine=state;
@@ -117,7 +125,7 @@ export class ControllerMachine extends Event{
         }
     };
     //Resetear sensores
-    private resetSensors=():void=>{
+    private resetSensors=(callback:any):void=>{
         _async.series([
             (callback:any)=>{
                 this.closeSensors(callback)
@@ -130,8 +138,10 @@ export class ControllerMachine extends Event{
             },
         ],(result?:any)=> {
             if(result == null) {
+                callback(null)
                 this.Log.LogDebug('Sensores reiniciados '+result);
             } else{
+                callback(result)
                 this.Log.LogAlert("Error: "+result);
             }
         })
@@ -188,10 +198,11 @@ export class ControllerMachine extends Event{
                     setTimeout(()=>{
                         if(this.location == null){
                             this.Log.LogAlert("Elevador no pudo ser encontrado");
-                            callback("Error - El elevador no pudo ser encontrado")
+                            this.blokingType = 2
+                            this.controlBlocking(callback);
                         }
                         this.motorStop();
-                    },2000)
+                    },2500)
                 }else{
                     this.Log.LogDebug("Elevador encontrado en el piso: "+this.location);
                     this.gotoInitPosition(callback)
@@ -307,13 +318,13 @@ export class ControllerMachine extends Event{
                 }
             }
             //Si el motor esta en subida y se lee un sensor posterior se detiene
-            if(this.goingTo < piso && this.motorState == 1){
+            if(this.location < piso && this.motorState == 1){
                 this.Log.LogAlert("Se paso de posición "+this.goingTo+" - Se detectó el elevador en la posición "+piso)
                 this.motorStop();
                 //Agregar acciones posteriores
             }
             //Si el motor esta en bajada y se lee un sensor posterior se detiene
-            if(this.goingTo > piso && this.motorState == 2){
+            if(this.location > piso && this.motorState == 2){
                 this.Log.LogAlert("Se paso de posición "+this.goingTo+" - Se detectó el elevador en la posición "+piso)
                 this.motorStop();
                 //Agregar acciones posteriores
@@ -494,9 +505,7 @@ export class ControllerMachine extends Event{
                 this.motorStartDown();
             }
             this.Log.LogDebug("Esperando posición del elevador");
-            let atasco:boolean = false;
             let time:number = 0;
-
             //Espera la posición de destino
             let wait:any = setInterval(()=>{
                 time+=100;
@@ -554,6 +563,11 @@ export class ControllerMachine extends Event{
     //Proceso completo para dispensar artículo al cliente
     public dispenseItem=(piso: number, c1:number,c2:number|null, height: number, callback:callback)=>{
         this.Log.LogDebug("Comenzando proceso de dispensar item en el piso "+piso);
+        //Almacenando datos del proceso actual
+        this.currentProcess.piso = piso
+        this.currentProcess.c1 = c1
+        this.currentProcess.c2 = c2
+        this.currentProcess.height = height
         this.securityState(false)
         if(this.enableMachine){
                 this.Log.LogDebug("Comenzando proceso de dispensar item");
@@ -604,7 +618,13 @@ export class ControllerMachine extends Event{
                 ],(result?:any)=> {
                     this.receivingItem=false;
                     if(result == null) {
+                        this.blokingType = 0
+                        this.attempts = 0
                         this.Log.LogDebug('Proceso de venta completo '+result);
+                        this.currentProcess.piso = null
+                        this.currentProcess.c1 = null
+                        this.currentProcess.c2 = null
+                        this.currentProcess.height = null
                         callback(result);
                     } else{
                         this.Log.LogAlert("Error: "+result);
@@ -667,15 +687,16 @@ export class ControllerMachine extends Event{
                 this.motorStartUp();
                 setTimeout(() => {
                     this.motorStop();
-                    this.Log.LogDebug("InitPos - Elevador ubicado en posición inicial");
                     this.securityState(true);
                     callback(null)
                 }, 400)
             }
         ],(result?:any)=> {
             if(result == null) {
-                this.Log.LogDebug('InitPos - Elevador ubicado correctamente '+result);
+                this.Log.LogDebug("InitPos - Elevador ubicado en posición inicial");
                 this.securityState(true)
+                this.blokingType = 0
+                this.attempts = 0
                 callback(null);
             } else{
                 this.Log.LogAlert("Error ubicando en la posición inicial");
@@ -713,12 +734,17 @@ export class ControllerMachine extends Event{
 
     //**************************Beta*******************************!//
     //Control de atascos - Probar
-    private bloking:boolean = false;
+    private blokingType:number= 0;
     private attempts:number=0;
     //Controla el tiempo de avance del motor
-    private controlTime=(row:number, callback:any)=>{
+    private controlTime=(callback:any)=>{
         //Espera la posición de destino
-        let nPisos = this.location - this.goingTo;
+        let nPisos:number = 0;
+        if(this.location!=null){
+            nPisos = this.location - this.goingTo;
+        }else{
+            nPisos = 4
+        }
         let time = 0;
         let countTime = 0;
         if(nPisos<0){
@@ -731,50 +757,95 @@ export class ControllerMachine extends Event{
             countTime=countTime+100;
             if(this.location == this.goingTo){
                 this.Log.LogDebug("Elevador llego en: "+countTime+" ms")
-                this.bloking=false
+                this.blokingType=0
                 this.attempts=0
                 clearInterval(wait)
                 wait=null;
                 callback(null)
             }
+            //Lectura de posible bloqueo
             if(countTime>time){
                 this.Log.LogDebug("Leyendo posible atasco, countTime: "+countTime)
-                this.controlBlocking(this.motorState,callback);
+                if (countTime>12000){
+                    if(this.location!=null){
+                        this.blokingType = 1 //Bloqueo en proceso de dispensa y paso el tiempo máximo de un desplazamiento
+                    }else{
+                        this.blokingType = 2 //Bloqueo en proceso de busqueda y paso el tiempo máximo de un desplazamiento
+                    }
+                }else{
+                    if(this.motorState == 1) {
+                        this.blokingType = 3 //Bloqueo en proceso de dispensa subiendo y se paso del tiempo de posición
+                    }else{
+                        this.blokingType = 4 //Bloqueo en proceso de dispensa bajando y se paso del tiempo de posición
+                    }
+                }
+                this.controlBlocking(callback);
                 clearInterval(wait)
                 wait=null;
             }
         },100)
     }
     //Controla intentos de desatascos del elevador
-    private controlBlocking=(callback:any, row:number)=>{
-        this.bloking = true
-        this.attempts ++
+    private controlBlocking=(callback:any)=>{
+        this.attempts++
+        this.Log.LogAlert("Intento de desatasco número :"+this.attempts)
+        this.Log.LogDebug("Comenzando proceso de desatasco número: "+this.attempts)
         if(this.attempts>3){
             this.Log.LogCritical("Elevador atascado luego de 3 intentos - Se requiere revisión")
             callback("Elevador atascado luego de 3 intentos - Se requiere revisión")
         }else{
-            this.Log.LogAlert("Intento de desatasco número :"+this.attempts)
-            this.Log.LogDebug("Comenzando proceso de desatasco número: "+this.attempts)
-            if(this.motorState==1){
-                this.motorStop()
-                this.Log.LogDebug("Bajando para desatascar")
-                this.motorStartDown()
-                setTimeout(()=>{
+            switch (this.blokingType) {
+                case 1:
+                    this.location = null
+                    this.resetSensors((err:any)=>{
+                        if (err){
+                            callback("No se pudo recuperar el elevador despues de un atasco")
+                        }else {
+                            this.findElevator((err:any) => {
+                                if (err){
+                                    callback("No se pudo conseguir el elevador")
+                                }else {
+                                    this.dispenseItem(this.currentProcess.piso, this.currentProcess.c1,
+                                        this.currentProcess.c2, this.currentProcess.height, callback)
+                                }
+                            })
+                        }
+                    })
+                    break
+                case 2:
+                    this.location = null
+                    this.resetSensors((err:any)=>{
+                        if (err){
+                            callback("No se pudo recuperar el elevador despues de un atasco")
+                        }else {
+                            this.findElevator((err:any) => {
+                                if(err){
+                                    callback("No se pudo conseguir el elevador")
+                                }else{
+                                    this.gotoInitPosition(callback)
+                                }
+                            })
+                        }
+                    })
+                    break
+                case 3:
                     this.motorStop()
+                    this.Log.LogDebug("Bajando para desatascar")
+                    this.motorStartDown()
                     setTimeout(()=>{
-                        this.GoTo(callback,row)
-                    },1500)
-                },1500)
-            }else{
-                this.motorStop()
-                this.Log.LogDebug("Subiendo para desatascar")
-                this.motorStartUp
-                setTimeout(()=>{
+                        this.motorStop()
+                        setTimeout(()=>{
+                            this.dispenseItem(this.currentProcess.piso,this.currentProcess.c1,
+                                this.currentProcess.c2,this.currentProcess.height,callback)
+                        },1500)
+                    },300)
+                    break
+                case 4:
                     this.motorStop()
-                    setTimeout(()=>{
-                        this.GoTo(callback,row)
-                    },1500)
-                },1500)
+                    //Detener máquina
+                    this.Log.LogDebug("Subiendo para desatascar")
+                    callback("Elevador atascado, no se puede completar el proceso")
+                    break
             }
         }
     }
@@ -793,11 +864,11 @@ export class ControllerMachine extends Event{
                 this.motorStartDown();
             }
             //Espera la posición de destino y verifica atascos
-            this.controlTime(row,callback);
+            this.controlTime(callback);
         }
     }
 
-    //Version 6
+    //Version 6.1
     //Separación de modulo de dispensar y se agregó a dispense Item - Probar
     //Validación de que se paso de piso - Probar
     //Verificacion de tiempos de atasco - Probar

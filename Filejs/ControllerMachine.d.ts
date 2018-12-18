@@ -13,6 +13,7 @@ export declare class ControllerMachine extends Event {
     private isDelivery;
     private enableMachine;
     private securityMachine;
+    private currentProcess;
     constructor();
     private securityState;
     private initOuts;
@@ -38,7 +39,7 @@ export declare class ControllerMachine extends Event {
     private gotoInitPosition;
     private dispense;
     private testCeldas;
-    private bloking;
+    private blokingType;
     private attempts;
     private controlTime;
     private controlBlocking;

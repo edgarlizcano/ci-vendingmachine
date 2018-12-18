@@ -1,5 +1,19 @@
 let stdin = process.openStdin();
 menu();
+var options = {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour:'numeric',
+    minute:'numeric',
+    second:'numeric'
+};
+let date  = new Date();
+let datetime = date.toLocaleDateString("es-CO",options)
+
+console.log(datetime); // 9/17/2016
+
 stdin.addListener("data", (d) => {
     menu();
     let cmd = d.toString().trim();

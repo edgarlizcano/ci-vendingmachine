@@ -1,6 +1,18 @@
 "use strict";
 var stdin = process.openStdin();
 menu();
+var options = {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric'
+};
+var date = new Date();
+var datetime = date.toLocaleDateString("es-CO", options);
+console.log(datetime); // 9/17/2016
 stdin.addListener("data", function (d) {
     menu();
     var cmd = d.toString().trim();
