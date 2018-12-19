@@ -11,6 +11,7 @@ export declare class ControllerMachine extends Event {
     private sensorPiso;
     private receivingItem;
     private isDelivery;
+    private isDispense;
     private enableMachine;
     private securityMachine;
     private currentProcess;
@@ -31,7 +32,8 @@ export declare class ControllerMachine extends Event {
     private controlSensors;
     private manualController;
     private mainSignal;
-    GoTo: (callback: any, row: number) => void;
+    GoTo_old: (callback: any, row: number) => void;
+    private elevatorEmpty;
     private prepareForDispense;
     private waitForRemoveItem;
     dispenseItem: (piso: number, c1: number, c2: number | null, height: number, callback: callback) => void;
@@ -41,7 +43,8 @@ export declare class ControllerMachine extends Event {
     private testCeldas;
     private blokingType;
     private attempts;
+    private readSensor;
     private controlTime;
     private controlBlocking;
-    GoTo_Beta: (callback: any, row: number) => void;
+    GoTo: (callback: any, row: number) => void;
 }

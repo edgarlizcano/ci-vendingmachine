@@ -32,6 +32,8 @@ export class ControllerMachine extends Event{
     private receivingItem: boolean = false;
     //Estado de despacho de item
     private isDelivery: boolean = false;
+    //Estado de despacho de item
+    private isDispense: boolean = false;
     //Estado de la máquina, si esta habilitada y lista
     private enableMachine: boolean = false;
     //Estado de seguridad de la máquina
@@ -49,10 +51,14 @@ export class ControllerMachine extends Event{
         this.Log.LogDebug("Control inicializado");
         Gpio.on('change', this.mainSignal);
         this.initOuts();
-        this.initSensors(null);
+        this.initSensors((err:any)=>{
+            if(err){
+                this.Log.LogError(err);
+            }
+        });
         this.sensorPiso = new Sensor();
         this.Log.LogDebug("chequeando serial");
-        setTimeout(()=>{
+        setTimeout(()=>{0
             if(this.sensorPiso.isCheck==true){
                 this.Log.LogDebug("Máquina habilitada");
                 this.enableMachine=true;
@@ -61,6 +67,11 @@ export class ControllerMachine extends Event{
                 if(this.location==null){
                     this.findElevator((cb:any)=>{
                         this.Log.LogDebug("Fin de proceso de busqueda de elevador")
+                        this.gotoInitPosition((err:any)=>{
+                            if (err!=null){
+                                this.Log.LogDebug(err)
+                            }
+                        })
                     });
                 }
             }else{
@@ -180,31 +191,37 @@ export class ControllerMachine extends Event{
     private findElevator=(callback:any):void=>{
         //Proceso de busqueda de elevador
         if(this.location == null){
-            //Revisar - Innecesario
             this.once("Sensor",(piso, state)=>{
                 if(state == true){
-                    this.Log.LogDebug("Deteccion de elevador en: "+piso);
-                    this.location=piso;
                     this.motorStop();
+                    this.Log.LogDebug("Deteccion de elevador en: "+piso);
+                    clearTimeout(timeUp)
+                    timeUp = null
+                    this.location=piso;
+                    callback(null)
                 }
             })
             this.Log.LogDebug("Ubicación desconocida - Iniciando búsqueda");
             this.motorStartUp();
             //Mueve el elevador para conseguir ubicación
-            setTimeout(()=>{
+            let timeUp:any = setTimeout(()=>{
                 this.motorStop();
                 if(this.location == null){
                     this.motorStartDown()
                     setTimeout(()=>{
                         if(this.location == null){
                             this.Log.LogAlert("Elevador no pudo ser encontrado");
-                            this.blokingType = 2
+                            this.blokingType = 1
+                            this.motorStop();
                             this.controlBlocking(callback);
+                        }else{
+                            this.Log.LogDebug("Elevador encontrado bajando en el piso: "+this.location);
+                            this.gotoInitPosition(callback)
                         }
                         this.motorStop();
                     },2500)
                 }else{
-                    this.Log.LogDebug("Elevador encontrado en el piso: "+this.location);
+                    this.Log.LogDebug("Elevador encontrado subiendo en el piso: "+this.location);
                     this.gotoInitPosition(callback)
                 }
             },2500)
@@ -297,11 +314,20 @@ export class ControllerMachine extends Event{
     };
     //Controla acciones de según señales de sensores
     private controlSensors=(piso:number,pin:number, state:boolean)=>{
+        this.readSensor = true
         //Se emite la alerta si se activa un sensor cuando esta activa el estado de seguridad
         if(this.securityMachine==true && pin!=Maps.elevator.Up.PIN && pin!=Maps.elevator.Down.PIN){
             this.Log.LogAlert("Alerta, sensor activado cuando la máquina está inactiva pin: "+pin)
-            this.gotoInitPosition(null);
+            this.gotoInitPosition((err:any)=>{
+                if(err!=null){
+                    this.Log.LogAlert("Puerta asegurada por alerta de seguridad: "+pin)
+                }
+            });
             this.emit("Event",{cmd:"Alerta"})
+        }
+        //Asigna ubicación del elevador
+        if(this.motorState!=0 && this.securityMachine == false){
+            this.location = piso
         }
         //Acciones cuando se activa o desactiva un sensor
         if (state === true) {
@@ -310,56 +336,46 @@ export class ControllerMachine extends Event{
             if(this.goingTo == this.location){
                 //Si se dirige a hacer una entrega, baja un poco más
                 if(this.isDelivery==true && this.goingTo == 7){
+                    this.Log.LogDebug("Bajando el elevador para retirar el producto");
                     setTimeout(()=>{
                         this.motorStop();
-                    },200)
+                    },300)
                 }else{
                     this.motorStop();
                 }
             }
-            //Si el motor esta en subida y se lee un sensor posterior se detiene
-            if(this.location < piso && this.motorState == 1){
-                this.Log.LogAlert("Se paso de posición "+this.goingTo+" - Se detectó el elevador en la posición "+piso)
-                this.motorStop();
-                //Agregar acciones posteriores
-            }
-            //Si el motor esta en bajada y se lee un sensor posterior se detiene
-            if(this.location > piso && this.motorState == 2){
-                this.Log.LogAlert("Se paso de posición "+this.goingTo+" - Se detectó el elevador en la posición "+piso)
-                this.motorStop();
-                //Agregar acciones posteriores
+            //Alertas de seguridad por activaciones de sensor inesperados
+            switch (this.motorState) {
+                case 0:
+                    //Emite Alerta si se activa un sensor en espera por retiro del producto
+                    if(this.isDelivery == true && piso<Maps.row.M.Piso){
+                        this.Log.LogAlert("Alerta, sensor activado del piso "+piso+" cuando se espera por retiro del producto")
+                        this.emit("Event",{cmd:"Alerta"})
+                    }
+                    //Emite el evento de entrega del articulo en el elevador si y solo si esta habilitado el estado y el motor está detenido
+                    if(this.receivingItem == true && this.location == piso){
+                        this.emit("Item recibido",this.location,state);
+                    }
+                    break
+                case 1:
+                    if(piso>this.location){
+                        this.Log.LogAlert("Alerta, sensor activado del piso "+piso+" no debió activarse")
+                        this.blokingType = 4
+                        this.emit("Event",{cmd:"Alerta"})
+                    }
+                    break
+                case 2:
+                    if(piso<this.location){
+                        this.Log.LogAlert("Alerta, sensor activado del piso "+piso+" no debió activarse")
+                        this.emit("Event",{cmd:"Alerta"})
+                        this.blokingType = 4
+                    }
+                    break
             }
         } else {
             this.Log.LogDebug("Sensor de piso "+piso+" Off");
         }
-        //Alertas de seguridad por activaciones de sensor inesperados
-        switch (this.motorState) {
-            case 0:
-                //Emite Alerta si se activa un sensor en espera por retiro del producto
-                if(this.isDelivery == true && piso<Maps.row.M.Piso){
-                    this.Log.LogAlert("Alerta, sensor activado del piso "+piso+" cuando se espera por retiro del producto")
-                    this.emit("Event",{cmd:"Alerta"})
-                }
-                //Emite el evento de entrega del articulo en el elevador si y solo si esta habilitado el estado y el motor está detenido
-                if(this.receivingItem && this.goingTo == piso){
-                    this.emit("Item recibido",this.location,state);
-                }
-                break
-            case 1:
-                this.location = piso;
-                if(piso>this.location){
-                    this.Log.LogAlert("Alerta, sensor activado del piso "+piso+" no debió activarse")
-                    this.emit("Event",{cmd:"Alerta"})
-                }
-                break
-            case 2:
-                this.location = piso;
-                if(piso<this.location){
-                    this.Log.LogAlert("Alerta, sensor activado del piso "+piso+" no debió activarse")
-                    this.emit("Event",{cmd:"Alerta"})
-                }
-                break
-        }
+
         this.emit("Sensor",this.location,state);
     }
     //Control de mandos de controladora
@@ -491,7 +507,7 @@ export class ControllerMachine extends Event{
             }
     }
     //Enviar el elevador a una fila específica
-    public GoTo=(callback:any,row:number)=>{
+    public GoTo_old=(callback:any,row:number)=>{
         this.securityState(false);
         this.Log.LogDebug("Elevador se dirige a la posición: "+row)
         this.goingTo = row;
@@ -527,7 +543,13 @@ export class ControllerMachine extends Event{
         }
     }
     //Prepara y ajusta posición del elevador para recibir artículo
+    private elevatorEmpty:boolean= false
     private prepareForDispense=(callback: any, height:number)=> {
+        this.once("Sensor",(piso, state)=>{
+            if(state == false){
+                this.elevatorEmpty = true
+            }
+        })
         let timeForDown = height * 13;
         if (this.checkPosition(this.location)) {
             this.Log.LogDebug("Comenzando proceso de retroceso para ajuste de altura");
@@ -547,7 +569,7 @@ export class ControllerMachine extends Event{
         if(global.Is_empty == false){
             this.Log.LogDebug("Hay un producto en el elevador para retirar")
             let wait:any = setInterval(()=>{
-                if (global.Is_empty){
+                if (global.Is_empty == true){
                     callback(null)
                     clearInterval(wait)
                     wait=null;
@@ -562,6 +584,7 @@ export class ControllerMachine extends Event{
     }
     //Proceso completo para dispensar artículo al cliente
     public dispenseItem=(piso: number, c1:number,c2:number|null, height: number, callback:callback)=>{
+        this.isDispense = true
         this.Log.LogDebug("Comenzando proceso de dispensar item en el piso "+piso);
         //Almacenando datos del proceso actual
         this.currentProcess.piso = piso
@@ -607,7 +630,7 @@ export class ControllerMachine extends Event{
                         this.emit("Event",{cmd:"Ok_dispensing", data:true})
                         setTimeout(()=>{
                             this.waitForRemoveItem(callback)
-                        },1000)
+                        },2000)
                     },
                     (callback:any)=>{
                         this.Log.LogDebug("Step 7 Asegurando puerta");
@@ -616,7 +639,8 @@ export class ControllerMachine extends Event{
                         },8000)
                     }
                 ],(result?:any)=> {
-                    this.receivingItem=false;
+                    this.isDispense = false
+                    this.elevatorEmpty = false
                     if(result == null) {
                         this.blokingType = 0
                         this.attempts = 0
@@ -709,14 +733,17 @@ export class ControllerMachine extends Event{
         this.findRow(piso, coll_1,coll_2,(err:any,row:any,c1:any,c2:any )=>{
             this.Log.LogDebug("Dispensando desde piso "+piso+" columna 1: "+c1+" columna 2+ "+c2)
             this.Log.LogDebug("Dispensado artículo desde cinta");
-            this.motorCintaStart(row, c1, c2);
-            this.receivingItem= true;
-            this.once("Item recibido",()=>{
-                console.log("Articulo recibido")
-                this.motorCintaStop(row, coll_1, coll_2);
-                this.receivingItem=false;
-                callback(null);
-            })
+            if(this.elevatorEmpty == false){
+                this.motorCintaStart(row, c1, c2);
+                this.receivingItem= true;
+                this.once("Item recibido",()=>{
+                    this.motorCintaStop(row, coll_1, coll_2);
+                    this.receivingItem=false;
+                    callback(null);
+                })
+            }else{
+                callback("Se detectó un artículo en el elevador");
+            }
         })
     }
     //Test celdas
@@ -736,26 +763,43 @@ export class ControllerMachine extends Event{
     //Control de atascos - Probar
     private blokingType:number= 0;
     private attempts:number=0;
+    private readSensor:boolean = false;
     //Controla el tiempo de avance del motor
     private controlTime=(callback:any)=>{
         //Espera la posición de destino
         let nPisos:number = 0;
+        let piso = this.goingTo
+        this.readSensor = false;
         if(this.location!=null){
             nPisos = this.location - this.goingTo;
         }else{
             nPisos = 4
         }
         let time = 0;
-        let countTime = 0;
+        let countTime = 100;
         if(nPisos<0){
             nPisos = nPisos * -1;
         }
-        time = nPisos * 2000;
+        time = nPisos * 1900;
         this.Log.LogDebug("Se movera "+nPisos+ " en un tiempo límite para llegar a destino es "+time)
         //Espera la posición de destino
         let wait:any = setInterval(()=>{
             countTime=countTime+100;
-            if(this.location == this.goingTo){
+            //Si han pasado 4 segundos sin detectar ningun sensor
+            if(countTime>4000 && this.readSensor == false){
+                this.blokingType = 5
+                this.controlBlocking(callback);
+                clearInterval(wait)
+                wait=null;
+            }
+            //Si la esta definido un tipo de bloqueo
+            if(this.blokingType!=0){
+                this.controlBlocking(callback);
+                clearInterval(wait)
+                wait=null;
+            }
+            //Si llego sin problemas en el tiempo estimado
+            if(this.location == piso){
                 this.Log.LogDebug("Elevador llego en: "+countTime+" ms")
                 this.blokingType=0
                 this.attempts=0
@@ -763,21 +807,16 @@ export class ControllerMachine extends Event{
                 wait=null;
                 callback(null)
             }
-            //Lectura de posible bloqueo
+            //Si se excede del tiempo estimado
             if(countTime>time){
                 this.Log.LogDebug("Leyendo posible atasco, countTime: "+countTime)
-                if (countTime>12000){
-                    if(this.location!=null){
-                        this.blokingType = 1 //Bloqueo en proceso de dispensa y paso el tiempo máximo de un desplazamiento
-                    }else{
-                        this.blokingType = 2 //Bloqueo en proceso de busqueda y paso el tiempo máximo de un desplazamiento
-                    }
-                }else{
-                    if(this.motorState == 1) {
-                        this.blokingType = 3 //Bloqueo en proceso de dispensa subiendo y se paso del tiempo de posición
-                    }else{
-                        this.blokingType = 4 //Bloqueo en proceso de dispensa bajando y se paso del tiempo de posición
-                    }
+                //Si es subiendo - Bloqueo en proceso de dispensa subiendo y se paso del tiempo de posición
+                if(this.motorState == 1 && this.isDispense == true) {
+                    this.blokingType = 3
+                }
+                //Si es bajando - Bloqueo en proceso de dispensa bajando y se paso del tiempo de posición
+                if(this.motorState == 2 && this.isDispense == true){
+                    this.blokingType = 2
                 }
                 this.controlBlocking(callback);
                 clearInterval(wait)
@@ -788,69 +827,87 @@ export class ControllerMachine extends Event{
     //Controla intentos de desatascos del elevador
     private controlBlocking=(callback:any)=>{
         this.attempts++
+        this.securityState(false)
         this.Log.LogAlert("Intento de desatasco número :"+this.attempts)
         this.Log.LogDebug("Comenzando proceso de desatasco número: "+this.attempts)
-        if(this.attempts>3){
-            this.Log.LogCritical("Elevador atascado luego de 3 intentos - Se requiere revisión")
-            callback("Elevador atascado luego de 3 intentos - Se requiere revisión")
+        if(this.attempts>2){
+            this.Log.LogCritical("Elevador atascado luego de 2 intentos - Se requiere revisión")
+            callback("Elevador atascado luego de 2 intentos - Se requiere revisión")
         }else{
             switch (this.blokingType) {
-                case 1:
+                //Listo - Probar
+                case 1: //Arranca y no detecta sensores y no se encuentra
+                    this.Log.LogAlert("Intento de desatasco de tipo 1 :"+this.blokingType)
                     this.location = null
+                    this.Log.LogAlert("Step 1 - Reiniciando sensores")
                     this.resetSensors((err:any)=>{
                         if (err){
-                            callback("No se pudo recuperar el elevador despues de un atasco")
+                            callback("No se pudo recuperar sensores")
                         }else {
+                            this.Log.LogAlert("Step 2 - Buscando elevador")
                             this.findElevator((err:any) => {
                                 if (err){
-                                    callback("No se pudo conseguir el elevador")
+                                    callback("Imposible conseguir el elevador")
                                 }else {
-                                    this.dispenseItem(this.currentProcess.piso, this.currentProcess.c1,
-                                        this.currentProcess.c2, this.currentProcess.height, callback)
+                                    callback(null)
                                 }
                             })
                         }
                     })
                     break
-                case 2:
-                    this.location = null
-                    this.resetSensors((err:any)=>{
-                        if (err){
-                            callback("No se pudo recuperar el elevador despues de un atasco")
-                        }else {
-                            this.findElevator((err:any) => {
-                                if(err){
-                                    callback("No se pudo conseguir el elevador")
-                                }else{
-                                    this.gotoInitPosition(callback)
-                                }
-                            })
-                        }
-                    })
-                    break
-                case 3:
+                //Listo - Probar
+                case 2: //Atasco del elevador luego de recibir artículo
+                    this.Log.LogAlert("Intento de desatasco de tipo 2: "+this.blokingType)
                     this.motorStop()
-                    this.Log.LogDebug("Bajando para desatascar")
+                    this.enableMachine = false
+                    callback("Se detectó un atasco al bajar para entregar - La máquina está deshabilitada por seguridad")
+                    break
+                //Listo - Probado
+                case 3://Atasco yendo a buscar un artículo, se detiene y resume el proceso
+                    this.Log.LogAlert("Intento de desatasco de tipo 3 :"+this.blokingType)
+                    this.motorStop()
+                    this.Log.LogDebug("Step 1 - Bajando para desatascar")
                     this.motorStartDown()
                     setTimeout(()=>{
                         this.motorStop()
+                        this.Log.LogDebug("Step 1 - Resumiendo proceso de dispensa")
                         setTimeout(()=>{
-                            this.dispenseItem(this.currentProcess.piso,this.currentProcess.c1,
-                                this.currentProcess.c2,this.currentProcess.height,callback)
+                            callback(null)
                         },1500)
                     },300)
                     break
-                case 4:
+                //Listo - Probar
+                case 4://Se detecta un evento inesperado en los sensores
+                    this.Log.LogAlert("Intento de desatasco de tipo 4 :"+this.blokingType)
                     this.motorStop()
-                    //Detener máquina
-                    this.Log.LogDebug("Subiendo para desatascar")
-                    callback("Elevador atascado, no se puede completar el proceso")
+                    this.enableMachine = false
+                    callback("Se detectó un evento inesperado - La máquina está deshabilitada por seguridad")
+                    break
+                //Listo - Probar
+                case 5: //Si han pasado 4 segundos sin detectar ningun sensor cuando el motor está en movimiento
+                    this.Log.LogAlert("Intento de desatasco de tipo 5 :"+this.blokingType)
+                    this.motorStop()
+                    this.Log.LogAlert("Step 1 - Reseteando sensores")
+                    this.resetSensors((err:any)=>{
+                        if (err){
+                            callback("No se pudo recuperar sensores")
+                        }else{
+                            this.Log.LogAlert("Step 2 - Buscando elevador")
+                            this.findElevator((err:any) => {
+                                if (err){
+                                    callback("Imposible conseguir el elevador")
+                                }else {
+                                    callback(null)
+                                }
+                            })
+                        }
+                    })
                     break
             }
         }
     }
     //Enviar el elevador a una fila específica con control de atascos
-    public GoTo_Beta=(callback:any,row:number)=>{
+    public GoTo=(callback:any,row:number)=>{
         this.securityState(false);
         this.Log.LogDebug("Elevador se dirige a la posición: "+row)
         this.goingTo = row;
@@ -868,12 +925,11 @@ export class ControllerMachine extends Event{
         }
     }
 
-    //Version 6.1
-    //Separación de modulo de dispensar y se agregó a dispense Item - Probar
-    //Validación de que se paso de piso - Probar
-    //Verificacion de tiempos de atasco - Probar
-    //Bajar y subir por botones sin limites
-    //Separación módulo de control de sensores
+    //Version 6.2
+    //Probar dispensar con un articulo en el elevador
+    //Simular falla de sensores
+    //Probar Validación de que se paso de piso
     //Alertas de sensores inesperados
-    //Reseteo de sensores en caso de atasco
+    //Probar Reseteo de sensores en caso de atasco
+
 }

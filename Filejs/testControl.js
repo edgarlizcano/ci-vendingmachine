@@ -11,7 +11,7 @@ stdin.addListener("data", function (d) {
     switch (cmd) {
         case "1":
             console.log("yendo a 1");
-            control.GoTo(null, 1);
+            control.GoTo(function (data) { console.log("llego :" + data); }, 1);
             break;
         case "2":
             console.log("yendo a 2");
