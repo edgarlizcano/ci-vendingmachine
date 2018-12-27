@@ -110,6 +110,7 @@ global.Time_wait_for_up_level_C = 7000;
 global.Time_wait_for_up_level_B = 8000;
 global.Time_wait_for_up_level_A = 9000;
 global.number_atasco = 0;
+global.lastPosition = null;
 global.logger = '';
 global.Time_wait_for_dispensing = 10000;
 global.Time_wait_to_receive = 150;

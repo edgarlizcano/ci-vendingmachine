@@ -126,6 +126,8 @@ global.Time_wait_for_up_level_A =9000;
 
 global.number_atasco =0;
 
+global.lastPosition = null;
+
 global.logger='';
 
 global.Time_wait_for_dispensing=10000;
