@@ -14,7 +14,6 @@
     "@types/es6-shim": "^0.31.37",
     "@types/node": "^10.3.3",
     "@types/rpio": "0.0.2",
-    "ci-syslogs": "^2.0.1",
     "node-mcp23017_with_i2c_updated": "0.0.2",
     "npm-check-updates": "^2.15.0",
     "typescript": "^2.9.2"

@@ -1,13 +1,13 @@
 "use strict";
 var global = {};
 global.Sensor = {
-    S1: { GPIO: 13, PIN: 33 },
-    S2: { GPIO: 6, PIN: 31 },
-    S3: { GPIO: 5, PIN: 29 },
-    S4: { GPIO: 21, PIN: 40 },
-    S5: { GPIO: 20, PIN: 38 },
-    S6: { GPIO: 16, PIN: 36 },
-    SM: { GPIO: 7, PIN: 26 }
+    1: { GPIO: 13, PIN: 33 },
+    2: { GPIO: 6, PIN: 31 },
+    3: { GPIO: 5, PIN: 29 },
+    4: { GPIO: 21, PIN: 40 },
+    5: { GPIO: 20, PIN: 38 },
+    6: { GPIO: 16, PIN: 36 },
+    7: { GPIO: 7, PIN: 26 }
 };
 global.State_Machine = {
     No_task: 1,

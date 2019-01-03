@@ -1,0 +1,61 @@
+extends ./layout
+block content
+    .form-row
+        h4 Sensors Machine
+    .form-row
+        .form-group.col-md-2
+            button.btn.btn-success(onclick= 'openPorts()', type='button') Open ports
+        .form-group.col-md-2
+            button.btn.btn-danger(onclick= 'closePorts()', type='button') Close ports
+        .form-group.col-md-2
+            button.btn.btn-success(onclick='initSensors()', type='button') Init Sensors
+        .form-group.col-md-2
+            button.btn.btn-danger(onclick='closeSensors()', type='button') Close Sensors
+    .form-row
+        h4 Motor Control
+    .form-row
+        .form-group.col-md-2
+            button.btn.btn-info(onclick='motorUp()', type='submit') Motor Up
+        .form-group.col-md-2
+            button.btn.btn-info(onclick='motorDown()', type='button') Motor Down
+        .form-group.col-md-2
+            button.btn.btn-danger(onclick='motorStop()', type='button') Motor Stop
+    .form-row
+        h4 Motor Cell
+    .form-row
+        .form-group.col-md-1
+            input#row.form-control(type='number', placeholder='Row')
+        .form-group.col-md-2
+            button.btn.btn-info(type='button' onMousedown="rowStart()" onMouseup="rowStop()") Test Row
+        .form-group.col-md-1
+            input#column.form-control(type='number', placeholder='Column')
+        .form-group.col-md-2
+            button.btn.btn-info(type='button' onMousedown="colStart()" onMouseup="colStop()") Test Column
+    .form-row
+        .form-group.col-md-2
+            button.btn.btn-info(type='button' onMousedown="cellStart()" onMouseup="cellStop()") Test Cell
+    .input-group
+        .input-group-prepend
+            span.input-group-text Logs
+        textarea.form-control(id="logs" aria-label='With textarea' rows=15 readonly)
+    .form-row
+        .form-group.col-md-2
+            #s1.p-3.mb-2.bg-secondary.text-white Sensor 1
+    .form-row
+        .form-group.col-md-2
+            #s2.p-3.mb-2.bg-secondary.text-white Sensor 2
+    .form-row
+        .form-group.col-md-2
+            #s3.p-3.mb-2.bg-secondary.text-white Sensor 3
+    .form-row
+        .form-group.col-md-2
+            #s4.p-3.mb-2.bg-secondary.text-white Sensor 4
+    .form-row
+        .form-group.col-md-2
+            #s5.p-3.mb-2.bg-secondary.text-white Sensor 5
+    .form-row
+        .form-group.col-md-2
+            #s6.p-3.mb-2.bg-secondary.text-white Sensor 6
+    .form-row
+        .form-group.col-md-2
+            #s7.p-3.mb-2.bg-success.text-white Sensor 7
