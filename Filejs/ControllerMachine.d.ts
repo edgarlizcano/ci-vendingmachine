@@ -6,7 +6,6 @@ export declare class ControllerMachine extends EventEmitter {
     private mcp1;
     private mcp2;
     private stateMachine;
-    private times;
     constructor();
     private securityState;
     private initOuts;
@@ -33,7 +32,10 @@ export declare class ControllerMachine extends EventEmitter {
     private dispense;
     private controlTime;
     private controlBlocking;
-    private pollTimeProcess;
-    private pollSensor;
+    pollSensor: (pin: number, callback: any) => void;
+    private pollAllSensors;
+    private enableMachine;
+    private disableMachine;
     testCeldas: (piso: number, coll_1: number, coll_2: any, callback: any) => void;
+    testPinOut: (mcp: number, pin: number, callback: any) => void;
 }

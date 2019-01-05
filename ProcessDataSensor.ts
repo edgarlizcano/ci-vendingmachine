@@ -5,20 +5,6 @@ import {Serial_Sensor} from "./Serial_Sensor";
 import {callback} from "./Interfaces";
 import _async from 'async';
 
-//let folderLogs = "/free/CI24/Logs/Machine";
-//_log.init(folderLogs);
-
-/*let folderLogs = "/free/CI24/Logs/Machine/";
-let data = {
-    "pathFolder": folderLogs,
-    "maxLogSizeMB": 10,
-    "backups": 5,
-    "fileName": "test.log",
-    "level": "INFO"
-};
-
-_log.init(data);*/
-
 export class ProcessDataSensor extends event.EventEmitter {
     constructor() {
         super();
@@ -41,9 +27,6 @@ export class ProcessDataSensor extends event.EventEmitter {
     private Trama_STATE= [0xAA, 0x32, 0x01, 0x33, 0xBB];
     private baudRate=0;
     private port=0;
-
-
-
 
     public CheckPortOpen = (data:any, cb:callback) => {
         try {
@@ -153,7 +136,6 @@ export class ProcessDataSensor extends event.EventEmitter {
 
         }
     };
-
     private EventSerialData = (data:any) => {
         try {
 
@@ -230,11 +212,6 @@ export class ProcessDataSensor extends event.EventEmitter {
     public SendComand=(txt:null,cb:callback):void=> {
         try{
             _async.series([
-        /*         _async.apply(this.check_open_port,null),
-               _async.apply(this.SendComand_,this.Trama_IN),
-                 _async.apply(this.POOLSTATE,null),
-               _async.apply(this.SendComand_,this.Trama_POOL),
-                _async.apply(this.POOLSTATE,null),*/
                 _async.apply(this.SendComand_,this.Trama_STATE),
                 _async.apply(this.POOLSTATE,null),
 
@@ -263,7 +240,6 @@ export class ProcessDataSensor extends event.EventEmitter {
 
         }
     };
-
     private SendComand_=(trama:any,cb:callback):void=> {
         try{
             this.ReadyData = false;
@@ -278,7 +254,6 @@ export class ProcessDataSensor extends event.EventEmitter {
 
         }
     };
-
     private POOLSTATE = (data:null,callback:callback) => {
         try {
             let Interval: any = null;
@@ -343,5 +318,4 @@ export class ProcessDataSensor extends event.EventEmitter {
             _log.error("Exception: {0}"+exception.stack);
         }
     };
-
 }

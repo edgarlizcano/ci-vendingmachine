@@ -1,17 +1,12 @@
 import _log from "@ci24/ci-logmodule";
 import event from 'events';
 import {callback} from "./Interfaces";
-import global from'./Global';
-import Maps from './Maps';
-
-//let folderLogs = "/free/CI24/Logs/Machine/";
-//_log.init(folderLogs);
+import Maps from './ConfigMachine';
 
 export class Serial_Sensor extends event.EventEmitter {
     constructor() {
         super();
     }
-
     public POLLSTATEDATA = (BufferIn:any,state:number, callback:callback) => {
         try {
             if(state==1){
@@ -43,7 +38,7 @@ export class Serial_Sensor extends event.EventEmitter {
                 }
             }else{
                 _log.error('CRC incorrecta,   Longitud de trama=  '+BufferIn.length+'    Respuesta incorrecta');
-                _log.error('Trama  ----->'+JSON.stringify(BufferIn));
+                //_log.error('Trama  ----->'+JSON.stringify(BufferIn));
                 callback('trama incorrecta');
             }
         }
@@ -58,15 +53,15 @@ export class Serial_Sensor extends event.EventEmitter {
           if(BufferIn[0]==0xcc&&BufferIn[BufferIn.length-1]==0xbb){
               _log.write('Inicio y fin de trama correcto de check Sensores'+'CRC correcto,   Longitud de trama=  '+BufferIn.length);
                     if(BufferIn[1]==0x10){
-                        _log.write('Trama respuesta check ----->'+JSON.stringify(BufferIn));
+                        //_log.write('Trama respuesta check ----->'+JSON.stringify(BufferIn));
                         callback(null,'ok');
                     }else{
-                        _log.error('respuesta de check desconocida----->'+JSON.stringify(BufferIn));
+                        //_log.error('respuesta de check desconocida----->'+JSON.stringify(BufferIn));
                         callback(null,'ok');
                     }
           }else{
               _log.error('Respuesta incorrett,   Longitud de trama=  '+BufferIn.length+'    aparecte respuesta de check');
-              _log.error('Trama  ----->'+JSON.stringify(BufferIn));
+              //_log.error('Trama  ----->'+JSON.stringify(BufferIn));
               callback('Respuesta incorrett');
           }
         }
@@ -91,7 +86,7 @@ export class Serial_Sensor extends event.EventEmitter {
                 }
             }else{
                 _log.error('Respuesta incorrett,   Longitud de trama=  '+BufferIn.length+'    aparecte respuesta de check');
-                _log.error('Trama  ----->'+JSON.stringify(BufferIn));
+                //_log.error('Trama  ----->'+JSON.stringify(BufferIn));
                 callback('Respuesta incorrett');
             }
         }
@@ -107,12 +102,12 @@ export class Serial_Sensor extends event.EventEmitter {
                 if(BufferIn[3]==0x33){
                     if(BufferIn[4]>0xf0){
                         _log.warning('esta desocupada----->'+JSON.stringify(BufferIn));
-                        global.Is_empty=true;
+                        Maps.Is_empty=true;
                         callback(null,'');
                     }else{
                         _log.fatal('esta ocupada----->'+JSON.stringify(BufferIn));
                         callback(null,'ok');
-                        global.Is_empty=false;
+                        Maps.Is_empty=false;
                     }
                 }else{
                     _log.error('respuesta de state desconocida----->'+JSON.stringify(BufferIn));
@@ -120,7 +115,7 @@ export class Serial_Sensor extends event.EventEmitter {
                 }
             }else{
                 _log.error('Respuesta incorrett,   Longitud de trama=  '+BufferIn.length+'    aparecte respuesta de check');
-                _log.error('Trama  ----->'+JSON.stringify(BufferIn));
+                //_log.error('Trama  ----->'+JSON.stringify(BufferIn));
                 callback('Respuesta incorrett,');
             }
         }
@@ -129,6 +124,4 @@ export class Serial_Sensor extends event.EventEmitter {
             callback(exception);
         }
     };
-
-
 }

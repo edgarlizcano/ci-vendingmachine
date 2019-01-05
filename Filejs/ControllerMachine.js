@@ -13,14 +13,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var Maps_1 = __importDefault(require("./Maps"));
+var ConfigMachine_1 = __importDefault(require("./ConfigMachine"));
 var node_mcp23017_with_i2c_updated_1 = __importDefault(require("node-mcp23017_with_i2c_updated"));
 var events_1 = require("events");
 var rpi_gpio_1 = __importDefault(require("rpi-gpio"));
 var async_1 = __importDefault(require("async"));
 var ci_syslogs_1 = require("ci-syslogs");
 var Sensor_1 = require("./Sensor");
-var Global_1 = __importDefault(require("./Global"));
 var ControllerMachine = /** @class */ (function (_super) {
     __extends(ControllerMachine, _super);
     function ControllerMachine() {
@@ -39,7 +38,6 @@ var ControllerMachine = /** @class */ (function (_super) {
         //Variables de control de la máquina
         _this.stateMachine = {
             goingTo: 0,
-            pinGoingTo: null,
             motorState: 0,
             location: null,
             sensorPiso: null,
@@ -51,26 +49,17 @@ var ControllerMachine = /** @class */ (function (_super) {
             initPosition: false,
             blokingType: 0,
             attempts: 0,
-            readSensor: false,
             findProcess: false,
             pollProcess: false,
             readyForDispense: true,
             timeSettingAdjust: 16,
-            countTime: 100
-        };
-        _this.times = {
-            1: { timeToFloor: 15000 },
-            2: { timeToFloor: 12000 },
-            3: { timeToFloor: 10000 },
-            4: { timeToFloor: 8000 },
-            5: { timeToFloor: 6000 },
-            6: { timeToFloor: 4000 },
-            7: { timeToFloor: 8000 }
+            countTime: 100,
+            timeToDisepense: 100
         };
         //Habilita o deshabilita seguridad
         _this.securityState = function (state) {
             _this.stateMachine.securityMachine = state;
-            _this.Log.WriteLog("La seguridad está en: ", ci_syslogs_1.Logger.Severities.Debug);
+            _this.Log.WriteLog("La seguridad está en: " + _this.stateMachine.securityMachine, ci_syslogs_1.Logger.Severities.Debug);
         };
         //Inicializa salidas
         _this.initOuts = function () {
@@ -97,20 +86,20 @@ var ControllerMachine = /** @class */ (function (_super) {
         _this.initSensors = function (callback) {
             try {
                 _this.Log.WriteLog("Inicializando Sensores", ci_syslogs_1.Logger.Severities.Debug);
-                rpi_gpio_1.default.setup(Maps_1.default.Sensor[1].PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_RISING);
-                rpi_gpio_1.default.setup(Maps_1.default.Sensor[2].PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_RISING);
-                rpi_gpio_1.default.setup(Maps_1.default.Sensor[3].PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_RISING);
-                rpi_gpio_1.default.setup(Maps_1.default.Sensor[4].PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_RISING);
-                rpi_gpio_1.default.setup(Maps_1.default.Sensor[5].PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_RISING);
-                rpi_gpio_1.default.setup(Maps_1.default.Sensor[6].PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_RISING);
-                rpi_gpio_1.default.setup(Maps_1.default.Sensor[7].PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_RISING);
-                rpi_gpio_1.default.setup(Maps_1.default.elevator.Up.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
-                rpi_gpio_1.default.setup(Maps_1.default.elevator.Down.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
-                rpi_gpio_1.default.setup(Maps_1.default.general.stop.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
-                //Gpio.setup(Maps.Aux.A1.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
-                //Gpio.setup(Maps.Aux.A2.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
-                //Gpio.setup(Maps.Card.Int.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
-                //Gpio.setup(Maps.Card.Out.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
+                rpi_gpio_1.default.setup(ConfigMachine_1.default.Sensor[1].PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_RISING);
+                rpi_gpio_1.default.setup(ConfigMachine_1.default.Sensor[2].PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_RISING);
+                rpi_gpio_1.default.setup(ConfigMachine_1.default.Sensor[3].PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_RISING);
+                rpi_gpio_1.default.setup(ConfigMachine_1.default.Sensor[4].PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_RISING);
+                rpi_gpio_1.default.setup(ConfigMachine_1.default.Sensor[5].PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_RISING);
+                rpi_gpio_1.default.setup(ConfigMachine_1.default.Sensor[6].PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_RISING);
+                rpi_gpio_1.default.setup(ConfigMachine_1.default.Sensor[7].PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_RISING);
+                rpi_gpio_1.default.setup(ConfigMachine_1.default.elevator.Up.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
+                rpi_gpio_1.default.setup(ConfigMachine_1.default.elevator.Down.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
+                rpi_gpio_1.default.setup(ConfigMachine_1.default.general.stop.PIN, rpi_gpio_1.default.DIR_IN, rpi_gpio_1.default.EDGE_BOTH);
+                //Gpio.setup(Config.Aux.A1.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
+                //Gpio.setup(Config.Aux.A2.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
+                //Gpio.setup(Config.Card.Int.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
+                //Gpio.setup(Config.Card.Out.PIN, Gpio.DIR_IN, Gpio.EDGE_BOTH);
                 _this.Log.WriteLog("Sensores Listos", ci_syslogs_1.Logger.Severities.Debug);
                 callback(null);
             }
@@ -143,8 +132,10 @@ var ControllerMachine = /** @class */ (function (_super) {
         _this.closeSensors = function (callback) {
             try {
                 rpi_gpio_1.default.destroy(function (err) {
-                    _this.Log.WriteLog("Sensores deshabilidatos", ci_syslogs_1.Logger.Severities.Debug);
-                    callback(null);
+                    if (err == null) {
+                        _this.Log.WriteLog("Sensores deshabilidatos", ci_syslogs_1.Logger.Severities.Debug);
+                        callback(null);
+                    }
                 });
             }
             catch (e) {
@@ -251,38 +242,38 @@ var ControllerMachine = /** @class */ (function (_super) {
                     _this.Log.WriteLog("El Elevador está al limite inferior, no puede bajar mas", ci_syslogs_1.Logger.Severities.Debug);
                 }
                 else {
-                    _this.mcp2.digitalWrite(Maps_1.default.MCP_Motor.Down.value, _this.mcp2.HIGH);
+                    _this.mcp2.digitalWrite(ConfigMachine_1.default.MCP_Motor.Down.value, _this.mcp2.HIGH);
                     _this.stateMachine.motorState = 2;
                     _this.Log.WriteLog("Elevador Bajando", ci_syslogs_1.Logger.Severities.Debug);
                     _this.emit("Sensor", { cmd: "Motor Start Down" });
                 }
             }
             catch (e) {
-                _this.Log.WriteLog("Error al bajar ascensor" + e.stack, ci_syslogs_1.Logger.Severities.Error);
+                _this.Log.WriteLog("Error al bajar ascensor " + e.stack, ci_syslogs_1.Logger.Severities.Error);
             }
         };
         //Enciende el motor del elevador hacia arriba
         _this.motorStartUp = function () {
             try {
-                if (_this.checkPosition(Maps_1.default.row[1].Piso)) {
+                if (_this.checkPosition(ConfigMachine_1.default.row[1].Piso)) {
                     _this.Log.WriteLog("El Elevador está al limite superior, no puede subir mas", ci_syslogs_1.Logger.Severities.Debug);
                 }
                 else {
-                    _this.mcp2.digitalWrite(Maps_1.default.MCP_Motor.UP.value, _this.mcp2.HIGH);
+                    _this.mcp2.digitalWrite(ConfigMachine_1.default.MCP_Motor.UP.value, _this.mcp2.HIGH);
                     _this.stateMachine.motorState = 1;
                     _this.Log.WriteLog("Elevador subiendo", ci_syslogs_1.Logger.Severities.Debug);
                     _this.emit("Sensor", { cmd: "Motor Start Up" });
                 }
             }
             catch (e) {
-                _this.Log.WriteLog("Error al subir ascensor" + e.stack, ci_syslogs_1.Logger.Severities.Error);
+                _this.Log.WriteLog("Error al subir ascensor " + e.stack, ci_syslogs_1.Logger.Severities.Error);
             }
         };
         //Detiene el motor del elevador
         _this.motorStop = function () {
             try {
-                _this.mcp2.digitalWrite(Maps_1.default.MCP_Motor.Down.value, _this.mcp2.LOW);
-                _this.mcp2.digitalWrite(Maps_1.default.MCP_Motor.UP.value, _this.mcp2.LOW);
+                _this.mcp2.digitalWrite(ConfigMachine_1.default.MCP_Motor.Down.value, _this.mcp2.LOW);
+                _this.mcp2.digitalWrite(ConfigMachine_1.default.MCP_Motor.UP.value, _this.mcp2.LOW);
                 _this.stateMachine.motorState = 0;
                 _this.Log.WriteLog("Elevador detenido", ci_syslogs_1.Logger.Severities.Debug);
             }
@@ -337,7 +328,7 @@ var ControllerMachine = /** @class */ (function (_super) {
         _this.controlSensors = function (piso, pin, state) {
             _this.stateMachine.readSensor = true;
             //Se emite la alerta si se activa un sensor cuando esta activa el estado de seguridad
-            if (_this.stateMachine.securityMachine == true && pin != Maps_1.default.elevator.Up.PIN && pin != Maps_1.default.elevator.Down.PIN) {
+            if (_this.stateMachine.securityMachine == true && pin != ConfigMachine_1.default.elevator.Up.PIN && pin != ConfigMachine_1.default.elevator.Down.PIN) {
                 _this.emitSecurityAlert("sensor activado cuando la máquina está inactiva pin: " + pin);
                 _this.gotoInitPosition(function (err) {
                     if (err != null) {
@@ -346,12 +337,12 @@ var ControllerMachine = /** @class */ (function (_super) {
                 });
             }
             //Acciones cuando se activa
-            _this.Log.WriteLog("Sensor de piso " + piso + " en estado " + state, ci_syslogs_1.Logger.Severities.Debug);
+            _this.Log.WriteLog("Sensor de piso " + piso + " en estado " + state + " PIN: " + pin, ci_syslogs_1.Logger.Severities.Debug);
             //Alertas de seguridad por activaciones de sensor inesperados
             switch (_this.stateMachine.motorState) {
                 case 0:
                     //Emite Alerta si se activa un sensor en espera por retiro del producto
-                    if (_this.stateMachine.isDelivery == true && piso < Maps_1.default.row[7].Piso && piso != _this.stateMachine.location) {
+                    if (_this.stateMachine.isDelivery == true && piso < ConfigMachine_1.default.row[7].Piso && piso != _this.stateMachine.location) {
                         _this.emitSecurityAlert("sensor activado del piso " + piso + " cuando se espera por retiro del producto");
                         _this.gotoInitPosition(function () {
                             _this.Log.WriteLog("Puerta asegurada por evento inesperado mientras se retiraba el producto", ci_syslogs_1.Logger.Severities.Alert);
@@ -363,10 +354,6 @@ var ControllerMachine = /** @class */ (function (_super) {
                     }
                     break;
                 case 1:
-                    if (_this.stateMachine.pollProcess == true) {
-                        _this.times[piso].timeToFloor = _this.stateMachine.countTime;
-                        _this.Log.WriteLog("Tiempo establecido para el piso: " + piso + " es de: " + _this.stateMachine.countTime, ci_syslogs_1.Logger.Severities.Debug);
-                    }
                     //Detecta la posición del elevador cuando está en proceso de búsueda
                     if (_this.stateMachine.location == null) {
                         _this.Log.WriteLog("El elevador encontrado en el piso: " + piso, ci_syslogs_1.Logger.Severities.Debug);
@@ -376,6 +363,7 @@ var ControllerMachine = /** @class */ (function (_super) {
                     if (_this.stateMachine.securityMachine == false && _this.stateMachine.location - 1 == piso) {
                         _this.Log.WriteLog("El elevador está en el piso: " + piso, ci_syslogs_1.Logger.Severities.Debug);
                         _this.stateMachine.location = piso;
+                        _this.stateMachine.timeWithoutSensor = 100;
                     }
                     //Activa alerta si se activa un sensor contrario al avance del elevador
                     if (_this.stateMachine.findProcess == false && piso > _this.stateMachine.location) {
@@ -384,7 +372,7 @@ var ControllerMachine = /** @class */ (function (_super) {
                     }
                     if (piso < _this.stateMachine.goingTo) {
                         _this.emitSecurityAlert("sensor activado del piso " + piso + " se paso de posición " + _this.stateMachine.goingTo);
-                        _this.stateMachine.blokingType = 6;
+                        _this.stateMachine.blokingType = 5;
                     }
                     break;
                 case 2:
@@ -396,6 +384,7 @@ var ControllerMachine = /** @class */ (function (_super) {
                     if (_this.stateMachine.securityMachine == false && _this.stateMachine.location + 1 == piso) {
                         _this.Log.WriteLog("El elevador está en el piso: " + piso, ci_syslogs_1.Logger.Severities.Debug);
                         _this.stateMachine.location = piso;
+                        _this.stateMachine.timeWithoutSensor = 100;
                     }
                     //Activa alerta si se activa un sensor contrario al avance del elevador
                     if (_this.stateMachine.findProcess == false && piso < _this.stateMachine.location) {
@@ -404,7 +393,7 @@ var ControllerMachine = /** @class */ (function (_super) {
                     }
                     if (piso > _this.stateMachine.goingTo) {
                         _this.emitSecurityAlert("sensor activado del piso " + piso + " se paso de posición " + _this.stateMachine.goingTo);
-                        _this.stateMachine.blokingType = 6;
+                        _this.stateMachine.blokingType = 5;
                     }
                     break;
             }
@@ -428,17 +417,22 @@ var ControllerMachine = /** @class */ (function (_super) {
             if (state === false) {
                 _this.securityState(false);
                 switch (pin) {
-                    case Maps_1.default.elevator.Up.PIN:
+                    case ConfigMachine_1.default.elevator.Up.PIN:
                         _this.Log.WriteLog("Elevador subiendo de forma manual", ci_syslogs_1.Logger.Severities.Debug);
-                        _this.mcp2.digitalWrite(Maps_1.default.MCP_Motor.UP.value, _this.mcp2.HIGH);
+                        _this.mcp2.digitalWrite(ConfigMachine_1.default.MCP_Motor.UP.value, _this.mcp2.HIGH);
                         _this.stateMachine.motorState = 1;
                         _this.emit("Sensor", { cmd: "machine", data: "Motor Start Up by Control Board" });
                         break;
-                    case Maps_1.default.elevator.Down.PIN:
+                    case ConfigMachine_1.default.elevator.Down.PIN:
                         _this.Log.WriteLog("Elevador bajando de forma manual", ci_syslogs_1.Logger.Severities.Debug);
-                        _this.mcp2.digitalWrite(Maps_1.default.MCP_Motor.Down.value, _this.mcp2.HIGH);
+                        _this.mcp2.digitalWrite(ConfigMachine_1.default.MCP_Motor.Down.value, _this.mcp2.HIGH);
                         _this.stateMachine.motorState = 2;
                         _this.emit("Sensor", { cmd: "machine", data: "Motor Start Down by Control Board" });
+                        break;
+                    case ConfigMachine_1.default.general.Stop.PIN:
+                        _this.Log.WriteLog("Pines detenidos por Controladora", ci_syslogs_1.Logger.Severities.Debug);
+                        _this.stopAll(null);
+                        _this.stateMachine.motorState = 0;
                         break;
                 }
             }
@@ -452,28 +446,28 @@ var ControllerMachine = /** @class */ (function (_super) {
         //Recibe señal de entrada y determina de donde proviene
         _this.mainSignal = function (pin, state) {
             switch (pin) {
-                case Maps_1.default.Sensor["1"].PIN:
+                case ConfigMachine_1.default.Sensor["1"].PIN:
                     _this.controlSensors(1, pin, state);
                     break;
-                case Maps_1.default.Sensor["2"].PIN:
+                case ConfigMachine_1.default.Sensor["2"].PIN:
                     _this.controlSensors(2, pin, state);
                     break;
-                case Maps_1.default.Sensor["3"].PIN:
+                case ConfigMachine_1.default.Sensor["3"].PIN:
                     _this.controlSensors(3, pin, state);
                     break;
-                case Maps_1.default.Sensor["4"].PIN:
+                case ConfigMachine_1.default.Sensor["4"].PIN:
                     _this.controlSensors(4, pin, state);
                     break;
-                case Maps_1.default.Sensor["5"].PIN:
+                case ConfigMachine_1.default.Sensor["5"].PIN:
                     _this.controlSensors(5, pin, state);
                     break;
-                case Maps_1.default.Sensor["6"].PIN:
+                case ConfigMachine_1.default.Sensor["6"].PIN:
                     _this.controlSensors(6, pin, state);
                     break;
-                case Maps_1.default.Sensor["7"].PIN:
+                case ConfigMachine_1.default.Sensor["7"].PIN:
                     _this.controlSensors(7, pin, state);
                     break;
-                case Maps_1.default.Pulso.P1.PIN:
+                case ConfigMachine_1.default.Pulso.P1.PIN:
                     if (state === true) {
                         _this.Log.WriteLog("Pulso On sensor vuelta piso 1", ci_syslogs_1.Logger.Severities.Debug);
                     }
@@ -481,7 +475,7 @@ var ControllerMachine = /** @class */ (function (_super) {
                         _this.Log.WriteLog("Pulso Off sensor vuelta piso 1", ci_syslogs_1.Logger.Severities.Debug);
                     }
                     break;
-                case Maps_1.default.Pulso.P2.PIN:
+                case ConfigMachine_1.default.Pulso.P2.PIN:
                     if (state === true) {
                         _this.Log.WriteLog("Pulso On sensor vuelta piso 2", ci_syslogs_1.Logger.Severities.Debug);
                     }
@@ -489,7 +483,7 @@ var ControllerMachine = /** @class */ (function (_super) {
                         _this.Log.WriteLog("Pulso Off sensor vuelta piso 2", ci_syslogs_1.Logger.Severities.Debug);
                     }
                     break;
-                case Maps_1.default.Pulso.P3.PIN:
+                case ConfigMachine_1.default.Pulso.P3.PIN:
                     if (state === true) {
                         _this.Log.WriteLog("Pulso On sensor vuelta piso 3", ci_syslogs_1.Logger.Severities.Debug);
                     }
@@ -497,7 +491,7 @@ var ControllerMachine = /** @class */ (function (_super) {
                         _this.Log.WriteLog("Pulso Off sensor vuelta piso 3", ci_syslogs_1.Logger.Severities.Debug);
                     }
                     break;
-                case Maps_1.default.Pulso.P4.PIN:
+                case ConfigMachine_1.default.Pulso.P4.PIN:
                     if (state === true) {
                         _this.Log.WriteLog("Pulso On sensor vuelta piso 4", ci_syslogs_1.Logger.Severities.Debug);
                     }
@@ -505,7 +499,7 @@ var ControllerMachine = /** @class */ (function (_super) {
                         _this.Log.WriteLog("Pulso Off sensor vuelta piso 4", ci_syslogs_1.Logger.Severities.Debug);
                     }
                     break;
-                case Maps_1.default.Pulso.P5.PIN:
+                case ConfigMachine_1.default.Pulso.P5.PIN:
                     if (state === true) {
                         _this.Log.WriteLog("Pulso On sensor vuelta piso 5", ci_syslogs_1.Logger.Severities.Debug);
                     }
@@ -513,7 +507,7 @@ var ControllerMachine = /** @class */ (function (_super) {
                         _this.Log.WriteLog("Pulso Off sensor vuelta piso 5", ci_syslogs_1.Logger.Severities.Debug);
                     }
                     break;
-                case Maps_1.default.Pulso.P6.PIN:
+                case ConfigMachine_1.default.Pulso.P6.PIN:
                     if (state === true) {
                         _this.Log.WriteLog("Pulso On sensor vuelta piso 6", ci_syslogs_1.Logger.Severities.Debug);
                     }
@@ -521,7 +515,7 @@ var ControllerMachine = /** @class */ (function (_super) {
                         _this.Log.WriteLog("Pulso Off sensor vuelta piso 6", ci_syslogs_1.Logger.Severities.Debug);
                     }
                     break;
-                case Maps_1.default.Aux.A1.PIN:
+                case ConfigMachine_1.default.Aux.A1.PIN:
                     if (state === true) {
                         _this.Log.WriteLog("Pulso On sensor Aux A1", ci_syslogs_1.Logger.Severities.Debug);
                     }
@@ -529,7 +523,7 @@ var ControllerMachine = /** @class */ (function (_super) {
                         _this.Log.WriteLog("Pulso Off sensor Aux A1", ci_syslogs_1.Logger.Severities.Debug);
                     }
                     break;
-                case Maps_1.default.Aux.A2.PIN:
+                case ConfigMachine_1.default.Aux.A2.PIN:
                     if (state === true) {
                         _this.Log.WriteLog("Pulso On sensor Aux A2", ci_syslogs_1.Logger.Severities.Debug);
                     }
@@ -537,7 +531,7 @@ var ControllerMachine = /** @class */ (function (_super) {
                         _this.Log.WriteLog("Pulso Off sensor Aux A2", ci_syslogs_1.Logger.Severities.Debug);
                     }
                     break;
-                case Maps_1.default.Card.Int.PIN:
+                case ConfigMachine_1.default.Card.Int.PIN:
                     if (state === true) {
                         _this.Log.WriteLog("Pulso Card In On", ci_syslogs_1.Logger.Severities.Debug);
                     }
@@ -545,7 +539,7 @@ var ControllerMachine = /** @class */ (function (_super) {
                         _this.Log.WriteLog("Pulso Card In Off", ci_syslogs_1.Logger.Severities.Debug);
                     }
                     break;
-                case Maps_1.default.Card.Out.PIN:
+                case ConfigMachine_1.default.Card.Out.PIN:
                     if (state === true) {
                         _this.Log.WriteLog("Pulso Card Out On", ci_syslogs_1.Logger.Severities.Debug);
                     }
@@ -553,42 +547,59 @@ var ControllerMachine = /** @class */ (function (_super) {
                         _this.Log.WriteLog("Pulso Card Out Off", ci_syslogs_1.Logger.Severities.Debug);
                     }
                     break;
-                case Maps_1.default.elevator.Up.PIN:
-                    _this.manualController(Maps_1.default.elevator.Up.PIN, state);
+                case ConfigMachine_1.default.elevator.Up.PIN:
+                    _this.manualController(ConfigMachine_1.default.elevator.Up.PIN, state);
                     break;
-                case Maps_1.default.elevator.Down.PIN:
-                    _this.manualController(Maps_1.default.elevator.Down.PIN, state);
+                case ConfigMachine_1.default.elevator.Down.PIN:
+                    _this.manualController(ConfigMachine_1.default.elevator.Down.PIN, state);
                     break;
-                case Maps_1.default.general.stop.PIN:
+                case ConfigMachine_1.default.general.stop.PIN:
+                    _this.manualController(ConfigMachine_1.default.general.Stop.PIN, state);
                     if (state === true) {
-                        _this.Log.WriteLog("Elevador se detuvo??", ci_syslogs_1.Logger.Severities.Debug);
-                    }
-                    else {
-                        _this.Log.WriteLog("Elevador se mueve??", ci_syslogs_1.Logger.Severities.Debug);
+                        _this.Log.WriteLog("Se detuvieron todas las salidas", ci_syslogs_1.Logger.Severities.Debug);
                     }
                     break;
             }
         };
         //Enviar el elevador a una fila específica con control de atascos
         _this.GoTo = function (callback, row) {
-            _this.securityState(false);
-            _this.Log.WriteLog("Elevador se dirige a la posición: " + row, ci_syslogs_1.Logger.Severities.Debug);
-            _this.stateMachine.goingTo = row;
-            _this.stateMachine.pinGoingTo = Maps_1.default.row[row].PIN;
-            if (_this.stateMachine.location == row) {
-                _this.Log.WriteLog("El elevador esta en posición", ci_syslogs_1.Logger.Severities.Debug);
-                callback(null);
+            if (ConfigMachine_1.default.floors[row].Enable == true) {
+                _this.securityState(false);
+                _this.Log.WriteLog("Elevador se dirige a la posición: " + row, ci_syslogs_1.Logger.Severities.Debug);
+                _this.stateMachine.goingTo = row;
+                _this.stateMachine.pinGoingTo = ConfigMachine_1.default.row[row].PIN;
+                if (_this.stateMachine.location == row) {
+                    _this.Log.WriteLog("El elevador esta en posición", ci_syslogs_1.Logger.Severities.Debug);
+                    callback(null);
+                }
+                else {
+                    if (_this.stateMachine.location > row) {
+                        _this.motorStartUp();
+                    }
+                    else if (_this.stateMachine.location < row) {
+                        _this.motorStartDown();
+                    }
+                    _this.stateMachine.initPosition = false;
+                    //Espera la posición de destino y verifica atascos
+                    _this.controlTime(function (err) {
+                        if (err != null) {
+                            // if(this.stateMachine.blokingType==4){
+                            //     callback("Error por alerta de sensor activado")
+                            // }
+                            _this.controlBlocking(function (err) {
+                                if (err == null) {
+                                    _this.Log.WriteLog("Elevador ubicado en posicion segura", ci_syslogs_1.Logger.Severities.Debug);
+                                }
+                            });
+                        }
+                        else {
+                            callback(null);
+                        }
+                    });
+                }
             }
             else {
-                if (_this.stateMachine.location > row) {
-                    _this.motorStartUp();
-                }
-                else if (_this.stateMachine.location < row) {
-                    _this.motorStartDown();
-                }
-                _this.stateMachine.initPosition = false;
-                //Espera la posición de destino y verifica atascos
-                _this.controlTime(callback);
+                callback("El piso de destino no está habilitado para esta maquina");
             }
         };
         //Prepara y ajusta posición del elevador para recibir artículo
@@ -610,10 +621,10 @@ var ControllerMachine = /** @class */ (function (_super) {
         };
         //Tiempo de espera para que el cliente retire el producto
         _this.waitForRemoveItem = function (callback) {
-            if (Global_1.default.Is_empty == false) {
+            if (ConfigMachine_1.default.Is_empty == false) {
                 _this.Log.WriteLog("Hay un producto en el elevador para retirar", ci_syslogs_1.Logger.Severities.Debug);
                 var wait_1 = setInterval(function () {
-                    if (Global_1.default.Is_empty == true) {
+                    if (ConfigMachine_1.default.Is_empty == true) {
                         callback(null);
                         clearInterval(wait_1);
                         wait_1 = null;
@@ -632,14 +643,10 @@ var ControllerMachine = /** @class */ (function (_super) {
             _this.stateMachine.isDispense = true;
             _this.Log.WriteLog("Comenzando proceso de dispensar item en el piso " + piso, ci_syslogs_1.Logger.Severities.Debug);
             _this.securityState(false);
-            if (_this.stateMachine.enableMachine && _this.stateMachine.readyForDispense == true) {
+            if (_this.stateMachine.enableMachine == true && _this.stateMachine.readyForDispense == true) {
                 _this.stateMachine.readyForDispense = false;
                 _this.Log.WriteLog("Comenzando proceso de dispensar item", ci_syslogs_1.Logger.Severities.Debug);
                 async_1.default.series([
-                    function (callback) {
-                        _this.Log.WriteLog("Step 0 Reiniciando sensores", ci_syslogs_1.Logger.Severities.Debug);
-                        _this.resetSensors(callback);
-                    },
                     function (callback) {
                         _this.Log.WriteLog("Step 1 Verificando posición de elevador", ci_syslogs_1.Logger.Severities.Debug);
                         if (_this.checkPosition(7)) {
@@ -707,7 +714,8 @@ var ControllerMachine = /** @class */ (function (_super) {
                 });
             }
             else {
-                callback("Máquina deshabilitada por falla en sensor serial");
+                _this.emit("Event", { cmd: "Falla" });
+                callback("Máquina deshabilitada por falla en sensores");
             }
         };
         //Ubicar el elevador en la posición inicial
@@ -755,20 +763,19 @@ var ControllerMachine = /** @class */ (function (_super) {
                 });
             }
         };
-        //Beta de dispensar
+        //Beta de dispensar;
         _this.dispense = function (piso, coll_1, coll_2, callback) {
-            var row = Maps_1.default.row[piso].PIN;
-            var c1 = Maps_1.default.column[coll_1].PIN;
-            var c2 = (coll_2 != null) ? Maps_1.default.column[coll_2].PIN : null;
-            _this.Log.WriteLog("Dispensando desde piso " + piso + " columna 1: " + c1 + " columna 2 " + c2, ci_syslogs_1.Logger.Severities.Debug);
-            _this.Log.WriteLog("Dispensado artículo desde cinta", ci_syslogs_1.Logger.Severities.Debug);
+            var row = ConfigMachine_1.default.row[piso].PIN;
+            var c1 = ConfigMachine_1.default.column[coll_1].PIN;
+            var c2 = (coll_2 != null) ? ConfigMachine_1.default.column[coll_2].PIN : null;
+            _this.Log.WriteLog("Iniciando Dispensado desde piso " + piso + " columna-1: " + c1 + " columna-2 " + c2, ci_syslogs_1.Logger.Severities.Debug);
             _this.motorCintaStart(row, c1, c2);
             _this.stateMachine.receivingItem = true;
             var countTime = 100;
             var wait = setInterval(function () {
-                countTime = countTime + 100;
+                countTime += 100;
                 //Si se excede del tiempo estimado
-                if (countTime > 6000) {
+                if (countTime > 10000) {
                     _this.Log.WriteLog("Exceso de tiempo dispensando, countTime: " + countTime, ci_syslogs_1.Logger.Severities.Debug);
                     _this.motorCintaStop(row, c1, c2);
                     callback("Tiempo excedido dispensando artículo");
@@ -776,13 +783,13 @@ var ControllerMachine = /** @class */ (function (_super) {
                     wait = null;
                 }
                 //Lee el sensor para leer llegada del producto
-                _this.pollSensor(Maps_1.default.Sensor[piso].PIN, function (err, value) {
+                _this.pollSensor(ConfigMachine_1.default.Sensor[piso].PIN, function (err, value) {
                     //Emite el evento de entrega del articulo en el elevador si y solo si esta habilitado el estado y el motor está detenido
                     if (value == true) {
                         _this.emit("Item recibido", _this.stateMachine.location, value);
                     }
                 });
-            }, 50);
+            }, 200);
             _this.once("Item recibido", function () {
                 _this.motorCintaStop(row, c1, c2);
                 _this.stateMachine.receivingItem = false;
@@ -794,46 +801,37 @@ var ControllerMachine = /** @class */ (function (_super) {
         //Controla el tiempo de avance del motor
         _this.controlTime = function (callback) {
             //Espera la posición de destino
-            var nPisos = 0;
-            _this.stateMachine.readSensor = false;
+            var nPisos;
+            var ready = false;
+            _this.stateMachine.countTime = 100;
             nPisos = (_this.stateMachine.location != null) ? _this.stateMachine.location - _this.stateMachine.goingTo : 4;
-            // if(this.stateMachine.location!=null){
-            //     nPisos = this.stateMachine.location - this.stateMachine.goingTo;
-            // }else{
-            //     nPisos = 4;
-            // }
             var time = 0;
             nPisos = (nPisos < 0) ? nPisos * -1 : nPisos;
-            // if(nPisos<0){
-            //     nPisos = nPisos * -1;
-            // }
             time = nPisos * 2700;
             _this.Log.WriteLog("Se movera " + nPisos + " en un tiempo límite para llegar a destino es " + time, ci_syslogs_1.Logger.Severities.Debug);
-            var ready = false;
+            _this.stateMachine.blokingType = 0;
             //Espera la posición de destino
             var wait = setInterval(function () {
-                _this.stateMachine.countTime = _this.stateMachine.countTime + 100;
+                _this.stateMachine.countTime += 100;
                 //Si llego sin problemas en el tiempo estimado
                 if (_this.checkPosition(_this.stateMachine.goingTo)) {
                     _this.Log.WriteLog("Elevador llego por lectura de evento en: " + _this.stateMachine.countTime + " ms", ci_syslogs_1.Logger.Severities.Debug);
                     ready = true;
                 }
                 //Lee el estado del sensor del piso destino
-                _this.pollSensor(_this.stateMachine.pinGoingTo, function (err, value) {
-                    if (value == true) {
-                        ready = true;
-                        _this.Log.WriteLog("Elevador llego por lectura de sensor en: " + _this.stateMachine.countTime + " ms", ci_syslogs_1.Logger.Severities.Debug);
-                    }
-                });
-                //Detiene el elevador según tiempo estimado de piso
-                if (_this.stateMachine.countTime >= _this.times[_this.stateMachine.goingTo].timeToFloor) {
-                    ready = true;
-                    _this.Log.WriteLog("Elevador llego por tiempo límite de piso en: " + _this.stateMachine.countTime + " ms", ci_syslogs_1.Logger.Severities.Debug);
+                if (_this.stateMachine.goingTo != 0) {
+                    _this.pollSensor(ConfigMachine_1.default.Sensor[_this.stateMachine.goingTo].PIN, function (err, value) {
+                        if (value == true) {
+                            _this.stateMachine.timeWithoutSensor = 100;
+                            ready = true;
+                            _this.Log.WriteLog("Elevador llego por lectura de sensor en: " + _this.stateMachine.countTime + " ms", ci_syslogs_1.Logger.Severities.Debug);
+                        }
+                    });
                 }
                 if (ready == true) {
                     _this.stateMachine.blokingType = 0;
                     _this.stateMachine.attempts = 0;
-                    _this.stateMachine.countTime = 100;
+                    _this.stateMachine.countTime = 0;
                     clearInterval(wait);
                     wait = null;
                     callback(null);
@@ -849,20 +847,13 @@ var ControllerMachine = /** @class */ (function (_super) {
                     if (_this.stateMachine.motorState == 2 && _this.stateMachine.isDispense == true) {
                         _this.stateMachine.blokingType = 2;
                     }
-                    _this.controlBlocking(callback);
-                    clearInterval(wait);
-                    wait = null;
-                }
-                //Si han pasado 4 segundos sin detectar ningun sensor
-                if (_this.stateMachine.countTime > 4000 && _this.stateMachine.readSensor == false) {
-                    _this.stateMachine.blokingType = 5;
-                    _this.controlBlocking(callback);
+                    callback("Bloqueo");
                     clearInterval(wait);
                     wait = null;
                 }
                 //Si está definido un tipo de bloqueo
                 if (_this.stateMachine.blokingType != 0) {
-                    _this.controlBlocking(callback);
+                    callback("Bloqueo");
                     clearInterval(wait);
                     wait = null;
                 }
@@ -871,10 +862,12 @@ var ControllerMachine = /** @class */ (function (_super) {
         //Controla intentos de desatascos del elevador
         _this.controlBlocking = function (callback) {
             _this.stateMachine.attempts++;
+            _this.Log.WriteLog("Intentos " + _this.stateMachine.attempts, ci_syslogs_1.Logger.Severities.Debug);
             _this.securityState(false);
             if (_this.stateMachine.attempts > 2) {
-                _this.Log.WriteLog("Elevador bloqeuado luego de 2 intentos - Se requiere revisión", ci_syslogs_1.Logger.Severities.Critical);
-                callback("Elevador bloqueado luego de 2 intentos - Se requiere revisión");
+                _this.Log.WriteLog("Elevador bloqueado luego de 2 intentos - Se requiere revisión", ci_syslogs_1.Logger.Severities.Critical);
+                //callback("Elevador bloqueado luego de 2 intentos - Se requiere revisión")
+                _this.disableMachine();
             }
             else {
                 _this.Log.WriteLog("Comenzando proceso de desbloqueo número: " + _this.stateMachine.attempts, ci_syslogs_1.Logger.Severities.Debug);
@@ -893,6 +886,7 @@ var ControllerMachine = /** @class */ (function (_super) {
                                 _this.findElevator(function (err) {
                                     if (err) {
                                         callback("Imposible conseguir el elevador");
+                                        _this.disableMachine();
                                     }
                                     else {
                                         callback(null);
@@ -905,6 +899,7 @@ var ControllerMachine = /** @class */ (function (_super) {
                     case 2: //Atasco del elevador luego de recibir artículo
                         _this.motorStop();
                         _this.stateMachine.enableMachine = false;
+                        _this.disableMachine();
                         callback("Se detectó un atasco al bajar para entregar - La máquina está deshabilitada por seguridad");
                         break;
                     //Listo - Probado
@@ -920,50 +915,27 @@ var ControllerMachine = /** @class */ (function (_super) {
                             }, 1500);
                         }, 300);
                         break;
-                    //Listo - Probar
+                    //Listo - Probado
                     case 4: //Se detecta un evento inesperado en los sensores
                         _this.stateMachine.isDelivery = false;
+                        _this.stateMachine.enableMachine = false;
                         _this.motorStop();
                         setTimeout(function () {
                             _this.gotoInitPosition(function (err) {
-                                if (err) {
-                                    _this.Log.WriteLog("Maquina deshabilitada, no se pudo estabilizar", ci_syslogs_1.Logger.Severities.Alert);
-                                    _this.stateMachine.enableMachine = false;
-                                }
-                                else {
+                                _this.disableMachine();
+                                if (err == null) {
                                     _this.Log.WriteLog("Elevador ubicado en posicion inicial por seguridad", ci_syslogs_1.Logger.Severities.Alert);
                                     _this.stateMachine.attempts = 0;
-                                    _this.stateMachine.blokingType = 0;
+                                    callback(null);
+                                }
+                                else {
+                                    _this.Log.WriteLog("Maquina deshabilitada, no se pudo estabilizar", ci_syslogs_1.Logger.Severities.Alert);
                                 }
                             });
                         }, 1000);
-                        callback("Se detectó un evento inesperado - La máquina está deshabilitada por seguridad");
                         break;
                     //Listo - Probar
-                    case 5: //Si han pasado 4 segundos sin detectar ningun sensor cuando el motor está en movimiento
-                        _this.motorStop();
-                        _this.Log.WriteLog("Step 1 - Reseteando sensores", ci_syslogs_1.Logger.Severities.Alert);
-                        _this.resetSensors(function (err) {
-                            if (err) {
-                                callback("No se pudo recuperar sensores");
-                            }
-                            else {
-                                _this.Log.WriteLog("Step 2 - Buscando elevador", ci_syslogs_1.Logger.Severities.Alert);
-                                _this.findElevator(function (err) {
-                                    if (err) {
-                                        callback("Imposible conseguir el elevador");
-                                    }
-                                    else {
-                                        _this.GoTo(function (err) {
-                                            callback(err);
-                                        }, _this.stateMachine.goingTo);
-                                    }
-                                });
-                            }
-                        });
-                        break;
-                    //Listo - Probar
-                    case 6: //Si pasó de posición
+                    case 5: //Si pasó de posición
                         _this.motorStop();
                         _this.Log.WriteLog("Step 1 - Reseteando sensores", ci_syslogs_1.Logger.Severities.Alert);
                         _this.resetSensors(function (err) {
@@ -972,9 +944,11 @@ var ControllerMachine = /** @class */ (function (_super) {
                             }
                             else {
                                 _this.Log.WriteLog("Step 2 - ubicando elevador en posición inicial", ci_syslogs_1.Logger.Severities.Alert);
-                                _this.gotoInitPosition(function (err) {
-                                    if (err) {
-                                        callback("No se pudo ubicar el elevador en posición inicial");
+                                _this.stateMachine.location = null;
+                                _this.findElevator(function (err) {
+                                    if (err != null) {
+                                        _this.disableMachine();
+                                        callback("No se pudo encontrar el elevador");
                                     }
                                     else {
                                         _this.GoTo(function (err) {
@@ -987,36 +961,6 @@ var ControllerMachine = /** @class */ (function (_super) {
                         break;
                 }
             }
-        };
-        //Proceso de establecer valores estimados de llegada a piso
-        _this.pollTimeProcess = function (callback) {
-            _this.securityState(false);
-            _this.Log.WriteLog("Iniciando proceso de lectura encuesta de tiempos", ci_syslogs_1.Logger.Severities.Debug);
-            async_1.default.series([
-                function (callback) {
-                    _this.Log.WriteLog("Step 1 - Subiendo para chequear tiempos", ci_syslogs_1.Logger.Severities.Debug);
-                    _this.stateMachine.pollProcess = true;
-                    setTimeout(function () {
-                        _this.GoTo(callback, 1);
-                    }, 1000);
-                },
-                function (callback) {
-                    _this.Log.WriteLog("Step 2 - Llevando a posición inicial", ci_syslogs_1.Logger.Severities.Debug);
-                    setTimeout(function () {
-                        _this.gotoInitPosition(callback);
-                    }, 1000);
-                }
-            ], function (result) {
-                if (result == null) {
-                    _this.Log.WriteLog('Proceso de encuesta completo', ci_syslogs_1.Logger.Severities.Debug);
-                    _this.stateMachine.pollProcess = false;
-                    callback(result);
-                }
-                else {
-                    _this.Log.WriteLog("Error en proceso de encuesta: " + result, ci_syslogs_1.Logger.Severities.Error);
-                    callback(result);
-                }
-            });
         };
         //Leer pin de entrada Gpio
         _this.pollSensor = function (pin, callback) {
@@ -1027,17 +971,45 @@ var ControllerMachine = /** @class */ (function (_super) {
                     callback(err);
                 }
                 else {
-                    _this.Log.WriteLog("Leyendo pin " + pin + " en estado " + value, ci_syslogs_1.Logger.Severities.Debug);
-                    callback(null, value);
+                    if (value == true) {
+                        _this.Log.WriteLog("Leyendo pin " + pin + " en estado " + value, ci_syslogs_1.Logger.Severities.Debug);
+                        callback(null, value);
+                    }
                 }
             });
         };
-        //**************************Beta*******************************!//
+        //Leer pines de entrada Gpio
+        _this.pollAllSensors = function (callback) {
+            var _loop_1 = function (i) {
+                _this.pollSensor(ConfigMachine_1.default.Sensor[i].PIN, function (err, value) {
+                    _this.Log.WriteLog("Check pin de piso " + i + " - valor: " + value, ci_syslogs_1.Logger.Severities.Debug);
+                    _this.stateMachine.location = (value == true && _this.stateMachine.findProcess == true) ? i : null;
+                    if (err != null) {
+                        callback("Error leyendo pin " + ConfigMachine_1.default.Sensor[i].PIN + " del piso " + i);
+                    }
+                });
+            };
+            for (var i = 1; i < 8; i++) {
+                _loop_1(i);
+            }
+            callback(null);
+        };
+        //Habilitar y deshabilitar maquina
+        _this.enableMachine = function () {
+            _this.stateMachine.enableMachine = true;
+            _this.Log.WriteLog("Máquina habilitada", ci_syslogs_1.Logger.Severities.Debug);
+            _this.emit("Event", { cmd: "Enable_Machine" });
+        };
+        _this.disableMachine = function () {
+            _this.stateMachine.enableMachine = false;
+            _this.Log.WriteLog("Máquina deshabilitada", ci_syslogs_1.Logger.Severities.Debug);
+            _this.emit("Event", { cmd: "Disable_Machine" });
+        };
         //Test celdas
         _this.testCeldas = function (piso, coll_1, coll_2, callback) {
-            var row = Maps_1.default.row[piso].PIN;
-            var c1 = Maps_1.default.column[coll_1].PIN;
-            var c2 = (coll_2 != null) ? Maps_1.default.column[coll_2].PIN : null;
+            var row = ConfigMachine_1.default.row[piso].PIN;
+            var c1 = ConfigMachine_1.default.column[coll_1].PIN;
+            var c2 = (coll_2 != null) ? ConfigMachine_1.default.column[coll_2].PIN : null;
             _this.Log.WriteLog("Iniciando test de celda", ci_syslogs_1.Logger.Severities.Debug);
             _this.motorCintaStart(row, c1, c2);
             setTimeout(function () {
@@ -1046,7 +1018,36 @@ var ControllerMachine = /** @class */ (function (_super) {
                 callback(null);
             }, 4000);
         };
-        _this.Log.WriteLog("Control inicializado Version 8", ci_syslogs_1.Logger.Severities.Debug);
+        //Test de pines de salida
+        _this.testPinOut = function (mcp, pin, callback) {
+            _this.Log.WriteLog("Iniciando test de pin de salida " + pin, ci_syslogs_1.Logger.Severities.Debug);
+            try {
+                switch (mcp) {
+                    case 1:
+                        _this.Log.WriteLog("Encendiendo pin " + pin + " de MCP1", ci_syslogs_1.Logger.Severities.Debug);
+                        _this.mcp1.digitalWrite(pin, _this.mcp1.HIGH);
+                        setTimeout(function () {
+                            _this.mcp1.digitalWrite(pin, _this.mcp1.LOW);
+                            console.log("Test de celda finalizado");
+                            callback(null);
+                        }, 3000);
+                        break;
+                    case 2:
+                        _this.Log.WriteLog("Encendiendo pin " + pin + " de MCP2", ci_syslogs_1.Logger.Severities.Debug);
+                        _this.mcp2.digitalWrite(pin, _this.mcp2.HIGH);
+                        setTimeout(function () {
+                            _this.mcp2.digitalWrite(pin, _this.mcp2.LOW);
+                            console.log("Test de celda finalizado");
+                            callback(null);
+                        }, 3000);
+                        break;
+                }
+            }
+            catch (e) {
+                callback(e);
+            }
+        };
+        _this.Log.WriteLog("Control inicializado Version 8 Lite", ci_syslogs_1.Logger.Severities.Debug);
         rpi_gpio_1.default.on('change', _this.mainSignal);
         _this.initOuts();
         _this.initSensors(function (err) {
@@ -1056,30 +1057,34 @@ var ControllerMachine = /** @class */ (function (_super) {
         });
         _this.stateMachine.sensorPiso = new Sensor_1.Sensor();
         _this.Log.WriteLog("Chequeando Sensor Serial", ci_syslogs_1.Logger.Severities.Debug);
-        //this.stateMachine.enableMachine=true;// Modo prueba
+        _this.stateMachine.enableMachine = true; // Modo prueba
         setTimeout(function () {
             if (_this.stateMachine.sensorPiso.isCheck == true) {
-                _this.Log.WriteLog("Máquina habilitada", ci_syslogs_1.Logger.Severities.Debug);
-                _this.stateMachine.enableMachine = true;
                 _this.securityState(false);
-                _this.emit("Event", { cmd: "Maquina_Lista" });
                 if (_this.stateMachine.location == null) {
-                    _this.findElevator(function (cb) {
-                        _this.Log.WriteLog("Fin de proceso de busqueda de elevador", ci_syslogs_1.Logger.Severities.Debug);
-                        setTimeout(function () {
-                            _this.gotoInitPosition(function (err) {
-                                if (err != null) {
-                                    _this.Log.WriteLog(err, ci_syslogs_1.Logger.Severities.Error);
-                                }
-                                else {
-                                    _this.pollTimeProcess(function (err) {
-                                        if (err != null) {
-                                            _this.Log.WriteLog(err, ci_syslogs_1.Logger.Severities.Error);
-                                        }
-                                    });
+                    _this.pollAllSensors(function (err) {
+                        if (err == null) {
+                            _this.findElevator(function (cb) {
+                                if (cb == null) {
+                                    _this.Log.WriteLog("Fin de proceso de busqueda de elevador", ci_syslogs_1.Logger.Severities.Debug);
+                                    setTimeout(function () {
+                                        _this.gotoInitPosition(function (err) {
+                                            if (err != null) {
+                                                _this.Log.WriteLog(err, ci_syslogs_1.Logger.Severities.Error);
+                                            }
+                                            else {
+                                                _this.Log.WriteLog("Elevador Listo", ci_syslogs_1.Logger.Severities.Debug);
+                                                _this.enableMachine();
+                                            }
+                                        });
+                                    }, 1000);
                                 }
                             });
-                        }, 1000);
+                        }
+                        else {
+                            _this.Log.WriteLog(err, ci_syslogs_1.Logger.Severities.Error);
+                            _this.stateMachine.enableMachine = false;
+                        }
                     });
                 }
             }

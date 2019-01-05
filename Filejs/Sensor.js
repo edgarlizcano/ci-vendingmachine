@@ -16,16 +16,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var ci_logmodule_1 = __importDefault(require("@ci24/ci-logmodule"));
 var events_1 = __importDefault(require("events"));
 var ProcessDataSensor_1 = require("./ProcessDataSensor");
-var Mux_class_1 = require("./Mux_class");
 var async_1 = __importDefault(require("async"));
-//let folderLogs = "/free/CI24/Logs/Machine";
-//_log.init(folderLogs);
 var Sensor = /** @class */ (function (_super) {
     __extends(Sensor, _super);
     function Sensor() {
         var _this = _super.call(this) || this;
         _this.Sensorcomand = new ProcessDataSensor_1.ProcessDataSensor();
-        _this.Mux = new Mux_class_1.Mux_class();
         _this.data = {
             port: '/dev/ttyAMA0',
             baudRate: 9600
@@ -34,7 +30,6 @@ var Sensor = /** @class */ (function (_super) {
         _this.Check_Sensor = function (data, callback) {
             try {
                 async_1.default.series([
-                    async_1.default.apply(_this.Mux.SetSensor, null),
                     async_1.default.apply(_this.Sensorcomand.CheckPortOpen, data),
                 ], function (err) {
                     callback(err);
@@ -48,7 +43,6 @@ var Sensor = /** @class */ (function (_super) {
         _this.Get_state = function (callback) {
             try {
                 async_1.default.series([
-                    async_1.default.apply(_this.Mux.SetSensor, null),
                     async_1.default.apply(_this.Sensorcomand.SendComand, null),
                 ], function (err) {
                     callback(err);
@@ -62,7 +56,6 @@ var Sensor = /** @class */ (function (_super) {
         _this.Open_port = function (data, callback) {
             try {
                 async_1.default.series([
-                    async_1.default.apply(_this.Mux.SetSensor, null),
                     async_1.default.apply(_this.Sensorcomand.Open_port, data),
                 ], function (err) {
                     callback(err);

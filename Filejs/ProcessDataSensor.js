@@ -18,18 +18,6 @@ var events_1 = __importDefault(require("events"));
 var _serial = require('@ci24/ci-serialmanager');
 var Serial_Sensor_1 = require("./Serial_Sensor");
 var async_1 = __importDefault(require("async"));
-//let folderLogs = "/free/CI24/Logs/Machine";
-//_log.init(folderLogs);
-/*let folderLogs = "/free/CI24/Logs/Machine/";
-let data = {
-    "pathFolder": folderLogs,
-    "maxLogSizeMB": 10,
-    "backups": 5,
-    "fileName": "test.log",
-    "level": "INFO"
-};
-
-_log.init(data);*/
 var ProcessDataSensor = /** @class */ (function (_super) {
     __extends(ProcessDataSensor, _super);
     function ProcessDataSensor() {
@@ -206,11 +194,6 @@ var ProcessDataSensor = /** @class */ (function (_super) {
         _this.SendComand = function (txt, cb) {
             try {
                 async_1.default.series([
-                    /*         _async.apply(this.check_open_port,null),
-                           _async.apply(this.SendComand_,this.Trama_IN),
-                             _async.apply(this.POOLSTATE,null),
-                           _async.apply(this.SendComand_,this.Trama_POOL),
-                            _async.apply(this.POOLSTATE,null),*/
                     async_1.default.apply(_this.SendComand_, _this.Trama_STATE),
                     async_1.default.apply(_this.POOLSTATE, null),
                 ], function (err) {

@@ -4,7 +4,6 @@ import { callback } from "./Interfaces";
 export declare class Sensor extends event.EventEmitter {
     constructor();
     private Sensorcomand;
-    private Mux;
     private data;
     isCheck: any;
     Check_Sensor: (data: any, callback: callback) => void;

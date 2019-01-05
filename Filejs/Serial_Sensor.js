@@ -15,9 +15,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var ci_logmodule_1 = __importDefault(require("@ci24/ci-logmodule"));
 var events_1 = __importDefault(require("events"));
-var Global_1 = __importDefault(require("./Global"));
-//let folderLogs = "/free/CI24/Logs/Machine/";
-//_log.init(folderLogs);
+var ConfigMachine_1 = __importDefault(require("./ConfigMachine"));
 var Serial_Sensor = /** @class */ (function (_super) {
     __extends(Serial_Sensor, _super);
     function Serial_Sensor() {
@@ -53,7 +51,7 @@ var Serial_Sensor = /** @class */ (function (_super) {
                 }
                 else {
                     ci_logmodule_1.default.error('CRC incorrecta,   Longitud de trama=  ' + BufferIn.length + '    Respuesta incorrecta');
-                    ci_logmodule_1.default.error('Trama  ----->' + JSON.stringify(BufferIn));
+                    //_log.error('Trama  ----->'+JSON.stringify(BufferIn));
                     callback('trama incorrecta');
                 }
             }
@@ -67,17 +65,17 @@ var Serial_Sensor = /** @class */ (function (_super) {
                 if (BufferIn[0] == 0xcc && BufferIn[BufferIn.length - 1] == 0xbb) {
                     ci_logmodule_1.default.write('Inicio y fin de trama correcto de check Sensores' + 'CRC correcto,   Longitud de trama=  ' + BufferIn.length);
                     if (BufferIn[1] == 0x10) {
-                        ci_logmodule_1.default.write('Trama respuesta check ----->' + JSON.stringify(BufferIn));
+                        //_log.write('Trama respuesta check ----->'+JSON.stringify(BufferIn));
                         callback(null, 'ok');
                     }
                     else {
-                        ci_logmodule_1.default.error('respuesta de check desconocida----->' + JSON.stringify(BufferIn));
+                        //_log.error('respuesta de check desconocida----->'+JSON.stringify(BufferIn));
                         callback(null, 'ok');
                     }
                 }
                 else {
                     ci_logmodule_1.default.error('Respuesta incorrett,   Longitud de trama=  ' + BufferIn.length + '    aparecte respuesta de check');
-                    ci_logmodule_1.default.error('Trama  ----->' + JSON.stringify(BufferIn));
+                    //_log.error('Trama  ----->'+JSON.stringify(BufferIn));
                     callback('Respuesta incorrett');
                 }
             }
@@ -105,7 +103,7 @@ var Serial_Sensor = /** @class */ (function (_super) {
                 }
                 else {
                     ci_logmodule_1.default.error('Respuesta incorrett,   Longitud de trama=  ' + BufferIn.length + '    aparecte respuesta de check');
-                    ci_logmodule_1.default.error('Trama  ----->' + JSON.stringify(BufferIn));
+                    //_log.error('Trama  ----->'+JSON.stringify(BufferIn));
                     callback('Respuesta incorrett');
                 }
             }
@@ -121,13 +119,13 @@ var Serial_Sensor = /** @class */ (function (_super) {
                     if (BufferIn[3] == 0x33) {
                         if (BufferIn[4] > 0xf0) {
                             ci_logmodule_1.default.warning('esta desocupada----->' + JSON.stringify(BufferIn));
-                            Global_1.default.Is_empty = true;
+                            ConfigMachine_1.default.Is_empty = true;
                             callback(null, '');
                         }
                         else {
                             ci_logmodule_1.default.fatal('esta ocupada----->' + JSON.stringify(BufferIn));
                             callback(null, 'ok');
-                            Global_1.default.Is_empty = false;
+                            ConfigMachine_1.default.Is_empty = false;
                         }
                     }
                     else {
@@ -137,7 +135,7 @@ var Serial_Sensor = /** @class */ (function (_super) {
                 }
                 else {
                     ci_logmodule_1.default.error('Respuesta incorrett,   Longitud de trama=  ' + BufferIn.length + '    aparecte respuesta de check');
-                    ci_logmodule_1.default.error('Trama  ----->' + JSON.stringify(BufferIn));
+                    //_log.error('Trama  ----->'+JSON.stringify(BufferIn));
                     callback('Respuesta incorrett,');
                 }
             }

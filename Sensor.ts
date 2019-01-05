@@ -2,11 +2,7 @@ import _log from "@ci24/ci-logmodule";
 import event from 'events';
 import {callback} from "./Interfaces";
 import {ProcessDataSensor} from "./ProcessDataSensor";
-import {Mux_class} from "./Mux_class";
 import _async from "async";
-
-//let folderLogs = "/free/CI24/Logs/Machine";
-//_log.init(folderLogs);
 
 export class Sensor extends event.EventEmitter {
     constructor() {
@@ -24,7 +20,6 @@ export class Sensor extends event.EventEmitter {
        },3000);
     }
     private Sensorcomand = new ProcessDataSensor();
-    private Mux          = new Mux_class();
     private data={
         port:'/dev/ttyAMA0',
         baudRate:9600
@@ -33,7 +28,6 @@ export class Sensor extends event.EventEmitter {
     public Check_Sensor=( data:any,callback:callback)=> {
         try{
             _async.series([
-                _async.apply(this.Mux.SetSensor,null),
                 _async.apply(this.Sensorcomand.CheckPortOpen,data),
 
             ],(err:any)=>{
@@ -50,7 +44,6 @@ export class Sensor extends event.EventEmitter {
     public Get_state=( callback:callback)=> {
         try{
             _async.series([
-                _async.apply(this.Mux.SetSensor,null),
                 _async.apply(this.Sensorcomand.SendComand,null),
 
             ],(err:any)=>{
@@ -66,7 +59,6 @@ export class Sensor extends event.EventEmitter {
     public Open_port=(data:any, callback:callback)=> {
         try{
             _async.series([
-                _async.apply(this.Mux.SetSensor,null),
                 _async.apply(this.Sensorcomand.Open_port,data),
 
             ],(err:any)=>{

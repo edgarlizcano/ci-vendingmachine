@@ -4,10 +4,6 @@ import {callback} from "./Interfaces";
 import _async from 'async';
 let _reader = require('@ci24/ci-readersl025');
 import {Mux_class} from "./Mux_class";
-import global from'./Global';
-
-//let folderLogs = "/free/CI24/Logs/Machine/";
-//_log.init(folderLogs);
 
 export class Reader extends event.EventEmitter {
     constructor() {

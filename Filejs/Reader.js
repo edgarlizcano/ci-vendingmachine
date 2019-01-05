@@ -18,8 +18,6 @@ var events_1 = __importDefault(require("events"));
 var async_1 = __importDefault(require("async"));
 var _reader = require('@ci24/ci-readersl025');
 var Mux_class_1 = require("./Mux_class");
-//let folderLogs = "/free/CI24/Logs/Machine/";
-//_log.init(folderLogs);
 var Reader = /** @class */ (function (_super) {
     __extends(Reader, _super);
     function Reader() {

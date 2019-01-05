@@ -1,5 +1,5 @@
 import _log from "@ci24/ci-logmodule";
-import global from'./Global';
+import global from './Global2';
 import rpio from 'rpio';
 import event from 'events';
 import Gpio from "rpi-gpio";

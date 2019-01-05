@@ -15,17 +15,17 @@ var Logger = /** @class */ (function () {
         };
         this.WriteLog = function (message, severity) {
             var date = new Date();
-            var datetime = date.toLocaleDateString("es-CO", _this.options);
+            var msg = date.toLocaleDateString("es-CO", _this.options) + " - " + message;
             var logOptions = {
                 facility: _this.facility,
                 severity: severity
             };
-            _this.client.log(+datetime + "-" + message, logOptions, function (error) {
+            _this.client.log(msg, logOptions, function (error) {
                 if (error) {
                     console.error(error);
                 }
                 else {
-                    console.log("Syslog-" + severity + ": " + datetime + " - " + message);
+                    console.log("Syslog-" + severity + ": " + msg);
                 }
             });
         };
@@ -65,4 +65,3 @@ var Logger = /** @class */ (function () {
     return Logger;
 }());
 exports.Logger = Logger;
-//# sourceMappingURL=Logger.js.map
