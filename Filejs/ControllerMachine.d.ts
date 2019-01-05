@@ -34,6 +34,6 @@ export declare class ControllerMachine extends EventEmitter {
     private controlTime;
     private controlBlocking;
     private pollTimeProcess;
-    private pollSensor;
+    pollSensor: (pin: number, callback: any) => void;
     testCeldas: (piso: number, coll_1: number, coll_2: any, callback: any) => void;
 }
