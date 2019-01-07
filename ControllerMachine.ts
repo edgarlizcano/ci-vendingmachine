@@ -40,7 +40,6 @@ export class ControllerMachine extends EventEmitter{
         countTime       : 100,      //Define el tiempo de un desplazamiento
         timeToDisepense : 100
     };
-
     constructor(){
         super();
         this.Log.WriteLog("Control inicializado Version 8 Lite", Logger.Severities.Debug);

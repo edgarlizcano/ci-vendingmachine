@@ -53,7 +53,6 @@ Config.MCP_Motor= {
     Down  :  {MCP: 2, value: 2},
     ENABLE:  {MCP: 2, value: 1},
 };
-
 Config.mux={
     Mux_1:  {MCP: 2, value: 8, text: "Mux_1",status: false, ID:0},
     Mux_2:  {MCP: 2, value: 9, text: "Mux_2",status: false, ID:1}
