@@ -45,11 +45,17 @@ block content
                             button.btn.btn-info.btn-block(type='button' onclick="cellStart()") Test Cell
                     .form-row
                         .form-group.col-md-8
-                            button.btn.btn-info.btn-block(type='button' onclick="cellDispense()") Test Dispense
+                            button.btn.btn-success.btn-block(type='button' onclick="cellDispense()") Test Dispense
                     .form-row
                         .form-group.col-md-4
-                            input#mcp.form-control(type='number', min='1', max='2' value='1' placeholder='mcp')
-                            input#pin.form-control(type='number', min='0', max='50' value='0' placeholder='pin')
+                                h5.text-center Select MCP:
+                        .form-group.col-md-3
+                                input#mcp.form-control(type='number', min='1', max='2' value='1' placeholder='mcp')
+                    .form-row
+                        .form-group.col-md-4
+                                h5.text-center Select Pin:
+                        .form-group.col-md-3
+                                input#pin.form-control(type='number', min='0', max='50' value='0' placeholder='pin')
                     .form-row
                         .form-group.col-md-8
                             button.btn.btn-info.btn-block(type='button' onclick="testPin()") Test Pin Out

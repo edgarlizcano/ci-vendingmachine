@@ -40,6 +40,7 @@ export class ControllerMachine extends EventEmitter{
         countTime       : 100,      //Define el tiempo de un desplazamiento
         timeToDisepense : 100
     };
+
     constructor(){
         super();
         this.Log.WriteLog("Control inicializado Version 8 Lite", Logger.Severities.Debug);
@@ -411,19 +412,19 @@ export class ControllerMachine extends EventEmitter{
                 }
                 break;
             }
-            //Detecta que el elevador llego a la posición deseada
-            if(this.stateMachine.goingTo == this.stateMachine.location){
-                //Si se dirige a hacer una entrega, baja un poco más
-                if(this.stateMachine.isDelivery==true && this.stateMachine.goingTo == 7){
-                    this.Log.WriteLog("Bajando el elevador para retirar el producto", Logger.Severities.Debug);
-                    setTimeout(()=>{
-                        this.motorStop();
-                    },300)
-                }else{
+        //Detecta que el elevador llego a la posición deseada
+        if(this.stateMachine.goingTo == this.stateMachine.location){
+            //Si se dirige a hacer una entrega, baja un poco más
+            if(this.stateMachine.isDelivery==true && this.stateMachine.goingTo == 7){
+                this.Log.WriteLog("Bajando el elevador para retirar el producto", Logger.Severities.Debug);
+                setTimeout(()=>{
                     this.motorStop();
-                }
+                },300)
+            }else{
+                this.motorStop();
             }
-        this.emit("Sensor",{cmd:this.stateMachine.location,state:state});
+        }
+        //this.emit("Sensor",{cmd:this.stateMachine.location,pin:pin,state:state});
     };
     //Control de mandos de controladora
     private manualController = (pin:number, state:boolean)=>{
@@ -457,6 +458,7 @@ export class ControllerMachine extends EventEmitter{
     };
     //Recibe señal de entrada y determina de donde proviene
     private mainSignal=(pin:number,state:boolean)=>{
+        this.emit("Sensor",{'pin':pin,'state':state});
             switch (pin) {
                 case Config.Sensor["1"].PIN:
                     this.controlSensors(1,pin,state);
@@ -602,9 +604,9 @@ export class ControllerMachine extends EventEmitter{
 
     };
     //Prepara y ajusta posición del elevador para recibir artículo
-    private prepareForDispense=(callback: any, height:number)=> {
+    private prepareForDispense=(callback: any, piso:number,height:number)=> {
         let timeForDown = height * this.stateMachine.timeSettingAdjust;
-        if (this.checkPosition(this.stateMachine.location)) {
+        if (this.checkPosition(piso)) {
             this.Log.WriteLog("Comenzando proceso de retroceso para ajuste de altura", Logger.Severities.Debug);
             this.motorStartDown();
             setTimeout(() => {
@@ -646,11 +648,7 @@ export class ControllerMachine extends EventEmitter{
                 _async.series([
                     (callback:any)=>{
                         this.Log.WriteLog("Step 1 Verificando posición de elevador", Logger.Severities.Debug);
-                        if(this.checkPosition(7)){
-                            callback(null)
-                        }else{
                             this.findElevator(callback);
-                        }
                     },
                     (callback:any)=>{
                         this.Log.WriteLog("Step 2 Ubicando elevador en posición", Logger.Severities.Debug);
@@ -659,7 +657,7 @@ export class ControllerMachine extends EventEmitter{
                     (callback:any)=>{
                         this.Log.WriteLog("Step 3 Ajustando posición del elevador segun tamaño", Logger.Severities.Debug);
                         setTimeout(()=>{
-                            this.prepareForDispense(callback, height)
+                            this.prepareForDispense(callback, piso, height)
                         },1000)
                     },
                     (callback:any)=>{
@@ -673,7 +671,7 @@ export class ControllerMachine extends EventEmitter{
                         this.stateMachine.receivingItem= false;
                         this.stateMachine.isDelivery=true;
                         setTimeout(()=>{
-                            this.GoTo(callback,7);
+                            this.GoTo(callback,Config.row[7].Piso);
                         },1000)
                     },
                     (callback:any)=>{
@@ -681,10 +679,10 @@ export class ControllerMachine extends EventEmitter{
                         this.emit("Event",{cmd:"Ok_dispensing", data:true});
                         setTimeout(()=>{
                             this.waitForRemoveItem(callback)
-                        },2000)
+                        },1000)
                     },
                     (callback:any)=>{
-                        this.Log.WriteLog("Step 7 Asegurando puerta", Logger.Severities.Debug);
+                        this.Log.WriteLog("Step 7 Esperando para Asegurar puerta", Logger.Severities.Debug);
                         setTimeout(()=>{
                             this.gotoInitPosition(callback)
                         },8000)
@@ -708,8 +706,7 @@ export class ControllerMachine extends EventEmitter{
                     }
                 })
         }else{
-            this.emit("Event",{cmd:"Falla"});
-            callback("Máquina deshabilitada por falla en sensores")
+            callback("Máquina deshabilitada por falla o No está lista")
         }
     };
     //Ubicar el elevador en la posición inicial
@@ -750,6 +747,7 @@ export class ControllerMachine extends EventEmitter{
                     callback(null);
                 } else{
                     this.Log.WriteLog("Error ubicando en la posición inicial", Logger.Severities.Alert);
+                    this.disableMachine();
                     callback(result);
                 }
             })
@@ -760,66 +758,66 @@ export class ControllerMachine extends EventEmitter{
         let row = Config.row[piso].PIN;
         let c1 = Config.column[coll_1].PIN;
         let c2 = (coll_2 != null) ? Config.column[coll_2].PIN : null;
-        this.Log.WriteLog("Iniciando Dispensado desde piso "+piso+" columna-1: "+c1+" columna-2 "+c2, Logger.Severities.Debug);
-        this.motorCintaStart(row, c1, c2);
-        this.stateMachine.receivingItem= true;
-        let countTime = 100;
-        let wait:any = setInterval(()=>{
-            countTime+=100;
-            //Si se excede del tiempo estimado
-            if(countTime>10000){
-                this.Log.WriteLog("Exceso de tiempo dispensando, countTime: "+countTime, Logger.Severities.Debug);
+        if(this.checkPosition(piso)){
+            this.Log.WriteLog("Iniciando Dispensado desde piso "+piso+" columna-1: "+c1+" columna-2 "+c2, Logger.Severities.Debug);
+            this.motorCintaStart(row, c1, c2);
+            this.stateMachine.receivingItem= true;
+            let countTime = 100;
+            let wait:any = setInterval(()=>{
+                countTime+=100;
+                //Si se excede del tiempo estimado
+                if(countTime>10000){
+                    this.Log.WriteLog("Exceso de tiempo dispensando, countTime: "+countTime, Logger.Severities.Debug);
+                    this.motorCintaStop(row, c1, c2);
+                    callback("Tiempo excedido dispensando artículo");
+                    clearInterval(wait);
+                    wait=null;
+                }
+                //Lee el sensor para leer llegada del producto
+                this.pollSensor(Config.Sensor[piso].PIN,(err:any, value:boolean)=>{
+                    //Emite el evento de entrega del articulo en el elevador si y solo si esta habilitado el estado y el motor está detenido
+                    if(value == true){
+                        this.emit("Item recibido",this.stateMachine.location,value);
+                    }
+                })
+            },200);
+            this.once("Item recibido",()=>{
                 this.motorCintaStop(row, c1, c2);
-                callback("Tiempo excedido dispensando artículo");
+                this.stateMachine.receivingItem=false;
+                callback(null);
                 clearInterval(wait);
                 wait=null;
-            }
-            //Lee el sensor para leer llegada del producto
-            this.pollSensor(Config.Sensor[piso].PIN,(err:any, value:boolean)=>{
-                //Emite el evento de entrega del articulo en el elevador si y solo si esta habilitado el estado y el motor está detenido
-                if(value == true){
-                    this.emit("Item recibido",this.stateMachine.location,value);
-                }
             })
-        },200);
-        this.once("Item recibido",()=>{
-            this.motorCintaStop(row, c1, c2);
-            this.stateMachine.receivingItem=false;
-            callback(null);
-            clearInterval(wait);
-            wait=null;
-        })
+        }else{
+            this.Log.WriteLog("El elevador no está en posición para dispensar", Logger.Severities.Error);
+            callback("El elevador no está en posición para dispensar")
+        }
     };
     //Controla el tiempo de avance del motor
     private controlTime=(callback:any)=>{
         //Espera la posición de destino
         let nPisos:number;
+        let time = 0;
         let ready:boolean = false;
         this.stateMachine.countTime = 100;
         nPisos = (this.stateMachine.location!=null)?this.stateMachine.location - this.stateMachine.goingTo:4;
-        let time = 0;
         nPisos = (nPisos<0)? nPisos * -1:nPisos;
         time = nPisos * 2700;
         this.Log.WriteLog("Se movera "+nPisos+ " en un tiempo límite para llegar a destino es "+time, Logger.Severities.Debug);
         this.stateMachine.blokingType = 0;
+
         //Espera la posición de destino
         let wait:any = setInterval(()=>{
             this.stateMachine.countTime+=100;
             //Si llego sin problemas en el tiempo estimado
-            if(this.checkPosition(this.stateMachine.goingTo)){
-                this.Log.WriteLog("Elevador llego por lectura de evento en: "+this.stateMachine.countTime+" ms", Logger.Severities.Debug);
-                ready = true;
-            }
+            ready = this.checkPosition(this.stateMachine.goingTo);
+
             //Lee el estado del sensor del piso destino
             if(this.stateMachine.goingTo!=0){
                 this.pollSensor(
                     Config.Sensor[this.stateMachine.goingTo].PIN,
                     (err:any, value:boolean)=>{
-                        if(value == true){
-                            this.stateMachine.timeWithoutSensor = 100;
-                            ready = true;
-                            this.Log.WriteLog("Elevador llego por lectura de sensor en: "+this.stateMachine.countTime+" ms", Logger.Severities.Debug);
-                        }
+                            ready = value;
                     });
             }
             if(ready == true){
@@ -831,16 +829,12 @@ export class ControllerMachine extends EventEmitter{
                 callback(null);
             }
             //Si se excede del tiempo estimado
-            if(this.stateMachine.countTime>time){
+            if(this.stateMachine.countTime>time && this.stateMachine.isDispense == true){
                 this.Log.WriteLog("Leyendo posible atasco, countTime: "+this.stateMachine.countTime, Logger.Severities.Debug);
                 //Si es subiendo - Bloqueo en proceso de dispensa subiendo y se paso del tiempo de posición
-                if(this.stateMachine.motorState == 1 && this.stateMachine.isDispense == true) {
-                    this.stateMachine.blokingType = 3;
-                }
+                this.stateMachine.blokingType = (this.stateMachine.motorState == 1)? 3:0;
                 //Si es bajando - Bloqueo en proceso de dispensa bajando y se paso del tiempo de posición
-                if(this.stateMachine.motorState == 2 && this.stateMachine.isDispense == true){
-                    this.stateMachine.blokingType = 2;
-                }
+                this.stateMachine.blokingType = (this.stateMachine.motorState == 2)? 2:0;
                 callback("Bloqueo");
                 clearInterval(wait);
                 wait=null;
@@ -989,7 +983,6 @@ export class ControllerMachine extends EventEmitter{
         this.Log.WriteLog("Máquina deshabilitada", Logger.Severities.Debug);
         this.emit("Event",{cmd:"Disable_Machine"})
     };
-
     //Test celdas
     public testCeldas=(piso:number, coll_1:number, coll_2:any,callback:any)=> {
         let row = Config.row[piso].PIN;
@@ -1005,7 +998,7 @@ export class ControllerMachine extends EventEmitter{
     };
     //Test de pines de salida
     public testPinOut=(mcp:number, pin:number,callback:any)=> {
-        this.Log.WriteLog("Iniciando test de pin de salida "+pin, Logger.Severities.Debug);
+        this.Log.WriteLog("Iniciando test de Pin de salida "+pin+ " de MCP "+mcp, Logger.Severities.Debug);
         try{
             switch (mcp) {
                 case 1:

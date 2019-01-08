@@ -38,7 +38,7 @@ var ProcessDataSensor = /** @class */ (function (_super) {
         _this.port = 0;
         _this.CheckPortOpen = function (data, cb) {
             try {
-                ci_logmodule_1.default.write("port:{0}:baudRate:{1}" + data.port, data.baudRate);
+                ci_logmodule_1.default.write("port:{0}:baudRate:{1} " + data.port, data.baudRate);
                 if (data.port.length > 0) {
                     _this.port = data.port;
                 }
@@ -89,7 +89,7 @@ var ProcessDataSensor = /** @class */ (function (_super) {
                         }
                         else {
                             _this.port = port;
-                            callback('error abriendopuerto');
+                            callback('error abriendo puerto');
                         }
                     });
                 }

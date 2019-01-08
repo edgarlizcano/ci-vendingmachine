@@ -34,10 +34,10 @@ html(lang="es")
                         addLog("Test Dispense Successful at Row "+data.row+" and Col "+data.col)
                         break;
                     case "WriteHighPin":
-                        addLog("Test Dispense Successful at Row " + data.row + " and Col " + data.col)
+                        addLog("Test Pin Out High at MCP " + data.mcp + " and Pin " + data.pin)
                         break;
                     case "WriteLowPin":
-                        addLog("Test Dispense Successful at Row " + data.row + " and Col " + data.col)
+                        addLog("Test Pin Out Low at MCP " + data.mcp + " and Pin " + data.pin)
                         break;
                 }
             })
@@ -168,7 +168,7 @@ html(lang="es")
             function testPin() {
                 var mcp = document.getElementById("mcp").value
                 var pin = document.getElementById("pin").value
-                socket.emit('testPin', {'mcp': mcp, 'pin': pin})
+                socket.emit('testPin', {'mcp': parseInt(mcp), 'pin': parseInt(pin)})
             }
 
             function addLog(msg) {

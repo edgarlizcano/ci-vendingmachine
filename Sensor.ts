@@ -25,6 +25,7 @@ export class Sensor extends event.EventEmitter {
         baudRate:9600
     };
     public isCheck: any = false;
+
     public Check_Sensor=( data:any,callback:callback)=> {
         try{
             _async.series([
@@ -56,6 +57,7 @@ export class Sensor extends event.EventEmitter {
             callback(exception);
         }
     };
+
     public Open_port=(data:any, callback:callback)=> {
         try{
             _async.series([
@@ -71,5 +73,4 @@ export class Sensor extends event.EventEmitter {
             callback(exception);
         }
     };
-
 }

@@ -7,6 +7,7 @@ export class Serial_Sensor extends event.EventEmitter {
     constructor() {
         super();
     }
+
     public POLLSTATEDATA = (BufferIn:any,state:number, callback:callback) => {
         try {
             if(state==1){
@@ -48,6 +49,7 @@ export class Serial_Sensor extends event.EventEmitter {
         }
 
     };
+
     private Resp_Check = (BufferIn:any, callback:callback) => {
         try {
           if(BufferIn[0]==0xcc&&BufferIn[BufferIn.length-1]==0xbb){
@@ -70,6 +72,7 @@ export class Serial_Sensor extends event.EventEmitter {
             callback(exception);
         }
     };
+
     private command_2 = (BufferIn:any, callback:callback) => {
         try {
             if(BufferIn[0]==0xcc&&BufferIn[BufferIn.length-1]==0xbb){
@@ -95,6 +98,7 @@ export class Serial_Sensor extends event.EventEmitter {
             callback(exception);
         }
     };
+
     private Process_state = (BufferIn:any, callback:callback) => {
         try {
             if(BufferIn[0]==0xcc&&BufferIn[BufferIn.length-1]==0xbb){
@@ -114,7 +118,7 @@ export class Serial_Sensor extends event.EventEmitter {
                     callback('respuesta de state');
                 }
             }else{
-                _log.error('Respuesta incorrett,   Longitud de trama=  '+BufferIn.length+'    aparecte respuesta de check');
+                _log.error('Respuesta incorreta, Longitud de trama=  '+BufferIn.length+'    aparecte respuesta de check');
                 //_log.error('Trama  ----->'+JSON.stringify(BufferIn));
                 callback('Respuesta incorrett,');
             }

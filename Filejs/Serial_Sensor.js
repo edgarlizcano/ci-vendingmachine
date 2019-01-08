@@ -134,7 +134,7 @@ var Serial_Sensor = /** @class */ (function (_super) {
                     }
                 }
                 else {
-                    ci_logmodule_1.default.error('Respuesta incorrett,   Longitud de trama=  ' + BufferIn.length + '    aparecte respuesta de check');
+                    ci_logmodule_1.default.error('Respuesta incorreta, Longitud de trama=  ' + BufferIn.length + '    aparecte respuesta de check');
                     //_log.error('Trama  ----->'+JSON.stringify(BufferIn));
                     callback('Respuesta incorrett,');
                 }

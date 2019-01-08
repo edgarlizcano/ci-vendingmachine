@@ -10,17 +10,17 @@ export class ProcessDataSensor extends event.EventEmitter {
         super();
         _serial.Event().on('serialData', this.EventSerialData)
     }
-    private serialdata = new Serial_Sensor();
-    private buffer     = new Buffer(0);
-    private reference: any    = null;
-    private array   : any     = [];
-    private array1  : any     = [];
-    private res               = [];
-    private long    :number   = 0;
-    private CRC      : any;
-    private state    : any =1;
-    private BufferIn : any;
-    private ReadyData:boolean = false;
+    private serialdata  = new Serial_Sensor();
+    private buffer      = new Buffer(0);
+    private reference   : any       = null;
+    private array       : any       = [];
+    private array1      : any       = [];
+    private res         = [];
+    private long        :number     = 0;
+    private CRC         :any;
+    private state       :any        =1;
+    private BufferIn    :any;
+    private ReadyData   :boolean    =false;
 
     private Trama_IN   = [0xAA, 0x01, 0x01, 0x00, 0xBB];
     private Trama_POOL = [0xAA, 0x10, 0x01, 0x11, 0xBB];
@@ -30,7 +30,7 @@ export class ProcessDataSensor extends event.EventEmitter {
 
     public CheckPortOpen = (data:any, cb:callback) => {
         try {
-            _log.write("port:{0}:baudRate:{1}"+data.port, data.baudRate);
+            _log.write("port:{0}:baudRate:{1} "+data.port, data.baudRate);
             if(data.port.length > 0)
             {
                 this.port=data.port;
@@ -70,9 +70,9 @@ export class ProcessDataSensor extends event.EventEmitter {
         catch (exception) {
             _log.error("Exception" + exception);
             cb(exception);
-
         }
     };
+
     private check_open_port= (data:any,callback:callback) => {
         try {
             if(_serial.isOpen())
@@ -95,7 +95,7 @@ export class ProcessDataSensor extends event.EventEmitter {
                     else
                     {
                         this.port = port;
-                        callback('error abriendopuerto');
+                        callback('error abriendo puerto');
                     }
                 });
             }
@@ -106,6 +106,7 @@ export class ProcessDataSensor extends event.EventEmitter {
 
         }
     };
+
     public Open_port = (data:any, callback:callback) => {
         try {
             if(_serial.isOpen())
@@ -136,6 +137,7 @@ export class ProcessDataSensor extends event.EventEmitter {
 
         }
     };
+
     private EventSerialData = (data:any) => {
         try {
 
@@ -174,6 +176,7 @@ export class ProcessDataSensor extends event.EventEmitter {
             _log.error("Exception" + exception.stack);
         }
     };
+
     private Validate=( callback:callback)=> {
         try{
           //  this.array = [];
@@ -193,6 +196,7 @@ export class ProcessDataSensor extends event.EventEmitter {
             callback(exception);
         }
     };
+
     private CRC_Vending_Machine=(data:any):any=> {
         try{
             let crc = 0;
@@ -209,6 +213,7 @@ export class ProcessDataSensor extends event.EventEmitter {
 
         }
     };
+
     public SendComand=(txt:null,cb:callback):void=> {
         try{
             _async.series([
@@ -224,6 +229,7 @@ export class ProcessDataSensor extends event.EventEmitter {
 
         }
     };
+
     public SendComand_check=(txt:null,cb:callback):void=> {
         try{
             _async.series([
@@ -240,6 +246,7 @@ export class ProcessDataSensor extends event.EventEmitter {
 
         }
     };
+
     private SendComand_=(trama:any,cb:callback):void=> {
         try{
             this.ReadyData = false;
@@ -254,6 +261,7 @@ export class ProcessDataSensor extends event.EventEmitter {
 
         }
     };
+
     private POOLSTATE = (data:null,callback:callback) => {
         try {
             let Interval: any = null;
@@ -289,6 +297,7 @@ export class ProcessDataSensor extends event.EventEmitter {
 
         }
     };
+
     private  waitForReadyData(timeout:number, cb:callback) {
         try {
             this.BufferIn = new Array(0);

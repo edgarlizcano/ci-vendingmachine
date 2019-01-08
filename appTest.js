@@ -10,12 +10,13 @@ let control = require("./Filejs/ControllerMachine");
 let controlMachine;
 function setControl() {
     controlMachine = new control.ControllerMachine();
-    controlMachine.on("Sensor",(data)=>{
-        socket.emit("Sensor", data);
-        console.log("Se leyo el sensor "+piso+" estado "+state)
-    });
+
     io.once('connection', function(socket){
         console.log('a user connected');
+        controlMachine.on("Sensor",(data)=>{
+            socket.emit("Sensor", {'cmd':data});
+            console.log("Se leyo el sensor "+data.piso+" estado "+data.state)
+        });
         socket.on('disconnect', function(){
             console.log('user disconnected');
         });
@@ -60,7 +61,7 @@ function setControl() {
             socket.emit('EventControl', {'cmd':'startTestCell','row': data.row, 'col':data.col});
             controlMachine.testCeldas(data.row, data.col, null,(err)=>{
                 if(err){
-                    console.log(err)
+                    console.log(err);
                     socket.emit('EventControl', {'cmd':'errorTestCell','row': data.row, 'col':data.col})
                 }else{
                     console.log("Prueba lista");
@@ -71,15 +72,15 @@ function setControl() {
         });
         socket.on("stopCell",(data)=>{
             console.log("stop cell "+data.row+" "+data.col)
-        })
+        });
         socket.on("testPin",(data)=>{
-            socket.emit("EventControl",{'cmd':"WriteHighPin"});
+            socket.emit("EventControl",{'cmd':"WriteHighPin", 'mcp':data.mcp,'pin':data.pin});
             controlMachine.testPinOut(data.mcp, data.pin, (err)=>{
                 if(err){
                     console.log(err)
                 }else{
                     console.log("Prueba lista");
-                    socket.emit("EventControl",{'cmd':"WriteLowPin"});
+                    socket.emit("EventControl",{'cmd':"WriteLowPin", 'mcp':data.mcp,'pin':data.pin});
                 }
             });
         });
@@ -91,7 +92,7 @@ app.locals.moment = require("moment");
 
 app.use(body_parser.urlencoded({extended:true}));
 
-app.use('/bootstrap', express.static(__dirname + '/node_modules/bootstrap/dist/'))
+app.use('/bootstrap', express.static(__dirname + '/node_modules/bootstrap/dist/'));
 
 app.set("view engine", "jade");
 
@@ -106,7 +107,6 @@ app.get("/control", function(request, response){
 });
 
 app.get("/closecontrol", function(request, response){
-    delete controlMachine;
     controlMachine = null;
     response.render("index");
 });
