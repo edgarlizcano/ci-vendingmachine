@@ -1,5 +1,5 @@
 {
-  "name": "vending-machine",
+  "name": "@ci24/vending-machine",
   "version": "2.0.0",
   "description": "",
   "main": "./Filesjs/main.js",
