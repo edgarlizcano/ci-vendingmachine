@@ -2,7 +2,7 @@ import _log from "@ci24/ci-logmodule";
 import event from 'events';
 import {callback} from "./Interfaces";
 import global from'./Global';
-import Maps from './Maps';
+import Config from './ConfigMachine';
 
 //let folderLogs = "/free/CI24/Logs/Machine/";
 //_log.init(folderLogs);
@@ -107,12 +107,14 @@ export class Serial_Sensor extends event.EventEmitter {
                 if(BufferIn[3]==0x33){
                     if(BufferIn[4]>0xf0){
                         _log.warning('esta desocupada----->'+JSON.stringify(BufferIn));
-                        global.Is_empty=true;
+                        //global.Is_empty=true;
+                        Config.Is_empty=true;
                         callback(null,'');
                     }else{
                         _log.fatal('esta ocupada----->'+JSON.stringify(BufferIn));
                         callback(null,'ok');
                         global.Is_empty=false;
+                        Config.Is_empty =false;
                     }
                 }else{
                     _log.error('respuesta de state desconocida----->'+JSON.stringify(BufferIn));

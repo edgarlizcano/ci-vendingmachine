@@ -1,61 +1,92 @@
 extends ./layout
 block content
     .form-row
-        h4 Sensors Machine
-    .form-row
+        .form-group.col-md-10
+            .form-row
+                .form-group.col-md-6
+                    .form-row
+                        h4.text-center Controller
+                    .form-row
+                        .form-group.col-md-8
+                            form(action='control')
+                                button.btn.btn-success.btn-block(type='submit') Reset Control
+                    .form-row
+                        .form-group.col-md-8
+                            form(action='closecontrol')
+                                button.btn.btn-danger.btn-block(type='submit') Close Control
+                    .form-row
+                        .form-group.col-md-8
+                            h4.text-center Motor Control
+                    .form-row
+                        .form-group.col-md-8
+                            button.btn.btn-info.btn-block(onclick='motorUp()', type='submit') Motor Up
+                    .form-row
+                        .form-group.col-md-8
+                            button.btn.btn-info.btn-block(onclick='motorDown()', type='button') Motor Down
+                    .form-row
+                        .form-group.col-md-8
+                            button.btn.btn-danger.btn-block(onclick='motorStop()', type='button') Motor Stop
+                .form-group.col-md-6
+                    .form-row
+                        .form-group.col-md-8
+                            h4.text-center Motor Cell
+                    .form-row
+                        .form-group.col-md-8
+                            .form-row
+                                h5.text-center Select Row:
+                                h5#r.text-center 1
+                                input#row.form-control(placeholder='row' type='range', min='1', max='6' value='1' onchange='changeCell()')
+                            .form-row
+                                h5.text-center Select Column:
+                                h5#c.text-center 1
+                                input#column.form-control(placeholder='column' type='range', min='1', max='10' value='1' onchange='changeCell()')
+                    .form-row
+                        .form-group.col-md-8
+                            button.btn.btn-info.btn-block(type='button' onclick="cellStart()") Test Cell
+                    .form-row
+                        .form-group.col-md-8
+                            button.btn.btn-success.btn-block(type='button' onclick="cellDispense()") Test Dispense
+                    .form-row
+                        .form-group.col-md-4
+                                h5.text-center Select MCP:
+                        .form-group.col-md-3
+                                input#mcp.form-control(type='number', min='1', max='2' value='1' placeholder='mcp')
+                    .form-row
+                        .form-group.col-md-4
+                                h5.text-center Select Pin:
+                        .form-group.col-md-3
+                                input#pin.form-control(type='number', min='0', max='50' value='0' placeholder='pin')
+                    .form-row
+                        .form-group.col-md-8
+                            button.btn.btn-info.btn-block(type='button' onclick="testPin()") Test Pin Out
+            h4.text-center Logs Vending
+            .input-group
+                .input-group-prepend
+                    span.input-group-text Logs
+                textarea.form-control(id="logs" aria-label='With textarea' rows=10 readonly)
+
         .form-group.col-md-2
-            button.btn.btn-success(onclick= 'openPorts()', type='button') Open ports
-        .form-group.col-md-2
-            button.btn.btn-danger(onclick= 'closePorts()', type='button') Close ports
-        .form-group.col-md-2
-            button.btn.btn-success(onclick='initSensors()', type='button') Init Sensors
-        .form-group.col-md-2
-            button.btn.btn-danger(onclick='closeSensors()', type='button') Close Sensors
-    .form-row
-        h4 Motor Control
-    .form-row
-        .form-group.col-md-2
-            button.btn.btn-info(onclick='motorUp()', type='submit') Motor Up
-        .form-group.col-md-2
-            button.btn.btn-info(onclick='motorDown()', type='button') Motor Down
-        .form-group.col-md-2
-            button.btn.btn-danger(onclick='motorStop()', type='button') Motor Stop
-    .form-row
-        h4 Motor Cell
-    .form-row
-        .form-group.col-md-1
-            input#row.form-control(type='number', placeholder='Row')
-        .form-group.col-md-2
-            button.btn.btn-info(type='button' onMousedown="rowStart()" onMouseup="rowStop()") Test Row
-        .form-group.col-md-1
-            input#column.form-control(type='number', placeholder='Column')
-        .form-group.col-md-2
-            button.btn.btn-info(type='button' onMousedown="colStart()" onMouseup="colStop()") Test Column
-    .form-row
-        .form-group.col-md-2
-            button.btn.btn-info(type='button' onMousedown="cellStart()" onMouseup="cellStop()") Test Cell
-    .input-group
-        .input-group-prepend
-            span.input-group-text Logs
-        textarea.form-control(id="logs" aria-label='With textarea' rows=15 readonly)
-    .form-row
-        .form-group.col-md-2
-            #s1.p-3.mb-2.bg-secondary.text-white Sensor 1
-    .form-row
-        .form-group.col-md-2
-            #s2.p-3.mb-2.bg-secondary.text-white Sensor 2
-    .form-row
-        .form-group.col-md-2
-            #s3.p-3.mb-2.bg-secondary.text-white Sensor 3
-    .form-row
-        .form-group.col-md-2
-            #s4.p-3.mb-2.bg-secondary.text-white Sensor 4
-    .form-row
-        .form-group.col-md-2
-            #s5.p-3.mb-2.bg-secondary.text-white Sensor 5
-    .form-row
-        .form-group.col-md-2
-            #s6.p-3.mb-2.bg-secondary.text-white Sensor 6
-    .form-row
-        .form-group.col-md-2
-            #s7.p-3.mb-2.bg-success.text-white Sensor 7
+            .form-row
+                .form-group.col-md-12
+                    h4.text-center Sensors Machine
+            .form-row
+                .form-group.col-md-12
+                    #s1.p-3.mb-2.bg-secondary.text-white Sensor 1
+            .form-row
+                .form-group.col-md-12
+                    #s2.p-3.mb-2.bg-secondary.text-white Sensor 2
+            .form-row
+                .form-group.col-md-12
+                    #s3.p-3.mb-2.bg-secondary.text-white Sensor 3
+            .form-row
+                .form-group.col-md-12
+                    #s4.p-3.mb-2.bg-secondary.text-white Sensor 4
+            .form-row
+                .form-group.col-md-12
+                    #s5.p-3.mb-2.bg-secondary.text-white Sensor 5
+            .form-row
+                .form-group.col-md-12
+                    #s6.p-3.mb-2.bg-secondary.text-white Sensor 6
+            .form-row
+                .form-group.col-md-12
+                    #s7.p-3.mb-2.bg-success.text-white Sensor 7

@@ -1,12 +1,12 @@
 {
-  "name": "machine",
-  "version": "1.0.0",
+  "name": "vending-machine",
+  "version": "2.0.0",
   "description": "",
-  "main": "./Filesjs/main.js",
+  "main": ".Filejs/Machine.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Magda O",
+  "author": "Edgar Lizcano",
   "license": "ISC",
   "dependencies": {
     "@ci24/ci-logmodule": "^1.1.0",

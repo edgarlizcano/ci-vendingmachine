@@ -1,13 +1,15 @@
 /// <reference types="node" />
 import { EventEmitter } from 'events';
 import { callback } from "./Interfaces";
-export declare class ControllerMachine extends EventEmitter {
+export default class ControllerMachine extends EventEmitter {
     private Log;
     private mcp1;
     private mcp2;
     private stateMachine;
     private times;
-    constructor();
+    constructor(data: any);
+    private enableMachine;
+    private disableMachine;
     private securityState;
     private initOuts;
     private initSensors;
@@ -36,4 +38,5 @@ export declare class ControllerMachine extends EventEmitter {
     private pollTimeProcess;
     pollSensor: (pin: number, callback: any) => void;
     testCeldas: (piso: number, coll_1: number, coll_2: any, callback: any) => void;
+    testPinOut: (mcp: number, pin: number, callback: any) => void;
 }
