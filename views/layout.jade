@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+html(lang="es")
+    head
+        link(rel="stylesheet", href="/bootstrap/css/bootstrap.min.css")
+        script(src='https://code.jquery.com/jquery-3.3.1.slim.min.js', integrity='sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo', crossorigin='anonymous')
+        title Test Vending
+        script(src='/socket.io/socket.io.js')
+        script.
+            function changeCell() {
+                var r = document.getElementById("row").value
+                var c = document.getElementById("column").value
+                document.getElementById("r").innerText = r
+                document.getElementById("c").innerText = c
+            }
+            var socket = io();
+            socket.on('EventControl',function (data) {
+                switch (data.cmd) {
+                    case "startTestCell":
+                        addLog("Starting Test Cell at Row "+data.row+" and Col "+data.col)
+                        break;
+                    case "errorTestCell":
+                        addLog("Test Cell Failed at Row "+data.row+" and Col "+data.col)
+                        break;
+                    case "readyTestCell":
+                        addLog("Test Cell Successful at Row "+data.row+" and Col "+data.col)
+                        break;
+                    case "startTestDisp":
+                        addLog("Starting Test Dispense at Row "+data.row+" and Col "+data.col)
+                        break;
+                    case "errorTestDisp":
+                        addLog("Test Dispense Failed at Row "+data.row+" and Col "+data.col)
+                        break;
+                    case "readyTestDisp":
+                        addLog("Test Dispense Successful at Row "+data.row+" and Col "+data.col)
+                        break;
+                    case "WriteHighPin":
+                        addLog("Test Pin Out High at MCP " + data.mcp + " and Pin " + data.pin)
+                        break;
+                    case "WriteLowPin":
+                        addLog("Test Pin Out Low at MCP " + data.mcp + " and Pin " + data.pin)
+                        break;
+                }
+            })
+            socket.on('Sensor', function (data) {
+                switch (data.cmd) {
+                    case 1:
+                        if (data.state === true) {
+                            document.getElementById("s1").classList.remove('bg-secondary');
+                            document.getElementById("s1").classList.add('bg-success');
+                            addLog("Sensor 1 on")
+                        } else {
+                            document.getElementById("s1").classList.add('bg-secondary');
+                            document.getElementById("s1").classList.remove('bg-success');
+                            addLog("Sensor 1 off")
+                        }
+                        break
+                    case 2:
+                        if (data.state === true) {
+                            document.getElementById("s2").classList.remove('bg-secondary');
+                            document.getElementById("s2").classList.add('bg-success');
+                            addLog("Sensor 2 on")
+                        } else {
+                            document.getElementById("s2").classList.add('bg-secondary');
+                            document.getElementById("s2").classList.remove('bg-success');
+                            addLog("Sensor 2 off")
+                        }
+                        break
+                    case 3:
+                        if (data.state === true) {
+                            document.getElementById("s3").classList.remove('bg-secondary');
+                            document.getElementById("s3").classList.add('bg-success');
+                            addLog("Sensor 3 on")
+                        } else {
+                            document.getElementById("s3").classList.add('bg-secondary');
+                            document.getElementById("s3").classList.remove('bg-success');
+                            addLog("Sensor 3 off")
+                        }
+                        break
+                    case 4:
+                        if (data.state === true) {
+                            document.getElementById("s4").classList.remove('bg-secondary');
+                            document.getElementById("s4").classList.add('bg-success');
+                            addLog("Sensor 4 on")
+                        } else {
+                            document.getElementById("s4").classList.add('bg-secondary');
+                            document.getElementById("s4").classList.remove('bg-success');
+                            addLog("Sensor 4 off")
+                        }
+                        break
+                    case 5:
+                        if (data.state === true) {
+                            document.getElementById("s5").classList.remove('bg-secondary');
+                            document.getElementById("s5").classList.add('bg-success');
+                            addLog("Sensor 5 on")
+                        } else {
+                            document.getElementById("s5").classList.add('bg-secondary');
+                            document.getElementById("s5").classList.remove('bg-success');
+                            addLog("Sensor 5 off")
+                        }
+                        break
+                    case 6:
+                        if (data.state === true) {
+                            document.getElementById("s6").classList.remove('bg-secondary');
+                            document.getElementById("s6").classList.add('bg-success');
+                            addLog("Sensor 6 on")
+                        } else {
+                            document.getElementById("s6").classList.add('bg-secondary');
+                            document.getElementById("s6").classList.remove('bg-success');
+                            addLog("Sensor 6 off")
+                        }
+                        break
+                    case 7:
+                        if (data.state === true) {
+                            document.getElementById("s7").classList.remove('bg-secondary');
+                            document.getElementById("s7").classList.add('bg-success');
+                            addLog("Sensor 7 on")
+                        } else {
+                            document.getElementById("s7").classList.add('bg-secondary');
+                            document.getElementById("s7").classList.remove('bg-success');
+                            addLog("Sensor 7 off")
+                        }
+                        break
+                }
+            })
+
+            function openPorts() {
+                socket.emit('openPorts')
+                addLog("open ports")
+            }
+
+            function closePorts() {
+                socket.emit('closePorts')
+                addLog("close ports")
+            }
+
+            function initSensors() {
+                socket.emit('initSensors')
+                addLog("init sensors")
+            }
+            function closeSensors() {
+                socket.emit('closeSensors')
+                addLog("close sensors")
+            }
+
+            function motorUp() {
+                socket.emit('motorUp')
+                addLog("motor up")
+            }
+
+            function motorDown() {
+                socket.emit('motorDown')
+                addLog("motor down")
+            }
+            function motorStop() {
+                socket.emit('motorStop')
+                addLog("motor stop")
+            }
+            function cellStart() {
+                var r = document.getElementById("row").value
+                var c = document.getElementById("column").value
+                socket.emit('startCell', {'row': r, 'col': c})
+            }
+            function cellDispense() {
+                var r = document.getElementById("row").value
+                var c = document.getElementById("column").value
+                socket.emit('dispense', {'row': r, 'col': c})
+            }
+            function testPin() {
+                var mcp = document.getElementById("mcp").value
+                var pin = document.getElementById("pin").value
+                socket.emit('testPin', {'mcp': parseInt(mcp), 'pin': parseInt(pin)})
+            }
+
+            function addLog(msg) {
+                var m = document.getElementById("logs").value
+                document.getElementById("logs").innerText = msg + "\n" + m
+            }
+
+    body
+        header
+            nav.navbar.navbar-expand-md.navbar-dark.fixed-top.bg-dark
+                    a.navbar-brand(href='/') Test Vending
+                    button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarCollapse', aria-controls='navbarCollapse', aria-expanded='false', aria-label='Toggle navigation')
+                        span.navbar-toggler-icon
+        div.jumbotron.container
+            block content
+
+        script(src="/bootstrap/js/bootstrap.min.js")
