@@ -77,7 +77,17 @@ Config.column= {
     7:   {PIN: 4},
     8:   {PIN: 3},
     9:   {PIN: 2},
-    10:  {PIN: 1},
+    0:   {PIN: 1},
+};
+
+Config.times = {
+    1: { timeToFloor: 15000 },
+    2: { timeToFloor: 12000 },
+    3: { timeToFloor: 10000 },
+    4: { timeToFloor: 8000 },
+    5: { timeToFloor: 6000 },
+    6: { timeToFloor: 4000 },
+    7: { timeToFloor: 12000}
 };
 
 Config.Is_empty = false;

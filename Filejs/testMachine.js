@@ -1,9 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+
 var stdin = process.openStdin();
-var ControllerMachine_1 = require("./ControllerMachine");
-var control = new ControllerMachine_1.ControllerMachine();
-var global = require("./Global2");
+var controller = require("./Machine");
+var control = new controller(null);
 menu();
 stdin.addListener("data", function (d) {
     menu();
@@ -37,9 +35,121 @@ stdin.addListener("data", function (d) {
             console.log("yendo a 7");
             control.GoTo(function (data) { console.log("llego :" + data); }, 7);
             break;
+
+        case "a1":
+            console.log("dispensando f1");
+            control.dispenseItem({ piso: 1, c1: 1, c2: null, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "a3":
+            console.log("dispensando f3");
+            control.dispenseItem({ piso: 1, c1: 3, c2: null, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "a4":
+            console.log("dispensando f4");
+            control.dispenseItem({ piso: 1, c1: 4, c2: null, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "a9":
+            console.log("dispensando f9");
+            control.dispenseItem({ piso: 1, c1: 9, c2: null, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "a2":
+            console.log("dispensando f2");
+            control.dispenseItem({ piso: 1, c1: 2, c2: null, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "a5":
+            console.log("dispensando f5");
+            control.dispenseItem({ piso: 1, c1: 5, c2: null, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "a6":
+            console.log("dispensando f6");
+            control.dispenseItem({ piso: 1, c1: 6, c2: null, height:14 , height:14}, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "a7":
+            console.log("dispensando f7");
+            control.dispenseItem({ piso: 1, c1: 7, c2: null, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "a0":
+            console.log("dispensando f0");
+            control.dispenseItem({ piso: 1, c1: 0, c2: null, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "a8":
+            console.log("dispensando f8");
+            control.dispenseItem({ piso: 1, c1: 8, c2: null, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+
         case "f1":
             console.log("dispensando f1");
-            control.dispenseItem(6, 1, null, 14, function (err) {
+            control.dispenseItem({ piso: 6, c1: 1, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -50,7 +160,7 @@ stdin.addListener("data", function (d) {
             break;
         case "f3":
             console.log("dispensando f3");
-            control.dispenseItem(6, 3, null, 14, function (err) {
+            control.dispenseItem({ piso: 6, c1: 3, c2: null, height:14 , height:14}, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -61,7 +171,7 @@ stdin.addListener("data", function (d) {
             break;
         case "f4":
             console.log("dispensando f4");
-            control.dispenseItem(6, 4, null, 14, function (err) {
+            control.dispenseItem({ piso: 6, c1: 4, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -72,7 +182,7 @@ stdin.addListener("data", function (d) {
             break;
         case "f9":
             console.log("dispensando f9");
-            control.dispenseItem(6, 9, null, 14, function (err) {
+            control.dispenseItem({ piso: 6, c1: 9, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -83,7 +193,7 @@ stdin.addListener("data", function (d) {
             break;
         case "f2":
             console.log("dispensando f2");
-            control.dispenseItem(6, 2, null, 14, function (err) {
+            control.dispenseItem({ piso: 6, c1: 2, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -94,7 +204,7 @@ stdin.addListener("data", function (d) {
             break;
         case "f5":
             console.log("dispensando f5");
-            control.dispenseItem(6, 5, null, 14, function (err) {
+            control.dispenseItem({ piso: 6, c1: 5, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -105,7 +215,7 @@ stdin.addListener("data", function (d) {
             break;
         case "f6":
             console.log("dispensando f6");
-            control.dispenseItem(6, 6, null, 14, function (err) {
+            control.dispenseItem({ piso: 6, c1: 6, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -116,7 +226,7 @@ stdin.addListener("data", function (d) {
             break;
         case "f7":
             console.log("dispensando f7");
-            control.dispenseItem(6, 7, null, 14, function (err) {
+            control.dispenseItem({ piso: 6, c1: 7, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -127,7 +237,7 @@ stdin.addListener("data", function (d) {
             break;
         case "f0":
             console.log("dispensando f0");
-            control.dispenseItem(6, 0, null, 14, function (err) {
+            control.dispenseItem({ piso: 6, c1: 0, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -138,7 +248,7 @@ stdin.addListener("data", function (d) {
             break;
         case "f8":
             console.log("dispensando f8");
-            control.dispenseItem(6, 8, null, 14, function (err) {
+            control.dispenseItem({ piso: 6, c1: 8, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -147,9 +257,10 @@ stdin.addListener("data", function (d) {
                 }
             });
             break;
+
         case "b3":
             console.log("dispensando b3");
-            control.dispenseItem(2, 3, null, 14, function (err) {
+            control.dispenseItem({ piso: 2, c1: 3, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -160,7 +271,7 @@ stdin.addListener("data", function (d) {
             break;
         case "b9":
             console.log("dispensando b9");
-            control.dispenseItem(2, 9, null, 14, function (err) {
+            control.dispenseItem({ piso: 2, c1: 9, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -171,7 +282,7 @@ stdin.addListener("data", function (d) {
             break;
         case "b7":
             console.log("dispensando b7");
-            control.dispenseItem(2, 7, null, 14, function (err) {
+            control.dispenseItem({ piso: 2, c1: 7, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -182,7 +293,7 @@ stdin.addListener("data", function (d) {
             break;
         case "b1":
             console.log("dispensando b1");
-            control.dispenseItem(2, 1, null, 14, function (err) {
+            control.dispenseItem({ piso: 2, c1: 1, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -193,7 +304,7 @@ stdin.addListener("data", function (d) {
             break;
         case "b2":
             console.log("dispensando b2");
-            control.dispenseItem(2, 2, null, 14, function (err) {
+            control.dispenseItem({ piso: 2, c1: 2, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -204,7 +315,7 @@ stdin.addListener("data", function (d) {
             break;
         case "b0":
             console.log("dispensando b0");
-            control.dispenseItem(2, 0, null, 14, function (err) {
+            control.dispenseItem({ piso: 2, c1: 0, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -215,7 +326,7 @@ stdin.addListener("data", function (d) {
             break;
         case "b4":
             console.log("dispensando b4");
-            control.dispenseItem(2, 4, null, 14, function (err) {
+            control.dispenseItem({ piso: 2, c1: 4, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -226,7 +337,7 @@ stdin.addListener("data", function (d) {
             break;
         case "b5":
             console.log("dispensando b5");
-            control.dispenseItem(2, 5, null, 14, function (err) {
+            control.dispenseItem({ piso: 2, c1: 5, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -237,7 +348,7 @@ stdin.addListener("data", function (d) {
             break;
         case "b6":
             console.log("dispensando b6");
-            control.dispenseItem(2, 6, null, 14, function (err) {
+            control.dispenseItem({ piso: 2, c1: 6, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -248,7 +359,7 @@ stdin.addListener("data", function (d) {
             break;
         case "b8":
             console.log("dispensando b8");
-            control.dispenseItem(2, 8, null, 14, function (err) {
+            control.dispenseItem({ piso: 2, c1: 8, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -259,7 +370,7 @@ stdin.addListener("data", function (d) {
             break;
         case "d5":
             console.log("dispensando d5");
-            control.dispenseItem(4, 5, null, 14, function (err) {
+            control.dispenseItem({ piso: 4, c1: 5, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -270,7 +381,7 @@ stdin.addListener("data", function (d) {
             break;
         case "d1":
             console.log("dispensando d1");
-            control.dispenseItem(4, 1, null, 14, function (err) {
+            control.dispenseItem({ piso: 4, c1: 1, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -281,7 +392,7 @@ stdin.addListener("data", function (d) {
             break;
         case "d2":
             console.log("dispensando d2");
-            control.dispenseItem(4, 2, null, 14, function (err) {
+            control.dispenseItem({ piso: 4, c1: 2, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -292,7 +403,7 @@ stdin.addListener("data", function (d) {
             break;
         case "d9":
             console.log("dispensando d9");
-            control.dispenseItem(4, 9, null, 14, function (err) {
+            control.dispenseItem({ piso: 4, c1: 9, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -303,7 +414,7 @@ stdin.addListener("data", function (d) {
             break;
         case "d3":
             console.log("dispensando d3");
-            control.dispenseItem(4, 3, null, 14, function (err) {
+            control.dispenseItem({ piso: 4, c1: 3, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -314,7 +425,7 @@ stdin.addListener("data", function (d) {
             break;
         case "d4":
             console.log("dispensando d4");
-            control.dispenseItem(4, 4, null, 14, function (err) {
+            control.dispenseItem({ piso: 4, c1: 4, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -325,7 +436,7 @@ stdin.addListener("data", function (d) {
             break;
         case "d0":
             console.log("dispensando d0");
-            control.dispenseItem(4, 0, null, 14, function (err) {
+            control.dispenseItem({ piso: 4, c1: 0, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -336,7 +447,7 @@ stdin.addListener("data", function (d) {
             break;
         case "d6":
             console.log("dispensando d6");
-            control.dispenseItem(4, 6, null, 14, function (err) {
+            control.dispenseItem({ piso: 4, c1: 6, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -347,7 +458,7 @@ stdin.addListener("data", function (d) {
             break;
         case "d7":
             console.log("dispensando d7");
-            control.dispenseItem(4, 7, null, 14, function (err) {
+            control.dispenseItem({ piso: 4, c1: 7, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -358,7 +469,7 @@ stdin.addListener("data", function (d) {
             break;
         case "d8":
             console.log("dispensando d8");
-            control.dispenseItem(4, 8, null, 14, function (err) {
+            control.dispenseItem({ piso: 4, c1: 8, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -369,7 +480,7 @@ stdin.addListener("data", function (d) {
             break;
         case "c4":
             console.log("dispensando c4");
-            control.dispenseItem(3, 4, null, 14, function (err) {
+            control.dispenseItem({ piso: 3, c1: 4, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -380,7 +491,7 @@ stdin.addListener("data", function (d) {
             break;
         case "c5":
             console.log("dispensando c5");
-            control.dispenseItem(3, 5, null, 14, function (err) {
+            control.dispenseItem({ piso: 3, c1: 5, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -391,7 +502,7 @@ stdin.addListener("data", function (d) {
             break;
         case "c1":
             console.log("dispensando c1");
-            control.dispenseItem(3, 1, null, 14, function (err) {
+            control.dispenseItem({ piso: 3, c1: 1, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -402,7 +513,7 @@ stdin.addListener("data", function (d) {
             break;
         case "c8":
             console.log("dispensando c8");
-            control.dispenseItem(3, 8, null, 14, function (err) {
+            control.dispenseItem({ piso: 3, c1: 8, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -413,7 +524,7 @@ stdin.addListener("data", function (d) {
             break;
         case "c0":
             console.log("dispensando c0");
-            control.dispenseItem(3, 0, null, 14, function (err) {
+            control.dispenseItem({ piso: 3, c1: 0, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -424,7 +535,7 @@ stdin.addListener("data", function (d) {
             break;
         case "c2":
             console.log("dispensando c2");
-            control.dispenseItem(3, 2, null, 14, function (err) {
+            control.dispenseItem({ piso: 3, c1: 2, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -435,7 +546,7 @@ stdin.addListener("data", function (d) {
             break;
         case "c3":
             console.log("dispensando c3");
-            control.dispenseItem(3, 3, null, 14, function (err) {
+            control.dispenseItem({ piso: 3, c1: 3, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -446,7 +557,7 @@ stdin.addListener("data", function (d) {
             break;
         case "c6":
             console.log("dispensando c6");
-            control.dispenseItem(3, 6, null, 14, function (err) {
+            control.dispenseItem({ piso: 3, c1: 6, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -457,7 +568,7 @@ stdin.addListener("data", function (d) {
             break;
         case "c7":
             console.log("dispensando c7");
-            control.dispenseItem(3, 7, null, 14, function (err) {
+            control.dispenseItem({ piso: 3, c1: 7, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -468,7 +579,7 @@ stdin.addListener("data", function (d) {
             break;
         case "c9":
             console.log("dispensando c9");
-            control.dispenseItem(3, 9, null, 14, function (err) {
+            control.dispenseItem({ piso: 3, c1: 9, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -477,9 +588,10 @@ stdin.addListener("data", function (d) {
                 }
             });
             break;
+
         case "e4":
             console.log("dispensando e4");
-            control.dispenseItem(5, 4, null, 14, function (err) {
+            control.dispenseItem({ piso: 5, c1: 4, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -490,7 +602,7 @@ stdin.addListener("data", function (d) {
             break;
         case "e5":
             console.log("dispensando e5");
-            control.dispenseItem(5, 5, null, 14, function (err) {
+            control.dispenseItem({ piso: 5, c1: 5, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -501,7 +613,7 @@ stdin.addListener("data", function (d) {
             break;
         case "e1":
             console.log("dispensando e1");
-            control.dispenseItem(5, 1, null, 14, function (err) {
+            control.dispenseItem({ piso: 5, c1: 1, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -512,7 +624,7 @@ stdin.addListener("data", function (d) {
             break;
         case "e8":
             console.log("dispensando e8");
-            control.dispenseItem(5, 8, null, 14, function (err) {
+            control.dispenseItem({ piso: 5, c1: 8, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -523,7 +635,7 @@ stdin.addListener("data", function (d) {
             break;
         case "e0":
             console.log("dispensando c0");
-            control.dispenseItem(5, 0, null, 14, function (err) {
+            control.dispenseItem({ piso: 5, c1: 0, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -534,7 +646,7 @@ stdin.addListener("data", function (d) {
             break;
         case "e2":
             console.log("dispensando c2");
-            control.dispenseItem(5, 2, null, 14, function (err) {
+            control.dispenseItem({ piso: 5, c1: 2, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -545,7 +657,7 @@ stdin.addListener("data", function (d) {
             break;
         case "e3":
             console.log("dispensando e3");
-            control.dispenseItem(5, 3, null, 14, function (err) {
+            control.dispenseItem({ piso: 5, c1: 3, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -556,7 +668,7 @@ stdin.addListener("data", function (d) {
             break;
         case "e6":
             console.log("dispensando e6");
-            control.dispenseItem(5, 6, null, 14, function (err) {
+            control.dispenseItem({ piso: 5, c1: 6, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -567,7 +679,7 @@ stdin.addListener("data", function (d) {
             break;
         case "e7":
             console.log("dispensando e7");
-            control.dispenseItem(5, 7, null, 14, function (err) {
+            control.dispenseItem({ piso: 5, c1: 7, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -578,7 +690,7 @@ stdin.addListener("data", function (d) {
             break;
         case "e9":
             console.log("dispensando e9");
-            control.dispenseItem(5, 9, null, 14, function (err) {
+            control.dispenseItem({ piso: 5, c1: 9, c2: null, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }

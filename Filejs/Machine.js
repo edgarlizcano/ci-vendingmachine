@@ -46,15 +46,7 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
             timeToDisepense: 100,
             timeWithoutSensor: 100
         };
-        that.times = {
-            1: { timeToFloor: 15000 },
-            2: { timeToFloor: 12000 },
-            3: { timeToFloor: 10000 },
-            4: { timeToFloor: 8000 },
-            5: { timeToFloor: 6000 },
-            6: { timeToFloor: 4000 },
-            7: { timeToFloor: 12000}
-        };
+
         that.Log.WriteLog("Control inicializado Version 8", ci_syslogs_1.Logger.Severities.Debug);
         rpi_gpio_1.on('change', mainSignal);
         initOuts();
@@ -82,15 +74,6 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                                         that.Log.WriteLog(err, ci_syslogs_1.Logger.Severities.Error);
                                     }
                                     else {
-                                        // pollTimeProcess(function (err) {
-                                        //     if (err != null) {
-                                        //         that.Log.WriteLog(err, ci_syslogs_1.Logger.Severities.Error);
-                                        //     }
-                                        //     else {
-                                        //         that.Log.WriteLog("Elevador Listo", ci_syslogs_1.Logger.Severities.Debug);
-                                        //         enableMachine();
-                                        //     }
-                                        // });
                                         enableMachine();
                                     }
                                 });
@@ -114,6 +97,7 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
             that.Log.WriteLog("Máquina habilitada", ci_syslogs_1.Logger.Severities.Debug);
             //that.emit("Event", { cmd: "Enable_Machine" });
             that.emit("Event", { cmd: "Maquina_Lista" });
+
         }
         function disableMachine() {
             that.stateMachine.enableMachine = false;
@@ -425,8 +409,8 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                     }
                     break;
                 case 1:
-                    if (that.stateMachine.pollProcess === true) {
-                        that.times[piso].timeToFloor = that.stateMachine.countTime;
+                    if (that.stateMachine.blokingType===0 && (that.stateMachine.isDispense === true || that.stateMachine.pollProcess === true)) {
+                        Config.times[piso].timeToFloor = that.stateMachine.countTime;
                         that.Log.WriteLog("Tiempo establecido para el piso: " + piso + " es de: " + that.stateMachine.countTime, ci_syslogs_1.Logger.Severities.Debug);
                     }
                     //Detecta la posición del elevador cuando está en proceso de búsueda
@@ -657,14 +641,7 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                     //Espera la posición de destino y verifica atascos
                     controlTime(function (err) {
                         if (err != null) {
-                            if (that.stateMachine.blokingType === 4) {
-                                callback("Error por alerta de sensor activado");
-                            }
-                            controlBlocking(function (err) {
-                                if (err == null) {
-                                    that.Log.WriteLog("Elevador ubicado en posicion segura", ci_syslogs_1.Logger.Severities.Debug);
-                                }
-                            });
+                            controlBlocking(callback)
                         }
                         else {
                             callback(null);
@@ -718,7 +695,7 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
             that.stateMachine.isDispense = true;
             that.Log.WriteLog("Comenzando proceso de dispensar item en el piso " + data.piso, ci_syslogs_1.Logger.Severities.Debug);
             securityState(false);
-            if (that.stateMachine.enableMachine && that.stateMachine.readyForDispense === true) {
+            if (that.stateMachine.enableMachine === true && that.stateMachine.readyForDispense === true) {
                 that.stateMachine.readyForDispense = false;
                 that.Log.WriteLog("Comenzando proceso de dispensar item", ci_syslogs_1.Logger.Severities.Debug);
                 async_1.series([
@@ -728,7 +705,7 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                     },
                     function (callback) {
                         that.Log.WriteLog("Step 2 Ubicando elevador en posición", ci_syslogs_1.Logger.Severities.Debug);
-                        that.GoTo(callback, data.piso);
+                        that.GoTo(data.piso,callback);
                     },
                     function (callback) {
                         that.Log.WriteLog("Step 3 Ajustando posición del elevador segun tamaño", ci_syslogs_1.Logger.Severities.Debug);
@@ -747,12 +724,13 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                         that.stateMachine.receivingItem = false;
                         that.stateMachine.isDelivery = true;
                         setTimeout(function () {
-                            that.GoTo(callback, 7);
+                            that.GoTo(7,callback);
                         }, 1000);
                     },
                     function (callback) {
                         that.Log.WriteLog("Step 6 Esperando evento del retiro del articulo", ci_syslogs_1.Logger.Severities.Debug);
                         that.emit("Event", { cmd: "Ok_dispensing", data: true });
+                        that.stateMachine.isDispense = false;
                         setTimeout(function () {
                             waitForRemoveItem(callback);
                         }, 2000);
@@ -764,27 +742,21 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                         }, 8000);
                     }
                 ], function (result) {
-                    that.stateMachine.isDispense = false;
                     that.stateMachine.readyForDispense = true;
                     if (result == null) {
                         that.stateMachine.blokingType = 0;
                         that.stateMachine.attempts = 0;
                         that.Log.WriteLog('Proceso de Venta Completado', ci_syslogs_1.Logger.Severities.Debug);
                         callback(result);
-                    }
-                    else {
-                        that.Log.WriteLog("Error: " + result, ci_syslogs_1.Logger.Severities.Alert);
-                        gotoInitPosition(null,function (err) {
-                            if (err) {
-                                that.Log.WriteLog(err, ci_syslogs_1.Logger.Severities.Error);
-                                disableMachine();
-                            }
-                        });
+                    } else {
+                        that.Log.WriteLog("Proceso de Venta imcompleto",ci_syslogs_1.Logger.Severities.Debug);
+                        that.Log.WriteLog("Error al dispensar: " + result, ci_syslogs_1.Logger.Severities.Alert);
+                        disableMachine();
                         callback(result);
                     }
                 });
-            }
-            else {
+            } else {
+                that.Log.WriteLog("La máquina está deshabilitada, necesita revisión",ci_syslogs_1.Logger.Severities.Alert);
                 callback("Máquina deshabilitada por falla en sensor serial");
             }
         };
@@ -860,8 +832,8 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                             that.emit("Item recibido", that.stateMachine.location, value);
                         }
                     });
-                }, 50);
-                this.once("Item recibido", function () {
+                }, 100);
+                that.once("Item recibido", function () {
                     motorCintaStop(row, c1, c2);
                     that.stateMachine.receivingItem = false;
                     callback(null);
@@ -893,18 +865,19 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                 //Lee el estado del sensor del piso destino
                 if (that.stateMachine.goingTo !== 0) {
                     that.pollSensor({pin: Config.Sensor[that.stateMachine.goingTo].PIN}, function (err, value) {
+                        that.Log.WriteLog("Elevador llego por tiempo lectura de pin", ci_syslogs_1.Logger.Severities.Debug);
                         ready = value;
                     });
                 }
                 //Detiene el elevador según tiempo estimado de piso
-                if (that.stateMachine.countTime >= that.times[that.stateMachine.goingTo].timeToFloor && that.stateMachine.motorState === 1) {
+                if (that.stateMachine.countTime >= Config.times[that.stateMachine.goingTo].timeToFloor
+                        && that.stateMachine.motorState === 1) {
                     ready = true;
                     that.Log.WriteLog("Elevador llego por tiempo límite de piso en: " + that.stateMachine.countTime + " ms", ci_syslogs_1.Logger.Severities.Debug);
                 }
                 if (ready === true) {
                     that.stateMachine.blokingType = 0;
                     that.stateMachine.attempts = 0;
-                    that.stateMachine.countTime = 0;
                     clearInterval(wait);
                     wait = null;
                     callback(null);
@@ -943,19 +916,20 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
         function controlBlocking(callback) {
             that.stateMachine.attempts++;
             that.Log.WriteLog("Intentos " + that.stateMachine.attempts, ci_syslogs_1.Logger.Severities.Debug);
+            that.motorStop(null,()=>{});
             securityState(false);
             if (that.stateMachine.attempts > 2) {
                 that.Log.WriteLog("Elevador bloqueado luego de 2 intentos - Se requiere revisión", ci_syslogs_1.Logger.Severities.Critical);
                 //callback("Elevador bloqueado luego de 2 intentos - Se requiere revisión")
                 disableMachine();
-            }
-            else {
+            } else {
                 that.Log.WriteLog("Comenzando proceso de desbloqueo número: " + that.stateMachine.attempts, ci_syslogs_1.Logger.Severities.Debug);
                 that.Log.WriteLog("Intento de desbloqueo de tipo: " + that.stateMachine.blokingType, ci_syslogs_1.Logger.Severities.Alert);
                 switch (that.stateMachine.blokingType) {
                     //Listo - Probar
                     case 1: //Arranca y no detecta sensores y no se encuentra
                         that.stateMachine.location = null;
+                        that.stateMachine.blokingType = 0;
                         that.Log.WriteLog("Step 1 - Reiniciando sensores", ci_syslogs_1.Logger.Severities.Alert);
                         resetSensors(function (err) {
                             if (err) {
@@ -977,14 +951,14 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                         break;
                     //Listo - Probar
                     case 2: //Atasco del elevador luego de recibir artículo
-                        that.motorStop(null,()=>{});
+                        that.stateMachine.blokingType = 0;
                         disableMachine();
                         callback("Se detectó un atasco al bajar para entregar - La máquina está deshabilitada por seguridad");
                         break;
                     //Listo - Probado
                     case 3: //Atasco yendo a buscar un artículo, se detiene y resume el proceso
-                        that.motorStop(null,()=>{});
                         that.Log.WriteLog("Step 1 - Bajando para desatascar", ci_syslogs_1.Logger.Severities.Debug);
+                        that.stateMachine.blokingType = 0;
                         that.motorStartDown(null,()=>{});
                         setTimeout(function () {
                             that.motorStop(null,()=>{});
@@ -996,15 +970,15 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                         break;
                     //Listo - Probar
                     case 4: //Se detecta un evento inesperado en los sensores
+                        that.stateMachine.blokingType = 0;
                         that.stateMachine.isDelivery = false;
-                        that.motorStop(null,()=>{});
+                        callback("Se detecto un evento inesperado");
                         setTimeout(function () {
                             gotoInitPosition(null,function (err) {
                                 disableMachine();
                                 if (err == null) {
                                     that.Log.WriteLog("Elevador ubicado en posicion inicial por seguridad", ci_syslogs_1.Logger.Severities.Alert);
                                     that.stateMachine.attempts = 0;
-                                    callback(null);
                                 }
                                 else {
                                     that.Log.WriteLog("Maquina deshabilitada, no se pudo estabilizar", ci_syslogs_1.Logger.Severities.Alert);
@@ -1014,8 +988,8 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                         break;
                     //Listo - Probar
                     case 5: //Si han pasado 4 segundos sin detectar ningun sensor cuando el motor está en movimiento
-                        that.motorStop(null,()=>{});
                         that.Log.WriteLog("Step 1 - Reseteando sensores", ci_syslogs_1.Logger.Severities.Alert);
+                        that.stateMachine.blokingType = 0;
                         this.resetSensors(function (err) {
                             if (err) {
                                 callback("No se pudo recuperar sensores");
@@ -1037,27 +1011,14 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                         });
                         break;
                     //Listo - Probar
-                    case 6: //Si pasó de posición
-                        that.motorStop(null,()=>{});
-                        that.Log.WriteLog("Step 1 - Reseteando sensores", ci_syslogs_1.Logger.Severities.Alert);
-                        this.resetSensors(function (err) {
-                            if (err) {
-                                callback("No se pudo recuperar sensores");
-                            }
-                            else {
-                                that.Log.WriteLog("Step 2 - ubicando elevador en posición inicial", ci_syslogs_1.Logger.Severities.Alert);
-                                gotoInitPosition(null, function (err) {
-                                    if (err) {
-                                        callback("No se pudo ubicar el elevador en posición inicial");
-                                    }
-                                    else {
-                                        that.GoTo(that.stateMachine.goingTo, function (err) {
-                                            callback(err);
-                                        });
-                                    }
-                                });
-                            }
-                        });
+                    case 6:
+                        //Si pasó de posición
+                        that.stateMachine.blokingType = 0;
+                        setTimeout(()=>{
+                            gotoInitPosition(null,(err)=>{});
+                            that.Log.WriteLog("Step 1 - Llevando a la posicion inicial por seguridad", ci_syslogs_1.Logger.Severities.Alert);
+                            callback("No se pudo completar el proceso por alerta de sensor")
+                        },1500);
                         break;
                 }
             }
@@ -1084,7 +1045,7 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                 if (result == null) {
                     that.Log.WriteLog('Proceso de encuesta completo', ci_syslogs_1.Logger.Severities.Debug);
                     that.stateMachine.pollProcess = false;
-                    that.Log.WriteLog('Tiempos establecidos: ' + JSON.stringify(that.times), ci_syslogs_1.Logger.Severities.Debug);
+                    that.Log.WriteLog('Tiempos establecidos: ' + JSON.stringify(Config.times), ci_syslogs_1.Logger.Severities.Debug);
                     callback(result);
                 }
                 else {

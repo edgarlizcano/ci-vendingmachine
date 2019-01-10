@@ -39,6 +39,9 @@ html(lang="es")
                     case "WriteLowPin":
                         addLog("Test Pin Out Low at MCP " + data.mcp + " and Pin " + data.pin)
                         break;
+                    case "Maquina_Lista":
+                        addLog("Máquina Lista")
+                        break;
                 }
             })
             socket.on('Sensor', function (data) {

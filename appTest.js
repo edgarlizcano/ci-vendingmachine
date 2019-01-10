@@ -13,10 +13,10 @@ function setControl() {
 
     io.once('connection', function(socket){
         console.log('a user connected');
-        controlMachine.on("Sensor",(data)=>{
-            socket.emit("Sensor", {'cmd':data});
-            console.log("Se leyo el sensor "+data.piso+" estado "+data.state)
-        });
+        // controlMachine.on("Sensor",(data)=>{
+        //     socket.emit("Sensor", {'cmd':data});
+        //     console.log("Se leyo el sensor "+data.piso+" estado "+data.state)
+        // });
         socket.on('disconnect', function(){
             console.log('user disconnected');
         });
@@ -98,11 +98,11 @@ app.set("view engine", "jade");
 
 app.get("/control", function(request, response){
     setControl();
-    controlMachine.on("Event",(data)=>{
-        if(data.cmd==="Maquina_Lista"){
-            response.render("control");
-        }
-    });
+    // control.on("Event",(data)=>{
+    //     if(data.cmd==="Maquina_Lista"){
+    //         response.render("control");
+    //     }
+    // });
     response.render("control");
 });
 

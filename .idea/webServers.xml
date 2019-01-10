@@ -11,7 +11,7 @@
         </fileTransfer>
       </webServer>
       <webServer id="c30e1436-693e-48c6-ab45-082481c301c0" name="Pescuezo" url="http://192.168.1.52">
-        <fileTransfer host="192.168.1.52" port="22" accessType="SFTP">
+        <fileTransfer host="192.168.1.52" port="22" rootFolder="/Logic/vending-machine" accessType="SFTP">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>
