@@ -1,6 +1,6 @@
 {
   "name": "@ci24/vending-machine",
-  "version": "4.0.1",
+  "version": "11.0",
   "description": "",
   "main": ".Filejs/Machine.js",
   "scripts": {
