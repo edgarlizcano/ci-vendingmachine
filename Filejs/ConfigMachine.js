@@ -38,10 +38,12 @@ Config.Card = {
 };
 Config.elevator = {
     Up: { GPIO: 8, PIN: 24 },
-    Down: { GPIO: 25, PIN: 22 }
+    Down: { GPIO: 25, PIN: 22 },
+    Stop: { GPIO: 18, PIN: 12 }
 };
 Config.general = {
-    Stop: { GPIO: 18, PIN: 12 }
+    buzzer: { PIN: 14 },
+    status: { PIN: 13 }
 };
 Config.MCP_Motor = {
     UP: { MCP: 2, value: 0 },
@@ -61,6 +63,7 @@ Config.row = {
     2: { Piso: 2, PIN: 14 },
     1: { Piso: 1, PIN: 15 }
 };
+Config.lastFloor = 1;
 Config.column = {
     1: { PIN: 0 },
     2: { PIN: 9 },
@@ -83,4 +86,5 @@ Config.times = {
     7: { timeToFloor: 12000 }
 };
 Config.Is_empty = false;
+Config.timePollSensor = 2000;
 module.exports = Config;

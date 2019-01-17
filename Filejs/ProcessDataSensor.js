@@ -147,7 +147,7 @@ var ProcessDataSensor = /** @class */ (function (_super) {
                 _this.reference = setTimeout(function () {
                     _this.buffer = new Buffer(0);
                     //  this.array1=this.array.slice(this.array.indexOf(0xcc), this.array.indexOf(0xbb));
-                    ci_logmodule_1.default.write("Dato Recibido------>>    " + JSON.stringify(_this.array));
+                    //_log.write("Dato Recibido------>>    " + JSON.stringify(this.array));
                     _this.Validate(function (err, data) {
                         if (err == null) {
                             _this.ReadyData = true;
@@ -176,7 +176,7 @@ var ProcessDataSensor = /** @class */ (function (_super) {
                 //  this.array = data;
                 _this.CRC = _this.CRC_Vending_Machine(_this.array);
                 if (_this.CRC == _this.array[_this.array.length - 2]) {
-                    ci_logmodule_1.default.write('Crc correcto');
+                    //_log.write('Crc correcto');
                     callback(null, 'CRC correcto');
                 }
                 else {

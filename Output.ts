@@ -230,11 +230,11 @@ export class Output extends event.EventEmitter {
         try {
             switch (data.MCP) {
                 case 1:
-                    _log.write("output: "+ data.value+"   status:"+ data.status+'  '+data.text);
+                    //_log.write("output: "+ data.value+"   status:"+ data.status+'  '+data.text);
                     this.mcp.digitalWrite(data.value, data.status);
                     break;
                 case 2:
-                    _log.write("output: "+ data.value+"   status:"+ data.status+'  '+data.text);
+                    //_log.write("output: "+ data.value+"   status:"+ data.status+'  '+data.text);
                     this.mcp1.digitalWrite(data.value, data.status);
                     break;
 

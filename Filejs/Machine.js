@@ -41,13 +41,14 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
             findProcess: false,
             pollProcess: false,
             readyForDispense: true,
-            timeSettingAdjust: 16,
+            timeSettingAdjust: 13,
             countTime: 100,
             timeToDisepense: 100,
-            timeWithoutSensor: 100
+            timeWithoutSensor: 100,
+            buzzerAlert: null
         };
 
-        that.Log.WriteLog("Control inicializado Version 8", ci_syslogs_1.Logger.Severities.Debug);
+        that.Log.WriteLog("Control inicializado Version 11", ci_syslogs_1.Logger.Severities.Debug);
         rpi_gpio_1.on('change', mainSignal);
         initOuts();
         initSensors(function (err) {
@@ -57,13 +58,12 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
         });
         that.stateMachine.sensorPiso = new Sensor_1.Sensor();
         that.Log.WriteLog("Chequeando Sensor Serial", ci_syslogs_1.Logger.Severities.Debug);
-        //that.stateMachine.enableMachine=true;// Modo prueba
         setTimeout(function () {
-            //if (that.stateMachine.sensorPiso.isCheck === true) {
+            if (that.stateMachine.sensorPiso.isCheck === true) {
                 that.Log.WriteLog("Máquina habilitada", ci_syslogs_1.Logger.Severities.Debug);
-                that.stateMachine.enableMachine = true;
+                that.enableMachine(null,()=>{});
                 securityState(false);
-                that.emit("Event", { cmd: "Maquina_Lista" });
+                //that.emit("EVENT", { cmd: "Maquina_Lista" }); 11-1-19
                 if (that.stateMachine.location == null) {
                     findElevator(function (cb) {
                         if (cb == null) {
@@ -72,38 +72,56 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                                 gotoInitPosition(null, function (err) {
                                     if (err != null) {
                                         that.Log.WriteLog(err, ci_syslogs_1.Logger.Severities.Error);
+                                        that.disableMachine(null,()=>{});
                                     }
                                     else {
-                                        enableMachine();
+                                        that.Log.WriteLog("Inicio terminado Máquina Lista", ci_syslogs_1.Logger.Severities.Debug);
                                     }
                                 });
                             }, 1000);
                         }
                         else {
                             that.Log.WriteLog("Elevador No pudo ser encontrado", ci_syslogs_1.Logger.Severities.Debug);
-                            disableMachine();
+                            that.disableMachine(null,()=>{});
                         }
                     });
                 }
-            //}
-            // else {
-            //     that.emit("Event", { cmd: "Error_puerto_serial" });
-            // }
+            }else{
+                that.Log.WriteLog("Error de Puerto Serial", ci_syslogs_1.Logger.Severities.Debug);
+                that.disableMachine(null,()=>{});
+                that.emit("EVENT", { cmd: "Error_puerto_serial" });
+            }
         }, 6000);
-
         //Habilitar y deshabilitar maquina
-        function enableMachine() {
+        that.enableMachine=(data,callback)=>{
             that.stateMachine.enableMachine = true;
             that.Log.WriteLog("Máquina habilitada", ci_syslogs_1.Logger.Severities.Debug);
-            //that.emit("Event", { cmd: "Enable_Machine" });
-            that.emit("Event", { cmd: "Maquina_Lista" });
-
-        }
-        function disableMachine() {
+            that.emit("EVENT", { cmd: "Enable_Machine" });
+            callback(null);
+        };
+        that.disableMachine = (data,callback)=>{
             that.stateMachine.enableMachine = false;
             that.Log.WriteLog("Máquina deshabilitada", ci_syslogs_1.Logger.Severities.Debug);
-            that.emit("Event", { cmd: "Disable_Machine" });
-        }
+            that.emit("EVENT", { cmd: "Disable_Machine" });
+            // that.mcp2.digitalWrite(Config.general.status.PIN, that.mcp2.LOW);
+            // let buzzerAlert = setInterval(()=>{
+            //     that.mcp2.digitalWrite(Config.general.buzzer.PIN, that.mcp2.HIGH);
+            //     setTimeout(()=>{
+            //         that.mcp2.digitalWrite(Config.general.buzzer.PIN, that.mcp2.LOW);
+            //         if(that.stateMachine.enableMachine===true){
+            //             clearInterval(buzzerAlert);
+            //             buzzerAlert = null;
+            //         }
+            //     },1000);
+            // },10000);
+            callback(null);
+        };
+        that.disableSecurityMachine = (data,callback)=>{
+            that.stateMachine.enableMachine = false;
+            securityState(false);
+            that.Log.WriteLog("Máquina deshabilitada por administrador", ci_syslogs_1.Logger.Severities.Debug);
+            callback(null);
+        };
         //Habilita o deshabilita seguridad
         function securityState(state) {
             that.stateMachine.securityMachine = state;
@@ -216,6 +234,7 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
         function findElevator(callback) {
             that.stateMachine.findProcess = true;
             let timeUp;
+            let count = 100;
             //Proceso de busqueda de elevador
             if (that.stateMachine.location == null) {
                 that.Log.WriteLog("Ubicación desconocida - Iniciando búsqueda", ci_syslogs_1.Logger.Severities.Debug);
@@ -223,18 +242,18 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                     function (callback) {
                         that.Log.WriteLog("Step 1 - Subiendo en búsqueda del elevador", ci_syslogs_1.Logger.Severities.Debug);
                         that.motorStartUp(null,()=>{});
-                        let count;
                         timeUp = setInterval(function () {
                             count = count + 100;
+                            if (count > 3000) {
+                                that.Log.WriteLog("Tiempo excedido de busqueda en subida", ci_syslogs_1.Logger.Severities.Debug);
+                                that.motorStop(null,()=>{});
+                                clearInterval(timeUp);
+                                timeUp = null;
+                                callback(null);
+                            }
                             if (that.stateMachine.location != null) {
                                 that.motorStop(null,()=>{});
                                 callback(true);
-                                clearInterval(timeUp);
-                                timeUp = null;
-                            }
-                            if (count > 3500) {
-                                that.motorStop(null,()=>{});
-                                callback(null);
                                 clearInterval(timeUp);
                                 timeUp = null;
                             }
@@ -306,7 +325,7 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
         //Enciende el motor del elevador hacia arriba
         that.motorStartUp= function (data, callback) {
             try {
-                if (checkPosition(Config.row[1].Piso)) {
+                if (checkPosition(Config.lastFloor)) {
                     that.Log.WriteLog("El Elevador está al limite superior, no puede subir mas", ci_syslogs_1.Logger.Severities.Debug);
                     callback(null)
                 }else {
@@ -377,7 +396,7 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
         //Emite alerta de seguridad
         function emitSecurityAlert(msg) {
             that.Log.WriteLog("Alerta, de seguridad: " + msg, ci_syslogs_1.Logger.Severities.Alert);
-            that.emit("Event", { cmd: "Alerta" });
+            that.emit("EVENT", { cmd: "Alerta" });
         }
         //Controla acciones de según señales de sensores
         function controlSensors(piso, pin, state) {
@@ -385,6 +404,7 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
             //Se emite la alerta si se activa un sensor cuando esta activa el estado de seguridad
             if (that.stateMachine.securityMachine === true && pin !== Config.elevator.Up.PIN && pin !== Config.elevator.Down.PIN) {
                 emitSecurityAlert("sensor activado cuando la máquina está inactiva pin: " + pin);
+                that.disableMachine(null,()=>{});
                 gotoInitPosition(null,function (err) {
                     if (err != null) {
                         that.Log.WriteLog("Puerta asegurada por alerta de seguridad: " + pin, ci_syslogs_1.Logger.Severities.Debug);
@@ -400,6 +420,7 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                     if (that.stateMachine.isDelivery === true && piso < Config.row[7].Piso && piso !== that.stateMachine.location) {
                         emitSecurityAlert("sensor activado del piso " + piso + " cuando se espera por retiro del producto");
                         gotoInitPosition(null,function () {
+                            that.disableMachine(null,()=>{});
                             that.Log.WriteLog("Puerta asegurada por evento inesperado mientras se retiraba el producto", ci_syslogs_1.Logger.Severities.Alert);
                         });
                     }
@@ -409,7 +430,7 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                     }
                     break;
                 case 1:
-                    if (that.stateMachine.blokingType===0 && (that.stateMachine.isDispense === true || that.stateMachine.pollProcess === true)) {
+                    if (that.stateMachine.blokingType===0 && that.stateMachine.pollProcess === true) {
                         Config.times[piso].timeToFloor = that.stateMachine.countTime;
                         that.Log.WriteLog("Tiempo establecido para el piso: " + piso + " es de: " + that.stateMachine.countTime, ci_syslogs_1.Logger.Severities.Debug);
                     }
@@ -469,7 +490,7 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                     that.motorStop(null,()=>{});
                 }
             }
-            that.emit("Sensor", { cmd: that.stateMachine.location, state: state });
+            that.emit("EVENT", { cmd: "Sensor", location: piso, state: state });
         }
         //Control de mandos de controladora
         function manualController(pin, state) {
@@ -506,22 +527,34 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
         function mainSignal(pin, state) {
             switch (pin) {
                 case Config.Sensor["1"].PIN:
-                    controlSensors(1, pin, state);
+                    if(Config.floors[1].Enable === true){
+                        controlSensors(1, pin, state);
+                    }
                     break;
                 case Config.Sensor["2"].PIN:
-                    controlSensors(2, pin, state);
+                    if(Config.floors[2].Enable === true){
+                        controlSensors(2, pin, state);
+                    }
                     break;
                 case Config.Sensor["3"].PIN:
-                    controlSensors(3, pin, state);
+                    if(Config.floors[3].Enable === true){
+                        controlSensors(3, pin, state);
+                    }
                     break;
                 case Config.Sensor["4"].PIN:
-                    controlSensors(4, pin, state);
+                    if(Config.floors[4].Enable === true){
+                        controlSensors(4, pin, state);
+                    }
                     break;
                 case Config.Sensor["5"].PIN:
-                    controlSensors(5, pin, state);
+                    if(Config.floors[5].Enable === true){
+                        controlSensors(5, pin, state);
+                    }
                     break;
                 case Config.Sensor["6"].PIN:
-                    controlSensors(6, pin, state);
+                    if(Config.floors[6].Enable === true){
+                        controlSensors(6, pin, state);
+                    }
                     break;
                 case Config.Sensor["7"].PIN:
                     controlSensors(7, pin, state);
@@ -657,13 +690,22 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
         function prepareForDispense(callback, piso, height) {
             let timeForDown = height * that.stateMachine.timeSettingAdjust;
             if (checkPosition(piso)) {
-                that.Log.WriteLog("Comenzando proceso de retroceso para ajuste de altura", ci_syslogs_1.Logger.Severities.Debug);
+                that.Log.WriteLog("Inicio proceso de ajuste de altura en piso "+piso+" con producto de "+height+" cm", ci_syslogs_1.Logger.Severities.Debug);
                 that.motorStartDown(null,()=>{});
                 setTimeout(function () {
-                    that.motorStop(null,()=>{});
-                    that.Log.WriteLog("Elevador ubicado y listo para recibir", ci_syslogs_1.Logger.Severities.Debug);
-                    that.stateMachine.receivingItem = true;
-                    callback(null);
+                    let time = setInterval(()=>{
+                        that.pollSensor({pin: Config.Sensor[piso].PIN}, function (err, value) {
+                            if (value === false){
+                                that.Log.WriteLog("Elevador salio del campo de lectura del sensor", ci_syslogs_1.Logger.Severities.Debug);
+                                that.motorStop(null,()=>{});
+                                that.Log.WriteLog("Elevador ubicado y listo para recibir", ci_syslogs_1.Logger.Severities.Debug);
+                                that.stateMachine.receivingItem = true;
+                                clearInterval(time);
+                                time = null;
+                                callback(null);
+                            }
+                        });
+                    },50);
                 }, timeForDown);
             }
             else {
@@ -724,13 +766,13 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                         that.stateMachine.receivingItem = false;
                         that.stateMachine.isDelivery = true;
                         setTimeout(function () {
+                            pollSensorSerial();
                             that.GoTo(7,callback);
                         }, 1000);
                     },
                     function (callback) {
                         that.Log.WriteLog("Step 6 Esperando evento del retiro del articulo", ci_syslogs_1.Logger.Severities.Debug);
-                        that.emit("Event", { cmd: "Ok_dispensing", data: true });
-                        that.stateMachine.isDispense = false;
+                        that.emit("EVENT", { cmd: "Ok_dispensing", data: true });
                         setTimeout(function () {
                             waitForRemoveItem(callback);
                         }, 2000);
@@ -742,6 +784,7 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                         }, 8000);
                     }
                 ], function (result) {
+                    that.stateMachine.isDispense = false;
                     that.stateMachine.readyForDispense = true;
                     if (result == null) {
                         that.stateMachine.blokingType = 0;
@@ -751,7 +794,6 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                     } else {
                         that.Log.WriteLog("Proceso de Venta imcompleto",ci_syslogs_1.Logger.Severities.Debug);
                         that.Log.WriteLog("Error al dispensar: " + result, ci_syslogs_1.Logger.Severities.Alert);
-                        disableMachine();
                         callback(result);
                     }
                 });
@@ -865,8 +907,10 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                 //Lee el estado del sensor del piso destino
                 if (that.stateMachine.goingTo !== 0) {
                     that.pollSensor({pin: Config.Sensor[that.stateMachine.goingTo].PIN}, function (err, value) {
-                        that.Log.WriteLog("Elevador llego por tiempo lectura de pin", ci_syslogs_1.Logger.Severities.Debug);
-                        ready = value;
+                        if(value=== true){
+                            that.Log.WriteLog("Elevador llego por lectura de pin", ci_syslogs_1.Logger.Severities.Debug);
+                            ready = value;
+                        }
                     });
                 }
                 //Detiene el elevador según tiempo estimado de piso
@@ -875,6 +919,7 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                     ready = true;
                     that.Log.WriteLog("Elevador llego por tiempo límite de piso en: " + that.stateMachine.countTime + " ms", ci_syslogs_1.Logger.Severities.Debug);
                 }
+
                 if (ready === true) {
                     that.stateMachine.blokingType = 0;
                     that.stateMachine.attempts = 0;
@@ -921,7 +966,7 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
             if (that.stateMachine.attempts > 2) {
                 that.Log.WriteLog("Elevador bloqueado luego de 2 intentos - Se requiere revisión", ci_syslogs_1.Logger.Severities.Critical);
                 //callback("Elevador bloqueado luego de 2 intentos - Se requiere revisión")
-                disableMachine();
+                that.disableMachine(null,()=>{});
             } else {
                 that.Log.WriteLog("Comenzando proceso de desbloqueo número: " + that.stateMachine.attempts, ci_syslogs_1.Logger.Severities.Debug);
                 that.Log.WriteLog("Intento de desbloqueo de tipo: " + that.stateMachine.blokingType, ci_syslogs_1.Logger.Severities.Alert);
@@ -940,7 +985,7 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                                 findElevator(function (err) {
                                     if (err) {
                                         callback("Imposible conseguir el elevador");
-                                        disableMachine();
+                                        that.disableMachine(null,()=>{});
                                     }
                                     else {
                                         callback(null);
@@ -952,7 +997,7 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                     //Listo - Probar
                     case 2: //Atasco del elevador luego de recibir artículo
                         that.stateMachine.blokingType = 0;
-                        disableMachine();
+                        that.disableMachine(null,()=>{});
                         callback("Se detectó un atasco al bajar para entregar - La máquina está deshabilitada por seguridad");
                         break;
                     //Listo - Probado
@@ -975,7 +1020,7 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                         callback("Se detecto un evento inesperado");
                         setTimeout(function () {
                             gotoInitPosition(null,function (err) {
-                                disableMachine();
+                                that.disableMachine(null,()=>{});
                                 if (err == null) {
                                     that.Log.WriteLog("Elevador ubicado en posicion inicial por seguridad", ci_syslogs_1.Logger.Severities.Alert);
                                     that.stateMachine.attempts = 0;
@@ -1032,7 +1077,7 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                     that.Log.WriteLog("Step 1 - Subiendo para chequear tiempos", ci_syslogs_1.Logger.Severities.Debug);
                     that.stateMachine.pollProcess = true;
                     setTimeout(function () {
-                        that.GoTo(1,callback);
+                        that.GoTo(Config.lastFloor,callback);
                     }, 1000);
                 },
                 function (callback) {
@@ -1063,13 +1108,21 @@ module.exports= class ControllerMachine extends events_1.EventEmitter{
                     callback(err);
                 }
                 else {
-                    if (value === true) {
-                        that.Log.WriteLog("Leyendo pin " + data.pin + " en estado " + value, ci_syslogs_1.Logger.Severities.Debug);
-                        callback(null, value);
-                    }
+                    that.Log.WriteLog("Leyendo pin " + data.pin + " en estado " + value, ci_syslogs_1.Logger.Severities.Debug);
+                    callback(null, value);
                 }
             });
         };
+        //Leer pin de entrada Gpio
+        function pollSensorSerial() {
+            let intervalPoll = setInterval(function () {
+                that.stateMachine.sensorPiso.Get_state(function (err, dta) { });
+                if(that.stateMachine.isDispense===false){
+                    clearInterval(intervalPoll);
+                    intervalPoll = null
+                }
+            }, 500);
+        }
         //Test celdas
         that.testCeldas = function (data, callback) {
             let row = Config.row[data.piso].PIN;

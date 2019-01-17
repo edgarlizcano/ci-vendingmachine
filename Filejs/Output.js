@@ -238,11 +238,11 @@ var Output = /** @class */ (function (_super) {
             try {
                 switch (data.MCP) {
                     case 1:
-                        ci_logmodule_1.default.write("output: " + data.value + "   status:" + data.status + '  ' + data.text);
+                        //_log.write("output: "+ data.value+"   status:"+ data.status+'  '+data.text);
                         _this.mcp.digitalWrite(data.value, data.status);
                         break;
                     case 2:
-                        ci_logmodule_1.default.write("output: " + data.value + "   status:" + data.status + '  ' + data.text);
+                        //_log.write("output: "+ data.value+"   status:"+ data.status+'  '+data.text);
                         _this.mcp1.digitalWrite(data.value, data.status);
                         break;
                 }

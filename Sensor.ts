@@ -5,9 +5,6 @@ import {ProcessDataSensor} from "./ProcessDataSensor";
 import {Mux_class} from "./Mux_class";
 import _async from "async";
 
-//let folderLogs = "/free/CI24/Logs/Machine";
-//_log.init(folderLogs);
-
 export class Sensor extends event.EventEmitter {
     constructor() {
         super();
@@ -16,9 +13,9 @@ export class Sensor extends event.EventEmitter {
                _log.write('err' + err);
                if(err == null){
                    this.isCheck=true;
-                   let intervalGoLevel: any = setInterval(() => {
+                   /*let intervalGoLevel: any = setInterval(() => {
                        this.Get_state((err:any,dta?:any)=>{})
-                   }, 2000);
+                   }, 2000);*/
                }
            });
        },3000);

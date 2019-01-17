@@ -6,7 +6,55 @@ menu();
 stdin.addListener("data", function (d) {
     menu();
     var cmd = d.toString().trim();
-    switch (cmd) {
+    console.log("Celda: "+cmd);
+    var piso = cmd.slice(0,1);
+    var row;
+    var c1 = cmd.slice(1,2);
+    var c2 = null;
+    if(cmd.length === 3){
+        c2 = cmd.slice(2,3);
+    }
+
+    switch (piso) {
+        case "h":
+        case "H":
+            control.enableMachine(null,()=>{})
+        case "a":
+        case "A":
+            row = 1;
+            break;
+        case "b":
+        case "B":
+            row = 2;
+            break;
+        case "c":
+        case "C":
+            row = 3;
+            break;
+        case "d":
+        case "D":
+            row = 4;
+            break;
+        case "e":
+        case "E":
+            row = 5;
+            break;
+        case "f":
+        case "F":
+            row = 6;
+            break;
+    }
+    console.log("Dispensando en Fila: "+row+" Columna1: "+c1+" Columna2: "+c2);
+    control.dispenseItem({ piso: row, c1: c1, c2: c2, height:14 }, function (err) {
+        if (err == null) {
+            console.log("Proceso completado con callback");
+        }
+        else {
+            console.log("Error al finalizar");
+        }
+    });
+
+    /*switch (cmd) {
         case "1":
             console.log("yendo a 1");
             control.GoTo(function (data) { console.log("llego :" + data); }, 1);
@@ -104,7 +152,7 @@ stdin.addListener("data", function (d) {
             break;
         case "a6":
             console.log("dispensando f6");
-            control.dispenseItem({ piso: 1, c1: 6, c2: null, height:14 , height:14}, function (err) {
+            control.dispenseItem({ piso: 1, c1: 6, c2: null, height:14}, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -146,6 +194,61 @@ stdin.addListener("data", function (d) {
                 }
             });
             break;
+        case "a12":
+            console.log("dispensando f1");
+            control.dispenseItem({ piso: 1, c1: 1, c2: 2, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "a34":
+            console.log("dispensando f3");
+            control.dispenseItem({ piso: 1, c1: 3, c2: 4, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "a56":
+            console.log("dispensando f4");
+            control.dispenseItem({ piso: 1, c1: 5, c2: 6, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "a78":
+            console.log("dispensando f9");
+            control.dispenseItem({ piso: 1, c1: 7, c2: 8, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "a90":
+            console.log("dispensando f9");
+            control.dispenseItem({ piso: 1, c1: 9, c2: 0, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
 
         case "f1":
             console.log("dispensando f1");
@@ -160,7 +263,7 @@ stdin.addListener("data", function (d) {
             break;
         case "f3":
             console.log("dispensando f3");
-            control.dispenseItem({ piso: 6, c1: 3, c2: null, height:14 , height:14}, function (err) {
+            control.dispenseItem({ piso: 6, c1: 3, c2: null, height:14}, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -249,6 +352,61 @@ stdin.addListener("data", function (d) {
         case "f8":
             console.log("dispensando f8");
             control.dispenseItem({ piso: 6, c1: 8, c2: null, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "f12":
+            console.log("dispensando f1");
+            control.dispenseItem({ piso: 6, c1: 1, c2: 2, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "f34":
+            console.log("dispensando f3");
+            control.dispenseItem({ piso: 6, c1: 3, c2: 4, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "f56":
+            console.log("dispensando f4");
+            control.dispenseItem({ piso: 6, c1: 5, c2: 6, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "f78":
+            console.log("dispensando f9");
+            control.dispenseItem({ piso: 6, c1: 7, c2: 8, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "f90":
+            console.log("dispensando f9");
+            control.dispenseItem({ piso: 6, c1: 9, c2: 0, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -368,6 +526,62 @@ stdin.addListener("data", function (d) {
                 }
             });
             break;
+        case "b12":
+            console.log("dispensando f1");
+            control.dispenseItem({ piso: 2, c1: 1, c2: 2, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "b34":
+            console.log("dispensando f3");
+            control.dispenseItem({ piso: 2, c1: 3, c2: 4, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "b56":
+            console.log("dispensando f4");
+            control.dispenseItem({ piso: 2, c1: 5, c2: 6, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "b78":
+            console.log("dispensando f9");
+            control.dispenseItem({ piso: 2, c1: 7, c2: 8, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "b90":
+            console.log("dispensando f9");
+            control.dispenseItem({ piso: 2, c1: 9, c2: 0, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+
         case "d5":
             console.log("dispensando d5");
             control.dispenseItem({ piso: 4, c1: 5, c2: null, height:14 }, function (err) {
@@ -478,6 +692,62 @@ stdin.addListener("data", function (d) {
                 }
             });
             break;
+        case "d12":
+            console.log("dispensando f1");
+            control.dispenseItem({ piso: 4, c1: 1, c2: 2, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "d34":
+            console.log("dispensando f3");
+            control.dispenseItem({ piso: 4, c1: 3, c2: 4, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "d56":
+            console.log("dispensando f4");
+            control.dispenseItem({ piso: 4, c1: 5, c2: 6, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "d78":
+            console.log("dispensando f9");
+            control.dispenseItem({ piso: 4, c1: 7, c2: 8, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "d90":
+            console.log("dispensando f9");
+            control.dispenseItem({ piso: 4, c1: 9, c2: 0, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+
         case "c4":
             console.log("dispensando c4");
             control.dispenseItem({ piso: 3, c1: 4, c2: null, height:14 }, function (err) {
@@ -580,6 +850,61 @@ stdin.addListener("data", function (d) {
         case "c9":
             console.log("dispensando c9");
             control.dispenseItem({ piso: 3, c1: 9, c2: null, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "c12":
+            console.log("dispensando f1");
+            control.dispenseItem({ piso: 3, c1: 1, c2: 2, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "c34":
+            console.log("dispensando f3");
+            control.dispenseItem({ piso: 3, c1: 3, c2: 4, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "c56":
+            console.log("dispensando f4");
+            control.dispenseItem({ piso: 3, c1: 5, c2: 6, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "c78":
+            console.log("dispensando f9");
+            control.dispenseItem({ piso: 3, c1: 7, c2: 8, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "c90":
+            console.log("dispensando f9");
+            control.dispenseItem({ piso: 3, c1: 9, c2: 0, height:14 }, function (err) {
                 if (err == null) {
                     console.log("Proceso completado con callback");
                 }
@@ -699,13 +1024,69 @@ stdin.addListener("data", function (d) {
                 }
             });
             break;
+        case "e12":
+            console.log("dispensando f1");
+            control.dispenseItem({ piso: 5, c1: 1, c2: 2, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "e34":
+            console.log("dispensando f3");
+            control.dispenseItem({ piso: 5, c1: 3, c2: 4, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "e56":
+            console.log("dispensando f4");
+            control.dispenseItem({ piso: 5, c1: 5, c2: 6, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "e78":
+            console.log("dispensando f9");
+            control.dispenseItem({ piso: 5, c1: 7, c2: 8, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+        case "e90":
+            console.log("dispensando f9");
+            control.dispenseItem({ piso: 5, c1: 9, c2: 0, height:14 }, function (err) {
+                if (err == null) {
+                    console.log("Proceso completado con callback");
+                }
+                else {
+                    console.log("Error al finalizar");
+                }
+            });
+            break;
+
         case "s":
             console.log("Stop");
             control.motorStop();
             break;
         default:
             console.log("opcion incorrecta");
-    }
+    }*/
 });
 function menu() {
     console.log("0 - goto main");
@@ -715,7 +1096,6 @@ function menu() {
     console.log("4 - goto 4");
     console.log("5 - goto 5");
     console.log("6 - goto 6");
-    console.log("7 - abajo");
+    console.log("7 - goto 7");
     console.log("stop");
-    console.log("c2");
 }

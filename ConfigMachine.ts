@@ -42,11 +42,13 @@ Config.Card = {
 
 Config.elevator  = {
     Up:      {GPIO: 8, PIN:  24},
-    Down:    {GPIO:25, PIN:  22}
+    Down:    {GPIO:25, PIN:  22},
+    Stop:      {GPIO: 18, PIN:  12}
 };
 
 Config.general  = {
-    Stop:      {GPIO: 18, PIN:  12}
+    buzzer : {PIN: 14},
+    status : {PIN: 13}
 };
 
 Config.MCP_Motor= {
@@ -54,10 +56,12 @@ Config.MCP_Motor= {
     Down  :  {MCP: 2, value: 2},
     ENABLE:  {MCP: 2, value: 1},
 };
+
 Config.mux={
     Mux_1:  {MCP: 2, value: 8, text: "Mux_1",status: false, ID:0},
     Mux_2:  {MCP: 2, value: 9, text: "Mux_2",status: false, ID:1}
 };
+
 Config.row= {
     7:  {Piso: 7, PIN: 26},
     6:  {Piso: 6, PIN: 10},
@@ -67,6 +71,9 @@ Config.row= {
     2:  {Piso: 2, PIN: 14},
     1:  {Piso: 1, PIN: 15}
 };
+
+Config.lastFloor = 1;
+
 Config.column= {
     1:   {PIN: 0},
     2:   {PIN: 9},
@@ -91,5 +98,7 @@ Config.times = {
 };
 
 Config.Is_empty = false;
+
+Config.timePollSensor = 2000;
 
 export = Config;

@@ -168,7 +168,7 @@ export class ProcessDataSensor extends event.EventEmitter {
             this.reference = setTimeout(() => {
                 this.buffer = new Buffer(0)
               //  this.array1=this.array.slice(this.array.indexOf(0xcc), this.array.indexOf(0xbb));
-                _log.write("Dato Recibido------>>    " + JSON.stringify(this.array));
+                //_log.write("Dato Recibido------>>    " + JSON.stringify(this.array));
                 this.Validate((err,data)=>{
                     if(err==null){
                         this.ReadyData = true;
@@ -199,7 +199,7 @@ export class ProcessDataSensor extends event.EventEmitter {
 
             this.CRC =this.CRC_Vending_Machine(this.array);
             if(this.CRC==this.array[this.array.length-2]){
-                _log.write('Crc correcto');
+                //_log.write('Crc correcto');
                 callback(null,'CRC correcto')
             }else{
                 _log.error('Crc incorrecto');

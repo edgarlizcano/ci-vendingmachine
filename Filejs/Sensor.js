@@ -18,8 +18,6 @@ var events_1 = __importDefault(require("events"));
 var ProcessDataSensor_1 = require("./ProcessDataSensor");
 var Mux_class_1 = require("./Mux_class");
 var async_1 = __importDefault(require("async"));
-//let folderLogs = "/free/CI24/Logs/Machine";
-//_log.init(folderLogs);
 var Sensor = /** @class */ (function (_super) {
     __extends(Sensor, _super);
     function Sensor() {
@@ -78,9 +76,9 @@ var Sensor = /** @class */ (function (_super) {
                 ci_logmodule_1.default.write('err' + err);
                 if (err == null) {
                     _this.isCheck = true;
-                    var intervalGoLevel = setInterval(function () {
-                        _this.Get_state(function (err, dta) { });
-                    }, 2000);
+                    /*let intervalGoLevel: any = setInterval(() => {
+                        this.Get_state((err:any,dta?:any)=>{})
+                    }, 2000);*/
                 }
             });
         }, 3000);

@@ -13,10 +13,18 @@ function setControl() {
 
     io.once('connection', function(socket){
         console.log('a user connected');
-        // controlMachine.on("Sensor",(data)=>{
-        //     socket.emit("Sensor", {'cmd':data});
-        //     console.log("Se leyo el sensor "+data.piso+" estado "+data.state)
-        // });
+        controlMachine.on("EVENT",(data)=>{
+            switch (data.cmd) {
+                case "Sensor":
+                    socket.emit("Sensor", {piso:data.location, state:data.state});
+                    console.log("Se leyo el sensor "+data.location+" estado "+data.state)
+                    break;
+                case "Enable_Machine":
+                    socket.emit("EventControl", {'cmd':"Enable"});
+                    console.log("Maquina Lista")
+                    break;
+            }
+        });
         socket.on('disconnect', function(){
             console.log('user disconnected');
         });

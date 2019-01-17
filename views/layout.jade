@@ -39,13 +39,13 @@ html(lang="es")
                     case "WriteLowPin":
                         addLog("Test Pin Out Low at MCP " + data.mcp + " and Pin " + data.pin)
                         break;
-                    case "Maquina_Lista":
+                    case "Enable":
                         addLog("Máquina Lista")
                         break;
                 }
             })
             socket.on('Sensor', function (data) {
-                switch (data.cmd) {
+                switch (data.piso) {
                     case 1:
                         if (data.state === true) {
                             document.getElementById("s1").classList.remove('bg-secondary');

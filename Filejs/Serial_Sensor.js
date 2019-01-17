@@ -16,7 +16,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var ci_logmodule_1 = __importDefault(require("@ci24/ci-logmodule"));
 var events_1 = __importDefault(require("events"));
 var Global_1 = __importDefault(require("./Global"));
-var ConfigMachine_1 = __importDefault(require("./ConfigMachine"));
+var Config = require("./ConfigMachine");
 //let folderLogs = "/free/CI24/Logs/Machine/";
 //_log.init(folderLogs);
 var Serial_Sensor = /** @class */ (function (_super) {
@@ -118,19 +118,19 @@ var Serial_Sensor = /** @class */ (function (_super) {
         _this.Process_state = function (BufferIn, callback) {
             try {
                 if (BufferIn[0] == 0xcc && BufferIn[BufferIn.length - 1] == 0xbb) {
-                    ci_logmodule_1.default.write('Inicio y fin de trama correcto de estado de sensores' + 'CRC correcto, Longitud de trama=' + BufferIn.length);
+                    //_log.write('Inicio y fin de trama correcto de estado de sensores'+'CRC correcto, Longitud de trama='+BufferIn.length);
                     if (BufferIn[3] == 0x33) {
                         if (BufferIn[4] > 0xf0) {
                             ci_logmodule_1.default.warning('esta desocupada----->' + JSON.stringify(BufferIn));
-                            //global.Is_empty=true;
-                            ConfigMachine_1.default.Is_empty = true;
+                            Global_1.default.Is_empty = true;
+                            Config.Is_empty = true;
                             callback(null, '');
                         }
                         else {
                             ci_logmodule_1.default.fatal('esta ocupada----->' + JSON.stringify(BufferIn));
                             callback(null, 'ok');
                             Global_1.default.Is_empty = false;
-                            ConfigMachine_1.default.Is_empty = false;
+                            Config.Is_empty = false;
                         }
                     }
                     else {
