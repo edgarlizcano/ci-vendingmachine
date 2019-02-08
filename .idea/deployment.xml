@@ -10,14 +10,6 @@
           </mappings>
         </serverdata>
       </paths>
-      <paths name="TestMachine">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/Logic/Machine_tsc" local="$PROJECT_DIR$" web="/" />
-            <mapping deploy="/Logic/ci-ppa-business-logic/node_modules/@ci24/vending-machine" local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
       <paths name="vending">
         <serverdata>
           <mappings>

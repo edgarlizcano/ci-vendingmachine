@@ -18,14 +18,6 @@
           <option name="port" value="22" />
         </fileTransfer>
       </webServer>
-      <webServer id="5011e35b-a66e-4380-9f3c-cf52a0e37b40" name="TestMachine" url="http://192.168.14.57">
-        <fileTransfer host="192.168.14.57" port="22" accessType="SFTP">
-          <advancedOptions>
-            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
-          </advancedOptions>
-          <option name="port" value="22" />
-        </fileTransfer>
-      </webServer>
     </option>
   </component>
 </project>
